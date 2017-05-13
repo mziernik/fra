@@ -1,0 +1,17 @@
+[
+    {
+        "pk": 1,
+        "login": "root",
+        "active": true
+    },
+    {
+        "pk": 3,
+        "login": "admin",
+        "active": true
+    },
+    {
+        "pk": 6,
+        "login": "jan",
+        "active": false
+    }
+]

@@ -1,0 +1,14 @@
+{
+    "map": {
+        "element": "Element"
+    },
+    "items": [
+        {
+            "name": "Nazwa",
+            "value": "Wartość"
+        }
+    ],
+    "text": "Tekst",
+    "number": 1234,
+    "tstr": "TObject String"
+}
