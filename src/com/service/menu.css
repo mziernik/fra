@@ -1,0 +1,73 @@
+/*# sourceURL=file:///menu.css*/
+
+#mainMenu {
+    color: #333;
+    background-color: #ddd;
+    border-bottom: 1px solid #666;
+}
+
+#mainMenu i {
+    font-size: 20px;
+    margin: 4px;
+}
+
+#left-menu {
+    color: #eee;
+    background-color: #3a3633;
+    padding: 0;
+    margin: 0;
+    width: 40px;
+    text-align: center;
+    flex-shrink: 0;
+    list-style: none;
+}
+
+#left-menu > li {
+    border-bottom: 1px solid #111;
+    border-top: 1px solid #555;
+}
+
+/* ikona */
+#left-menu i {
+    line-height: 40px;
+    font-size: 22px;
+    color: #bbb;
+    display: inline-block;
+    cursor: pointer;
+}
+
+#left-menu i:hover { 
+    color: #ddd; 
+}
+
+/* submenu */
+#left-menu ul {
+    display: none;
+    list-style: none;
+    padding: 0;
+    position: absolute;
+    background-color: #3a3633;
+    border: 1px solid #000;
+    left: 38px;
+    margin-top: 10px;
+    text-align: left;
+}
+
+#left-menu ul {
+    z-index: 1000;
+    padding: 4px 0;
+}
+
+#left-menu ul li:hover {
+    background-color: #222;
+    color: #eee; 
+}
+
+/* link sumbenu */
+#left-menu ul a {
+    color: #bbb;
+    text-decoration: none;
+    display: block;
+    padding: 6px 20px;    
+    border-bottom: 1px solid #2a2a2a;
+}

@@ -1,0 +1,24 @@
+
+<div>
+    UŻYTKOWNICY 
+</div>
+
+
+<table id="tblUsers" class="dsTbl">
+
+</table>
+<br/>
+<div>
+    <button onclick="api.test.usersUpdate({params: {action: 'update'}})">Aktualizuj</button>
+    <button onclick="api.test.usersUpdate({params: {action: 'insert'}})">Dodaj</button>
+    <button onclick="api.test.usersUpdate({params: {action: 'remove'}})">Usuń</button>
+</div>
+<div>
+    <button onclick="api.test.file()">Pobierz plik</button>
+    <button onclick="api.test.event()">Zdarzenie żądania</button>
+    <button onclick="api.test.broadcast()">Zdarzenie broadcast</button>
+    <button onclick="api.test.messages()">Komunikaty</button>
+    <button onclick="api.test.hints()">Hinty</button>
+    <button onclick="api.test.delay()">Opóźnienie</button>
+    <button id="btnCancel">Zdarzenie i anulacja</button>
+</div>

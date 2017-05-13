@@ -1,0 +1,35 @@
+body[ctrl=database] #container {
+    padding: 0;
+}
+
+#db {
+    display: flex;
+    flex: auto;
+    flex-direction: column;
+}
+
+
+#db > div:nth-child(2){
+    flex: auto;
+}
+
+
+#db_query {
+    display: flex;
+    flex-direction: column;
+}
+
+#db_query textarea {
+    width: 100%;
+    flex: auto;
+    font-family: monospace;
+    resize: none;
+}
+
+
+#db-status-bar {
+    font-size: 12px;
+    padding: 2px;
+    height: 22px;
+    overflow: hidden;
+}

@@ -1,0 +1,24 @@
+{
+    "config-tree": {
+        "config.removeFilter": "Remove filter",
+        "config.search": "Search",
+        "config.export": "Export",
+        "config.configExport": "Export configuration",
+        "config.onlyModified": "Only modified values",
+        "config.apply": "Apply",
+        "config.cancel": "Cancel",
+        "config.save": "Save",
+        "config.reallySave": "Are you sure you want to save changes?",
+        "config.fillingIn": "Saving",
+        "config.canceled": "Canceled",
+        "config.abandonedSave": "Abandoned save the changes",
+        "config.ordinaryVal": "Ordinary values",
+        "config.valueEdition": "Value edition",
+        "config.typeNameVar": "Type the name of the variable",
+        "config.valueFromVar": "Value of the variable",
+        "config.chooseFromList": "Choose from the list",
+        "config.lack": "Lack",
+        "config.valRequired": "Required value",
+        "config.valDefault": "Default value"
+    }
+}

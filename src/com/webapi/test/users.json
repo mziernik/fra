@@ -1,0 +1,15 @@
+[
+    [2, "N", "A", "milosz.ziernik", "Miłosz", "Ziernik", "Miłosz", "milosz.ziernik@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23, 15], null, 0],
+    [3, "N", "A", "blazej.palmaka", "Błażej", "Palmąka", "Błażej", "blazej.palmaka@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [30, 31, 32, 33, 34, 35], null, 0],
+    [4, "N", "A", "paulina.palczynska", "Paulina", "Pałczyńska", "Paulina", "paulina.palczynska@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [42, 43, 44, 45, 46, 47], null, 0],
+    [5, "N", "A", "marek.motyl", "Marek", "Motyl", "Marek", "marek.motyl@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [36, 37, 38, 39, 40, 41], null, 0],
+    [6, "N", "A", "pawel.baran", "Paweł", "Baran", "Paweł", "pawel.baran@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [48, 49, 50, 51, 52, 53], null, 0],
+    [7, "N", "A", "pawel.bialek1", "Paweł", "Białek", "Paweł", "pawel.bialek1@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [], null, 0],
+    [8, "N", "A", "arkadiusz.matuszczyk", "Arkadiusz", "Matuszczyk", "Arek", "arkadiusz.matuszczyk@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [54, 55, 56, 57, 58, 59], null, 0],
+    [9, "N", "A", "hubert.zarychta", "Hubert", "Zarychta", "Hubert", "hubert.zarychta@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [60, 61, 62, 63, 64, 65], null, 0],
+    [10, "N", "A", "grzegorz.salwa", "Grzegorz", "Salwa", "Grzesiek", "grzegorz.salwa@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [66, 67, 68, 69, 70, 71, 72, 73, 74], null, 0],
+    [11, "N", "A", "ilona.matys", "Ilona", "Matys", "Ilona", "ilona.matys@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [65], null, 0],
+    [12, "N", "A", "jakub.lakomiec", "Jakub", "Łakomiec", "Qba", "jakub.lakomiec@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [75, 76, 77, 78, 79, 80, 81, 82, 83, 84], null, 0],
+    [13, "N", "A", "andrzej.smyk", "Andrzej", "Smyk", "Andrzej", "andrzej.smyk@infover.pl", true, true, "2016-11-15 16:01:46", true, [], [], null, 0],
+    [14, "A", "A", "testy.wydajnosciowe", "Testy", "Wydajnościowe", "Testy\nWydajnościowe", "alerts.eclicto@kolporter.com.pl", false, true, "2016-11-15 16:01:46", false, [], [85, 86, 87, 88, 89, 90, 91, 92, 93, 94], null, 0]
+]

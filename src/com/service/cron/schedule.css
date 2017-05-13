@@ -1,0 +1,305 @@
+.btn-transparent {
+    border: none;
+    overflow: hidden;
+    background-color: transparent;
+    background-repeat: no-repeat;
+}
+
+.btn-transparent:focus {
+    outline: none;
+}
+
+.empty-tag {
+    padding-bottom: 20px;
+}
+
+.error-tag {
+    border-color: #CC0000;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #CC0000;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #CC0000;
+}
+
+.succes-tag {
+    border-color: #5cb85c;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #5cb85c;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #5cb85c;
+}
+
+.disabled-tag {
+    cursor: not-allowed;
+}
+
+.schedule-panel .top-controll-panel {
+    position: relative;
+    margin-right: 29px;
+    text-align: right;
+}
+
+.schedule-panel .top-controll-panel button {
+    background-color: Transparent;
+    background-repeat: no-repeat;
+    border: none;
+    overflow: hidden;
+    width: 34px;
+    vertical-align: middle;
+}
+
+.schedule-panel .top-controll-panel button:focus {
+    outline: none;
+}
+
+.schedule-panel .top-controll-panel span {
+    font: normal normal normal 1.3em FontAwesome;
+}
+
+.schedule-panel .top-controll-panel span.fa-square-o {
+    padding-right: 3px;
+}
+
+.schedule-panel .top-controll-panel .interval {
+    vertical-align: middle;
+    display: inline-flex;
+}
+
+.schedule-panel .top-controll-panel .interval label {
+    margin-left: 15px;
+    margin-top: 3px;
+    margin-bottom: 0px;
+}
+
+.schedule-panel .top-controll-panel .interval input {
+    margin-left: 4px;
+    height: 28px;
+    max-width: 80px;
+}
+
+.schedule-panel .top-controll-panel label:not(:first-of-type) {
+    margin-left: 15px;
+}
+
+.schedule-panel .top-controll-panel input[type="checkbox"] {
+    height: 16px;
+    width: 16px;
+    margin: 0px;
+    vertical-align: middle;
+}
+
+.schedule-panel .top-controll-panel input[type="checkbox"]:focus {
+    outline: unset;
+}
+
+.schedule-panel .top-controll-panel input[type="text"], .schedule-panel .top-controll-panel select {
+    padding-top: 2px;
+    display: unset;
+    width: unset;
+    min-width: 60px;
+    max-width: 90px;
+}
+
+.schedule-panel .input-w label {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.schedule-panel .input-w input {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.schedule-panel .schedule-table {
+    width: 100%;
+}
+
+.schedule-panel .schedule-group:last-of-type hr {
+    display: none;
+}
+
+.schedule-panel .group-content {
+    width: 100%;
+}
+
+.schedule-panel .group-content tr td {
+    padding-bottom: 6px;
+}
+
+.schedule-panel .group-content tr:first-child td {
+    padding-top: 5px;
+}
+
+.schedule-panel .group-content tr:last-child td {
+    padding-bottom: 0px;
+}
+
+.schedule-panel .group-content .input-row {
+    display: inline-flex;
+    width: 100%;
+}
+
+.schedule-panel .group-content .edit-inputs {
+    width: 100%;
+}
+
+.schedule-panel .group-content .row-value {
+    display: inline-flex;
+}
+
+.schedule-panel .group-content .row-remove {
+    width: 14px;
+    margin-right: 10px;
+}
+
+.schedule-panel .group-content .date-start, .schedule-panel .group-content .time-start {
+    margin-right: 3px;
+}
+
+.schedule-panel .group-content .date-end, .schedule-panel .group-content .time-end {
+    margin-left: 3px;
+}
+
+.schedule-panel .group-content .btn-remove {
+    padding-top: 5px;
+}
+
+.schedule-panel .btn-remove {
+    cursor: pointer;
+}
+
+.schedule-panel tr.spacer td {
+    height: 10px;
+}
+
+.schedule-panel select, .schedule-panel input[type="text"] {
+    height: 28px;
+    padding: 3px 8px;
+}
+
+.schedule-panel option:disabled {
+    color: #d9d9d9;
+}
+
+.schedule-panel .buttons-panel {
+
+
+    width: 30px;
+    text-align: center;
+}
+
+.schedule-panel .buttons-panel > button:not(:first-child) {
+    margin-top: 6px;
+}
+
+.schedule-panel .buttons-panel > button {
+
+    width: 32px;
+    height: 28px;
+    background-color: Transparent;
+    background-repeat: no-repeat;
+    border: none;
+    overflow: hidden;
+}
+
+.schedule-panel .buttons-panel > button:focus {
+    outline: none;
+}
+
+.schedule-panel .buttons-panel span {
+    width: 20px;
+    height: 20px;
+    font: normal normal normal 1.4em FontAwesome;
+}
+
+.schedule-panel .buttons-panel span.fa-check-square-o {
+    padding-left: 2px;
+}
+
+.schedule-panel .buttons-panel span.fa-trash-o {
+    margin-bottom: 20px;
+}
+
+.schedule-panel .schedule-group-empty:not(:first-child) {
+    outline: 1px solid transparent;
+    overflow: auto;
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+}
+
+.schedule-panel .schedule-group-wrapper {
+    margin-top: 1px;
+    outline: 1px solid #e4e4e4;
+    overflow: auto;
+
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+}
+
+.schedule-panel table.not-active {
+    background-color: #eee;
+    outline: 1px solid #eee;
+}
+
+.schedule-panel table.not-active .ms-parent {
+    background-color: unset;
+}
+
+.schedule-panel table.not-active * {
+    outline-color: #eee;
+}
+
+.schedule-panel .schedule-group-wrapper .disabled-wrapper {
+    background-color: #eee;
+}
+
+.schedule-panel .schedule-group-disabled * {
+    background-color: inherit;
+    cursor: not-allowed;
+}
+
+.schedule-panel .buttons-panels {
+    margin-top: 10px;
+    position: relative;
+
+    text-align: right;
+}
+
+.ms-choice {
+    display: block;
+    width: 100%;
+    height: 28px;
+    padding: 3px 8px;
+    line-height: 1.42857143;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+
+#lincall-main .ms-choice {
+    border-radius: 0px;
+}
+
+#lincall-main .ms-drop.bottom {
+    border-radius: 0px;
+}
+
+.ms-choice span {
+    padding-top: 4px;
+}
+
+.ms-drop input {
+    margin-bottom: 4px;
+    margin-right: 3px;
+}
+
+.ms-drop input:focus {
+    outline: none;
+}
+
+.ms-drop span {
+    vertical-align: middle;
+}

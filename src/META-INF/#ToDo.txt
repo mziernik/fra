@@ -1,0 +1,330 @@
+- Przerobić klasę Interval tak aby bazowała na BigInteger
+
+- duża ilość zapytań UPDATE sessions SET alive = '2016-12-07 14:54:56.552' WHERE session_id IN ('WVmrdUdBsJ')
+    - dodać async query + agregacja po obiekcie
+
+- dodać czarną listę adresów url uzuełnianą automayucznie
+    http://141.138.160.21/wp-login.php
+    http://141.138.160.21/app/Mage.php
+    http://testp1.piwo.pila.pl/testproxy.php
+    http://141.138.160.21/phpMyAdmin/scripts/setup.php
+    http://141.138.160.21/PSIA/Custom/SelfExt/userCheck
+
+- odrzucania nieznanych user agentów np ZmEu
+
+- dodać możliwość blokowania żądań z zewnętrznych IP bez domeny, np http://141.138.160.21/magmi/
+- dodać do strony serwisowej PGdump-a
+- dodać zapezpieczenia przed, denial of service
+
+
+------------------------- service page ------------------------------
+- tester js, html, css
+- js tester wydajności
+
+
+--------------------------- conf -----------------------------
+
+
+
+/*
+    Błędy:
+    
+   + listenIP            = 2 + 2,
+    nie działają funkcje w plikiach importowanych
+    dodać obsłuę "str" || "str"  jak w JS
+   + włączyć łączenie swobodnych elementów w tablice
+    listen."ip" = 2
+    
+
+*/
+------------------------------------------------------------------
+
+- jesli w jednym zapytaniu przeplatają się podzapytania typu select i insert lub update to QueryRows.nextResult() zwraca nulla
+
+---- Logi -----
+    - usunąć część atrybutów typu nazwa użytkownika, url itp (docelowo powinny być zapisywane jako atrybuty)
+    - przerobić filtry - nie powiiny się pokazywać wszystkie lecz jedynie wybrane (z menu kontekstowego)
+
+- Interval: uprościć strukurę, bazować na BigInteger
+- AsyncQuery - w przypadku wystąpienia błedu pobrać stack trace z lambdy
+- dodawać wszystkie urle typu zasoby, cache, tempRequest itp do EndpointMappings i tam nimi zarządzać
+
+- w momencie odwolania się do pliku html z zasobu, np res/milosz/index.html tworzona jest inna sesja niż w przypadku 
+  odwołania się do kontrolera, np /
+
+- opcja zamykania/restartowania aplikacji 
+    (uruchomienie drugiej instancji z argumentem stop lub restart, odwołanie się
+    do oryginalnej przez pamięć współdzieloną lub tcp)
+
+
++ jesli wykonamy nawigację do katalogu znajdującego się w web to traktuje go jako plik i otwiera input streama
++ w momencie wykonania nawigacji do katalogu (w web) powinien szukać plików index.html
+
+- źle działa powiadomienie o nowej wersji. Zdarzenie jest wywoływane również wtedy, gdy wersja się nie zmianiła
+
+
++ Połączyć klasy WaitFor, Ready oraz RunLater 
+
+- Dodać klasę RequestRouter, która będzie zarządzać wszystkimi żądaniami
+- Przenieść wszystkie linki do zasobów (TempRequest, Endpointy, Resource i inne) do klasy RequestRouter (lub innej)
+
+- Utworzyć klasę HttpResponse, która będzie zwracała treść oraz zawierała atrybuty z tym związane (
+    nagłówki, content-encoding, content-disposition), powinna obsługiwać ContentSource,
+    zastosowanie: TempRequest, Page
+
+- Usługa zdalnej aktualizacji
+    - wykorzystanie apgdiff-a do aktualizacji struktury bazy
+
+- Dodać log4j !!!!!!!!!!!!!!
+
+- Dokończyć logs storage
+
+- sparametryzować ilość logów w konsoli
+
+- Nie działają nagłówki CORS dla plików zasobów
+
+- Dodać obsługę logów UTF-8 w syslogu, np  Rozmowa z "Mi&#322;osz" <302> na h
+
+
+======================== ANT ==========================
+
+- przerobiśc zadanie kopiujące zawartosc katalogu res do bin z pominięciem istniejących plików
+
+- pliki backupu są niekompletne. Prawdopodobnie jest tos skutek równoległego przetwarzania
+-generować plik kill.sh 
+    #!/bin/sh -e
+    pkill -f "lincore.jar"
+
+============================ KONFIGURACJA ================================
+- możliwość włączenia/wyłączenia danych opcji (wyszarzenia w menu)
+- dodać do ConfigItem callbacka modyfikacji innych elementów konfiguracji oraz wczytania całości
+- przejście do nowej struktury
+
+
+======================== UTILS ==========================
+- rozbudować klasę TList 
+- RunLater - bazować na TTimer a nie na własnym wątku
+
+
+============================= KONTEKST =========================
+- Wyświetlać tablkę podsumowującą w formie graficznej vt100
+-Tryb debugowania:
+    - dodać przekazywanie parametrów ustawionych w projekcie
+    - wczytywanie przez classpath
+
+============================ UŻYTKOWNICY ================================
++ opcja autologowania na podstawie IPka
+- session/user - instancja obiektu jest inna niż w BaseUserhandler/all
+- przenieść część kodu z BaseUserHandler do UserData
+
+
+
+================================= ZEWNĘTRZNE ==============================
+- wymienić bibliotekę smack xmpp (sypie błędami, duże zużycie procesora)
+
+
+================================ BAZA DANYCH ===============================
+
+- dodać obsługę adapterów konwerujących zapis do różnych postaci (podobnie jak w gsonie)
+
+
+--------------------------------------
+java.lang.IllegalThreadStateException
+
+    java.lang.Thread.start (Thread.java:705)
+    com.threads.TThread.start (TThread.java:154)
+    com.database.service.ServiceDB.queue (ServiceDB.java:76)
+    com.database.service.Sessions.sessionDestroyed (Sessions.java:151)
+--------------------------------------------------
+
+- Przerobić klasy TTime i TDuration
+
+- Kreator pierwszego uruchomienia
+
++ Dodać do skryptu anta zrzut z svn info + obsluga po stronie frameworka
+
+- EndpointsMapping powinna również uwzgędniać metody (również statyczne)
+
+- Poprawić klasę TTime / Timestamp - opcja umozliwiająca wyświetlenie części milisekundowej w formie liczby ulamkowej
+
+
+
+- obsługa modułów (pluginów) - ładowanie ondeksu z zewnętrznych plików jar
+
+- wczytywanie konfiguracji statycznej (AppConfig) z pliku z katalogu appdata (nadpisywanie domyślnej)
+    - przegląd klasy AppData, usuniecie zbędnych opcji
+
+- wielojęzyczność, lang, parametry
+
+
+- nowa baza h2 do obslugi zdarzen
+- klasa BaseEvent, indeksowana do obsługi różnego rodzaju zdarzeń (ServiceEvent powinien ją rozszerzać)
+
+
++ Utworzyć adnotację Arg (wskazującą na parametry metod żądań, WebService, WebSocket)
+
+żądanie:
+{   
+    getChannels: {
+        attr1: "asd",
+    }
+}
+
+Odpowiedź:
+{
+    name: "getChannels",
+    attribs: {
+    },
+    result: true,
+    error: {
+        code: 11,
+        message: "",
+        details: "",
+    }
+}
+
++ Dodać obsługę adnotacji @Indexed(name="aa"). Potomkowie klas dziedziczących po wskazanej 
+    tą adnotacją będą automatycznie dodawane do indeksu
+
++ TTime i TimeDiff: sprowadzić do jednej klasy Time(long time, TimeUnit unit)
+
+
++ QueryRow: dodać metodę QueryRows getRows()
+
++ Utworzyć klasę QueryCell
+	String columnName
+	String dataType
+	Object value
+	QueryRow row;
+
++ QueryRow: toString => Lincall Config ->  Data.detailsDbRow 
+
++ nie działa poprawnie odświezanie plików zasobów z katalogu web
+- dodać obsługę serwletów (klasa dzidzicząca po RequestEndpoint)
+
+- w Database.execute usunąć escapowanie %s
+- QueryBuilder: zmienić nazwę metody add na param
+- w QueryRows dodać firstF, w przypadku błędu dodać wyjątek uwzględniający wszystkie parametry
+
+- PageCounter do przebudowy - jesli w adresie strony są jakieś parametry. np &param1=2,
+    powinny być uwzględnione w odnośniku: ?page=1&param1=2
+
+- obsługa protokołu diagnostycznego SMNP 
+
+- view: dodać metodę broadcast
+
+- BsFormAction: dodać możliwość potwierdzenia submita formularza
+- BaseAuthHandler, pobieranie listy uzytkownikow - w pryzpadku bledu, np postgresa nie można nic zrobic
+
+- klonowanie jsona, htmla i xml-a
+
+- baza danych, dao:
+    - utworzyc system slownikow (enumeraty lub klasyczne), weryfikowac zmiany przez zapytanie:
+    SELECT schemaname, relname, n_tup_upd, n_tup_ins, n_tup_del
+    FROM pg_stat_user_tables 
+
+- zweryfikować javascript-y pod kątem zapisu .innerHTML = .... (xHTML)
+- podmienić grafiki na pliki glypth   
+
+- przerobić ikony Awesome tak aby rozszerzały ResFile
+
+
+- uprawnienia -> role (dodać przycisk pokaż wbudowane, po klikniecu na szczegoly wyswietlac 
+  grupy oraz uzytkownikow zawierajacych ta role
+
+- utworzyć stronę $request oraz mechanizm związany z zarządzaniem różnego rodzaju 
+    żądaniami wymagającymi potwierdzenia (np rejestracja, zmiana loginu itp)
+
+KONFIGURACJA:
+    - możliwość linkowania opcji oraz grup: tak aby dana opcja mogła być wyświetlana w wielu miejscach
+    - dodać handlera, w którym można będzie zdefiniować, czy dana opcja jest widoczna
+
+CRON:
+    - dodać opcje recznego wykonania zadania (np checkboxy)
+    - opcjonalne potwierdzenie przred ręcznym uruchomieniem zadania
+    - komentarz w oknie szczegolow zadania
+    - hierarchiczna struktura zadan (dziedziczenie)
+    - edycja 
+
++ tag pre oraz styl tab-size
+
+- doddać opcje debugowania połączeń HTTP (timeouty, zrywanie połączeń itp)
+
++ w przypadku wystapienia bledu np 404 lub blad wystapi w konstruktorze klasy Page,
+     nie jest logowane zadanie ani odpowiedz
+
+
+- rozszerzyć handlera $http tak, aby wyświetlał szczegóły żądania plus upload
+
+- Dla klas dziedziczacych po JsAction dodać mozliwość pobrania parametru ze zmiennej
+    np jesli wywołanie jest w funkcji, która ma zadeklarowane atrybuty, powinna być 
+    możliwość przekazania ich do ajaxa, layera itp
+
+- w tagu A i atrybucie href dodać urlAction poprzedzone prefixem javascript:
+
+- Dodać handlera autoryzacji stron
+- Dodać handlera - router
+
+- dodać obsługę alternatywnego LDAPA (ldap-1.kolporter.com.pl, ldap-2.kolporter.com.pl)
+
+- zastąpić StringBuilder klasą StrWriter
+
+- do adnotacji Cfg dodać pole ServiceMode, w zalezności od jego wartości decydować w jakiej konfiguracji dane pole będzie wykorzystywane
+
+- oprócz klasy pair dodać triple oraz quad; dodac do konfiguracji
+- w konfiguracji dodać możliwość definiowania atrybutu NULL-s dla elementu. Obecnie w przypadku np PairList<String, Integer> int moze byc nullem
+- dodać do indeksu listę wszystkich pakietów projektu
+- przy obsłudze wyjątków wyróżnić w stosie błędów te pozycje, które dotyczą pakietów projektu,
+  utworzyć linki umozliwiające otwarcie ich w netbeansie 
+
+- dodac testowe api - zaslepke, bazujaca na skryptach rhino, do testowania web serwisow
+
++ Jeśli klasa Page nie zawiera adnotacji Endpoint, wyświetlany jest błędny komunikat informujący o aktualizacji indeksu
+- dodać metodę Runtime.newInstance która będzie umozliwiała utworzenie dowolnej klasy (również prywatne oraz wewnętrzne)
++ Utworzyć klasę View będącą połączeniem Page i handlera web socekt
+
+
++ przerobić obsługę żądania autoryzacji tak, aby nie kierowało do url-a $login !!!!
+- zweryfikować uprawnienia klasy ServicePage ($). Obecnie wyłączona jest autoryzacja
++ w serwerze wbudownym dodoac contextPath !
++ poprawić sendRedirect (jesli zaczyna sie od / to bedzie to adres wzgledny, jesli nie to biezacy
+- utworzyć klasę hadlers definiującą wszystkie handlery frameworka 
+
+Uytkownicy
+
+- nieprawidlowo dziala zmana loginu !
+
+
+Konfiguracja:
+  ----- ConfigItem: rozbić klase na ConfigItem oraz ConfigItems (jedno do obsługi 
+    pojedynczych wartości, drugie do zbiorów)
+    ---- dodac przycisk przepisujacy wartosci domyslne do wartosci edytowanych
+    - wyświetlanie historii danej opcji z możliwością przywrócenia stanu
+
+
+
+
+- cachowanie
+
+- upload
+
+- lang
+
+- Index:
+    - w przypadku gdy nie ma dodane zadnej strony (np usty szablon), indeks sie zapetla
+    + podział na framework i service
+    + automatyczna aktualizacja w katalogu webapp
+
+
+- Logi
+  + nie działa definiowanie domyślnych handlerów:   CLogs.protocols.setDefaultValues(new Pair<>(true, "udp://10.1.0.254:514"));
+
+
+------------ JavaScript ----------------
+ + poprawić okno błędu (jesli utracono połączenie okno dubluje sie), 
+  +  usunąć klasę błedu, stack trace, dodać przycisk "szczegóły" prowadzący do strony błedu
+ 
+ - w trybie xhtml nie dziala poprawnie wyswietlanie Layer-a
+- poprawic nawigację do strony glownej z metody load(). jesli podamy load('\') powinno przejsc do strony glownej
+
+

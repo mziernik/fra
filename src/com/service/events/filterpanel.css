@@ -1,0 +1,208 @@
+/*# sourceURL=file:///events/filterpanel.css*/
+
+
+.filter-panel.panel-default {
+    border-radius: 0px;
+}
+
+.transparent-btn,
+.filter-panel .filter-header .profile-panel button,
+.filter-panel .filters-groups .filter-group .group-controll button {
+    background-color: Transparent;
+    background-repeat: no-repeat;
+    border: none;
+    overflow: hidden;
+}
+.transparent-btn:focus,
+.filter-panel .filter-header .profile-panel button:focus,
+.filter-panel .filters-groups .filter-group .group-controll button:focus {
+    outline: none;
+}
+.filter-panel {
+    width: 100%;
+    margin-bottom: 10px !important;
+    border: 1px solid #ddd !important;
+}
+.filter-panel .filter-header {
+    width: 100%;
+    display: flex;
+    padding: 0px;
+    /*padding: 8px 11px 8px 16px;*/
+}
+.filter-panel .filter-header div {
+    width: inherit;
+}
+.filter-panel .filter-header .filter-title {
+    padding-top: 4px;
+    font-weight: bold;
+    color: #444;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+.filter-panel .filter-header .profile-panel .profile {
+    float: right;
+}
+.filter-panel .filter-header .profile-panel select {
+    min-width: 200px;
+    height: 28px;
+    padding: 3px 8px;
+}
+.filter-panel .filter-header .profile-panel label {
+    margin-bottom: 0px;
+}
+.filter-panel .filter-header .profile-panel span {
+    margin-right: 5px;
+}
+.filter-panel .filter-header .profile-panel td:nth-child(2) {
+    padding-left: 10px;
+    padding-right: 14px;
+}
+.filter-panel .filters-groups {
+    width: 100%;
+}
+.filter-panel .filters-groups .filter-group {
+    /*vertical-align: middle;*/
+}
+.filter-panel .filters-groups .filter-group .group-controll {
+    width: 36px;
+    text-align: center;
+}
+.filter-panel .filters-groups .filter-group .group-content {
+    width: 100%;
+    /*margin-left: 6px;*/
+}
+.filter-panel .filters-groups .filter-group .group-content .btn-remove {
+    cursor: pointer;
+}
+.filter-panel .filters-groups .filter-group .group-content tr select,
+.filter-panel .filters-groups .filter-group .group-content tr input {
+    height: 28px;
+    padding: 3px 8px;
+}
+.filter-panel .filters-groups .filter-group .group-content tr td:nth-child(2) {
+    display: flex;
+}
+.filter-panel .filters-groups .filter-group .group-content tr td {
+    padding-bottom: 6px;
+}
+.filter-panel .filters-groups .filter-group .group-content tr td:nth-last-child(n+3) {
+    padding-right: 24px;
+}
+.filter-panel .filters-groups .filter-group .group-content tr td:last-child {
+    width: 35px;
+    text-align: center;
+}
+.filter-panel .buttons-panel {
+    margin-right: 44px;
+    display: inline-flex;
+    float: right;
+}
+.filter-panel .buttons-panel button {
+    min-width: 100px;
+    margin-left: 10px;
+}
+.filter-panel .empty-tag {
+    padding-bottom: 20px;
+}
+.filter-panel .error-tag {
+    border-color: #CC0000;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #CC0000;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #CC0000;
+}
+.filter-panel .succes-tag {
+    border-color: #5cb85c;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #5cb85c;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #5cb85c;
+}
+.filter-panel .disabled-tag {
+    cursor: not-allowed;
+}
+
+.filter-search-text {
+    padding-top: 4px;
+    padding-right: 5px;
+}
+
+.profile-panel button {
+    background-color: Transparent;
+    background-repeat: no-repeat;
+    border: none;
+    overflow: hidden;
+}
+
+.profile-panel select {
+    min-width: 200px;
+    height: 28px;
+    padding: 3px 8px;
+}
+.profile-panel label {
+    margin-bottom: 0px;
+}
+.profile-panel span {
+    margin-right: 5px;
+}
+.profile-panel td:nth-child(2) {
+    padding-left: 10px;
+    padding-right: 14px;
+}
+.profile-panel {
+    display: inline-block;
+}
+.filter-search{
+    width: 30%!important;
+}
+.filter-table-wrapper {
+    max-height: 35vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 10px;
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd
+}
+
+#filterPanel .disabled {
+    color: inherit;
+}
+
+.filter-group-wrapper {
+    outline: 1px solid #ccc;
+    overflow: auto;
+    outline-offset: -2px;
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    font-size: 1.3em;
+    line-height: 1.5em;
+}
+
+.filter-group-wrapper.disabled-wrapper {
+    background-color: #eee;
+}
+
+
+.btn.btn-filter {
+    background-color: #66a766;
+}
+.btn.btn-filter:hover {
+    background-color: #3b8a3b;
+}
+
+.btn.btn-refresh {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 30px;
+    border-radius: 0px !important;
+    font-size: medium;
+}
+.btn.btn-refresh:hover {
+    background-color: #bbbbbb;
+}
+.btn.btn-refresh:focus {
+    outline: none;
+}
+
+.filter-panel select, .filter-panel input {
+    border-radius: 0px !important;
+}

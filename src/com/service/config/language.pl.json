@@ -1,0 +1,24 @@
+{
+    "config-tree": {
+        "config.removeFilter": "Usuń filtr",
+        "config.search": "Szukaj",
+        "config.export": "Eksportuj",
+        "config.configExport": "Eksport konfiguracji",
+        "config.onlyModified": "Tylko wartości zmodyfikowane",
+        "config.apply": "Zastosuj",
+        "config.cancel": "Anuluj",
+        "config.save": "Zapisz",
+        "config.reallySave": "Czy na pewno chcesz zapisać zmiany?",
+        "config.fillingIn": "Zapisanie",
+        "config.canceled": "Anulowano",
+        "config.abandonedSave": "Zrezygnowano z zapisania zmian",
+        "config.ordinaryVal": "Wartości zwykłe",
+        "config.valueEdition": "Edycja wartości",
+        "config.typeNameVar": "Wpisz nazwę zmiennej",
+        "config.valueFromVar": "Wartość ze zmiennej",
+        "config.chooseFromList": "Wybierz z listy",
+        "config.lack": "Brak",
+        "config.valRequired": "Wartość wymagana",
+        "config.valDefault": "Wartość domyślna"
+    }
+}

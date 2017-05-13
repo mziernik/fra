@@ -1,0 +1,32 @@
+/*# sourceURL=file:///shell/shell.css*/
+
+#shell {
+    background-color: black;
+    overflow: auto;
+    height: 100%;
+    padding: 20px;
+}
+
+#shell pre {
+    font: 10pt Consolas, Courier New;
+    color: #eee;
+    background-color: black;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+#shell pre:nth-last-child(2){
+    display: inline-block;
+}
+
+#shell #shell-in {
+    display: inline-block;
+    overflow: hidden;
+    padding: 0 6px;
+    background-color: #222;
+}
+
+body[ctrl=shell] #container {
+    padding: 0;
+}

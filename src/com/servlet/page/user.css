@@ -1,0 +1,172 @@
+.fAccordion ul {
+    padding-left: 0px;
+    list-style-type: none;
+    /*padding-bottom: 1em;*/
+    /*padding-top: 1em;*/
+}
+
+.fAccordion ul ul {
+    display:none;
+    /*padding-left: 1.5em;*/
+}
+
+div.panel-heading {
+    cursor: pointer;
+}
+
+div.cbx {
+    margin-right: 5px;
+    vertical-align: text-bottom;
+}
+
+a[item="true"] div.cbx {
+    margin-left: 4px;
+}
+
+/*********************************/
+
+.config-item {
+    width: 100%;
+    margin-top: 0.1em;
+    margin-bottom: 0.1em;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+    cursor: pointer;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    color: #555;
+}
+
+
+
+.config-item-value{
+    margin-left: 10px;
+    color: #000;
+}
+.config-item-unit{
+    font-style: italic;
+}
+.config-item-desc{
+    font-style: italic;
+    color: #999;
+    font-size: 0.8em;
+    margin-left: 8px;
+}
+
+/*********************************/
+
+.config-group {
+    display: inline-block;
+    margin: 8px 0 0 0;
+    padding: 4px 12px;
+    margin-bottom: 0;
+    font-weight: normal;
+    line-height: 1.3;
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    background-image: none;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    color: #333;
+    background-color: #fff;
+    width: 100%;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.config-group[item="false"] {
+    cursor: pointer;
+}
+.config-group[item="true"] {
+    cursor: default;
+}
+
+
+.config-group:hover,
+.config-item:hover{
+    color: #000;
+    background-color: #f7f7f7;
+    border-color: #ddd;
+    text-decoration: none;
+}
+
+.config-group:focus,
+.config-group:active:focus {
+    text-decoration: none;
+    color: #000;
+}
+
+.searched-element {
+
+}
+
+
+/****************************/
+.icon-lg {
+    font-size: large;
+    cursor: pointer;
+}
+
+/****************************/
+
+form[defaults] input,
+form[defaults] textarea,
+form[defaults] select{ 
+    color: #888;
+    background-color: #eee;    
+}
+
+form input:focus,
+form textarea:focus,
+form select:focus{ 
+    color: #000;
+    background-color: #fff;
+}
+
+.cbtree, .radio {
+    display: inherit;
+}
+
+#lblDefaults{
+    font-style: italic;
+    font-size: 8pt;
+    font-weight: normal;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    vertical-align: middle;
+}
+
+#lblDefaults,
+#lblName{
+    color: #000;  
+}
+
+#lblName {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+#lblType {
+    float: right;
+    font-style: italic;
+}
+
+
+.glyphicon-menu-right,
+.glyphicon-menu-down{
+    font-size: 0.8em;
+    margin: 0 8px;
+    color: #666;
+}
+
+#tblCfgItems td {
+    padding: 4px 2px;
+}

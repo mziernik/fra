@@ -1,0 +1,151 @@
+<style>
+    .flex-h {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .flex-v {
+        display: flex;
+        flex-direction: row;
+    }
+
+    #trans-container {
+        height: 100%;
+    }
+
+    #trans-container button {
+        margin: 4px;
+        padding: 3px 10px;
+
+    }
+
+    #trans-container h4 {
+        display: inline-block;
+    }
+
+    #trans-container label {
+        font-size: 1em;
+        font-weight: normal;
+    }
+
+
+    .trs-bottom{
+        border-top: 1px solid #aaa;
+        margin-top: 8px;
+        padding-top: 4px;
+        display: flex;
+    }
+
+    #trans-container textArea {
+        width: 100%;
+        height: 100%;
+        flex: auto;
+        resize: none;
+        line-height: 1.5em;
+        font-family: monospace;
+    }
+
+    #trans-container div.row{
+        display: flex;
+        margin:4px;
+        margin-bottom: 8px;
+    }
+
+    #trans-container div.row >label,
+    #trans-container div.row >span{
+        padding-right: 4px;
+        margin-bottom: 5px;
+        margin-top:5px;
+        display: flex;
+
+    }
+</style>
+
+<div id="trans-container" style="
+     display: flex;
+     flex-direction: row;">
+    <div style="flex: auto; width: 0; ">
+        <table id="tblTranslations" class="dsTbl" data-full-height> </table>
+    </div>
+    <div style="
+         width: 30%;
+         flex: auto;
+         flex-grow: 0;
+         padding-left: 8px;
+         flex-shrink: 0;
+         display: flex;
+         flex-direction: column;
+         ">
+        <div class="flex-v">
+            <div style="flex-grow: 3; flex-direction: column;">
+                <div class="row">
+                    <label for="tranlation-language-select">Język</label>
+                    <select id="tranlation-language-select" style="width: 100%"></select>
+                </div>
+                <div class="row">
+                    <label for="reference-language-select">Odniesienie</label>
+                    <select id="reference-language-select" style="width: 100%">
+                        <option value="none">-brak-</option>
+                    </select>                    
+                </div>
+                <div class="row">
+                    <label for="filter-complete-checkbox">
+                        <span>Tylko niezatwierdzone&nbsp;</span>
+                        <input class="dsTbl" id="filter-complete-checkbox" type="checkbox"/>
+                        <span style="font-size: 1.15em;  margin-top: -1px;"></span>
+                    </label>                    
+                </div>
+                <div class="row">
+                    <label>Przetłumaczone</label>
+                    <span id="trans-count-text"></span>
+                </div>
+            </div>
+            <div class="flex-h" style="flex-grow: 1;">
+                <button id="add-lang-button">Dodaj</button>
+                <button id="remove-lang-button">Usuń</button>
+                <button>Import</button>
+                <button>Eksport</button>
+                <button
+                    id="google-translate-all-button"
+                    style="float: right; display:none;">
+                    Autotłumaczenie brakujących
+                </button>
+            </div>
+        </div>
+
+        <div style="border-top: 1px solid #aaa; flex: auto; display: flex; flex-direction: column">
+            <div>
+                <h4>${translation}</h4>
+                <button id="google-translate-button" style="float: right">Autotłumaczenie</button>
+            </div>
+
+            <div>
+                <span id="ref-lang-label"></span>
+                <span id="ref-lang-text" style="font-weight: bold;word-break: break-all;"></span>
+            </div>
+            <label id="trans-lang-label" for="trans-lang-text">English</label>
+
+            <textarea id="trans-lang-text"></textarea>
+            <br/>
+        </div>
+        <div class="trs-bottom">
+            <div class="flex-v" style="flex-grow: 2;">
+                <div class="row">
+                    <label for="complete-checkbox">
+                        <span>Zatwierdzone&nbsp;</span>
+                        <input class="dsTbl" id="complete-checkbox" type="checkbox"/>
+                        <span style="font-size: 1.15em;  margin-top: -1px;"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="flex-v">
+                <button id="cancel-button" >Anuluj</button>
+                <button id="save-button" >Zapisz</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

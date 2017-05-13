@@ -1,0 +1,62 @@
+
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <title>logi</title>
+
+        <!--        <script type="text/javascript" src="webapp:///res/firebug/firebug-lite.js"></script>-->
+
+        <script type="application/javascript" src="/res/utils.js"></script>
+        <script type="application/javascript" src="/res/FileSaver.js"></script>
+        <script type="application/javascript" src="/res/jquery/jquery.js"></script>
+        <script type="application/javascript" src="/res/jquery/enhsplitter/enhsplitter.js"></script>
+        <link type="text/css" rel="stylesheet" href="/res/jquery/enhsplitter/enhsplitter.css"/>
+        <link type="text/css" rel="stylesheet" href="/res/font-awesome/font-awesome.css"/>
+        <link rel="stylesheet" type="text/css" href="/com/mlogger/console/console.css"/>
+        <script type="application/javascript" src="/com/mlogger/console/console.js"></script>
+        <script type="application/javascript" src="/com/mlogger/console/status.js"></script>
+        <script type="application/javascript" src="/com/mlogger/console/filters.js"></script>
+        <script type="application/javascript" src="/com/mlogger/console/highlight.js"></script>
+        <script type="application/javascript" src="/com/mlogger/console/export.js"></script>
+        <script type="application/javascript" src="/res/popup/popup.js"></script>
+        <link type="text/css" rel="stylesheet" href="/res/popup/popup.css"/>
+
+        <script type="application/javascript">
+            jQuery(function($){
+            $('#main').enhsplitter({position: '20%'});
+            $('#content').enhsplitter({vertical: false, position: '20%', minSize: 0});
+            });
+
+            function addAction(action){
+            var tag = $id("toolbar").tag("button", action.caption);
+            tag.onclick = function(){
+            app.onAction(action); 
+            };
+            }
+        </script>
+    </head>
+    <body>
+        <div id="toolbar">
+
+        </div>
+        <div id="main">
+
+
+
+            <div id="filters"></div>
+
+            <div id="content">
+                <div id="statuses"></div>
+                <ul id="console"></ul>
+            </div>
+
+
+
+        </div>
+
+        <span id="statusbar">
+
+        </span>
+    </body>
+</html>

@@ -1,0 +1,38 @@
+//# sourceURL=file:///typescriptexamples/filterpanel.js
+//##############################################################################
+// TYPY GENERYCZNE - 1 
+//##############################################################################
+class HolderTest<T> {
+    private value: T;
+
+    constructor(value: T) {
+        this.value = value;
+    }
+
+    getValue(): T {
+        return this.value;
+    }
+}
+
+(function () {
+    let strHolder = new HolderTest('t'); // Wykrycie typu na podstawie wprowadzonej wartości
+    console.log(strHolder.getValue());
+
+    let numHolder = new HolderTest<number>(4);
+    console.log(numHolder.getValue())
+}());
+
+//##############################################################################
+// TUPLE - 1 (tablice o określonym rozmiarze i typach dla poszczególnych elementów) 
+//##############################################################################
+
+type User = [string, string, number];
+
+(function () {
+    let user: User = ['Jan', 'Kowalski', 21];
+
+    user[0].substring(0);   // wykrywa że 'string'
+    user[1].substring(0);   // wykrywa że 'string'
+    user[2].toPrecision();  // wykrywa że 'number'
+
+}());
