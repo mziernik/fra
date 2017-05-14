@@ -1,5 +1,6 @@
 package com.webapi.core;
 
+@Deprecated
 public enum DataType {
     NONE,
     STRING,

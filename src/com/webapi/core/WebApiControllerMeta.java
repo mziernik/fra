@@ -14,6 +14,7 @@ import com.utils.collections.MapList;
 import com.utils.hashes.Hashes;
 import com.utils.reflections.*;
 import com.utils.text.StrWriter;
+import com.webapi.core.client.Ecma5;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.*;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 
 public class WebApiControllerMeta {
 
-    final static MapList<Class<? extends WebApi>, WebApiControllerMeta> map = new MapList<>();
+    public final static MapList<Class<? extends WebApi>, WebApiControllerMeta> map = new MapList<>();
 
     public final Class<? extends WebApi> clazz;
     public final TReflection item;
@@ -128,7 +129,8 @@ public class WebApiControllerMeta {
             throw new FileNotFoundException(file.getAbsolutePath());
 
         StrWriter writer = new StrWriter();
-        Html.buildJavascriptClient(webApiClientController.run(), writer);
+    
+        new Ecma5(webApiClientController.run(), writer).build();
 
         String cdata = IOUtils.readUtf(file.toURI().toURL());
         String data = writer.toString();

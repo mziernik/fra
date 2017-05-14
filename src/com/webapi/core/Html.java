@@ -32,6 +32,8 @@ import com.utils.Is;
 import com.utils.collections.Strings;
 import com.utils.reflections.TMethod;
 import com.utils.text.StrWriter;
+import com.webapi.core.client.Ecma5;
+import com.webapi.core.client.Ecma6;
 import java.io.IOException;
 import java.util.LinkedList;
 
@@ -163,8 +165,8 @@ class Html {
 
         Div d = body.div();
         d.style().fontSize("0.8em").paddingLeft("10px");
-        d.a("webapi.js").href("?.clinet=javascript");
-
+        d.a("ecma5.js").href("?.clinet=ecma5");
+        d.a("ecma6.js").href("?.clinet=ecma6");
         http.returnHTML(html, 200);
     }
 
@@ -174,8 +176,14 @@ class Html {
         writer.setIntent("\t");
 
         switch (client) {
-            case "javascript":
-                javascriptClient(controller, http, writer, cls, endpoint);
+            case "ecma5":
+                new Ecma5(controller, writer).build(http, cls, endpoint);
+                http.contentDisposition.inline = true;
+                http.contentDisposition.setHeader("webapi.js");
+                http.returnCustom(writer.toString(), "application/javascript");
+                return;
+            case "ecma6":
+                new Ecma6(controller, writer).build(http, cls, endpoint);
                 http.contentDisposition.inline = true;
                 http.contentDisposition.setHeader("webapi.js");
                 http.returnCustom(writer.toString(), "application/javascript");
@@ -183,208 +191,6 @@ class Html {
         }
 
         throw new UnsupportedOperationException(client);
-    }
-
-    public static void buildJavascriptClient(WebApiController controller, StrWriter writer) {
-
-        Class<? extends WebApiController> cls = controller.getClass();
-        Endpoint httpEndp = cls.getAnnotation(Endpoint.class);
-        WebSocketEndpoint wsEndp = cls.getAnnotation(WebSocketEndpoint.class);
-
-        String wsUrl = null;
-        if (wsEndp != null) {
-            wsUrl = CHttp.url((Url) null, wsEndp.url(), null).toString();
-            wsUrl = wsUrl.replace("http://", "ws://");
-        }
-
-        String httpUrl = null;
-        if (httpEndp != null) {
-            httpUrl = CHttp.url((Url) null, httpEndp.url()[0], null).toString();
-            if (httpUrl.endsWith("/"))
-                httpUrl = httpUrl.substring(0, httpUrl.length() - 1);
-        }
-
-        //   writer.setLevel(1);
-        javascriptClient(controller, httpUrl, wsUrl, writer, controller.getClass(), null, true);
-    }
-
-    static void javascriptClient(WebApiController controller, HttpRequest http,
-            StrWriter writer, Class<? extends WebApi> cls, String parent) {
-
-        WebSocketEndpoint ws = controller.getClass().getAnnotation(WebSocketEndpoint.class);
-
-        String wsUrl = CHttp.url(http, ws.url(), null).toString();
-        wsUrl = wsUrl.replace("http://", "ws://");
-
-        String httpUrl = CHttp.url(http, http.relativePath, null).toString();
-        if (httpUrl.endsWith("/"))
-            httpUrl = httpUrl.substring(0, httpUrl.length() - 1);
-
-        if (parent != null && httpUrl.endsWith("/" + parent))
-            httpUrl = httpUrl.substring(0, httpUrl.length() - parent.length() - 1);
-
-        javascriptClient(controller, httpUrl, wsUrl, writer, cls, parent, true);
-    }
-
-    private static void javascriptClient(WebApiController controller, String httpUrl, String wsUrl,
-            StrWriter writer, Class<? extends WebApi> cls, String parent, boolean root) {
-
-        if (Is.empty(parent))
-            parent = null;
-
-        if (root) {
-            writer.append("function ")
-                    .append(Character.toUpperCase(AppConfig.getServiceName().charAt(0)))
-                    .append(AppConfig.getServiceName().substring(1))
-                    .append("Api(api) {")
-                    .lineBreak();
-
-            writer.setLevel(writer.getLevel() + 1);
-
-            writer.intent()
-                    .append("\"use strict\";")
-                    .lineBreak()
-                    .lineBreak()
-                    .intent()
-                    .append("this.api = api;")
-                    .lineBreak();
-
-            writer.intent().append("api.httpUrl = api.httpUrl || \"")
-                    .append(httpUrl)
-                    .append("\";")
-                    .lineBreak();
-
-            writer.intent().append("api.wsUrl = api.wsUrl || \"")
-                    .append(wsUrl)
-                    .append("\";")
-                    .lineBreak();
-
-            writer.intent().append("api.hash = '")
-                    .append(controller.getHash())
-                    .append("';")
-                    .lineBreak();
-
-        }
-
-        LinkedList<WebApiControllerMeta> list = WebApiControllerMeta.map.get(cls);
-
-        list.sort((WebApiControllerMeta o1, WebApiControllerMeta o2) -> o1.name.compareTo(o2.name));
-
-        boolean first = true;
-        for (WebApiControllerMeta m : list)
-            if (m.returnWebApi != null) {
-
-                if (!first && !root)
-                    writer.append(",");
-
-                first = false;
-
-                writer.lineBreak().intent();
-
-                if (root)
-                    writer.append("this.").append(m.name).append(" = {");
-                else
-                    writer.append(m.name).append(": {");
-
-                if (!Is.empty(m.endp.description()))
-                    writer.append(" // ").append(Escape.unquoted(m.endp.description()));
-
-                String sparrent = parent;
-                writer.nextLevel(() -> {
-                    javascriptClient(controller, httpUrl, wsUrl, writer, m.returnWebApi,
-                            (Is.empty(sparrent) ? "" : sparrent + "/") + m.name, false);
-                });
-
-                writer.lineBreak().intent().append("}");
-                if (root)
-                    writer.append(";").lineBreak();
-            }
-
-        for (WebApiControllerMeta m : list)
-            if (m.returnWebApi == null) {
-
-                if (!first && !root)
-                    writer.append(",");
-
-                first = false;
-
-                writer.lineBreak().intent();
-
-                if (root)
-                    writer.append("this.").append(m.name).append(" = ")
-                            .append("function (data) {");
-                else
-                    writer.append(m.name).append(": function (data) {");
-
-                if (!Is.empty(m.endp.description()))
-                    writer.append(" // ").append(Escape.unquoted(m.endp.description()));
-
-                JObject json = new JObject();
-                json.options.quotaNames(false);
-
-                if (m.item instanceof TMethod) {
-
-                    if (m.endp.dataType() != DataType.NONE)
-                        json.arrayC("")
-                                .add(m.endp.dataType().name().toLowerCase())
-                                .add(true).options.quotaNames(true);
-
-                    TMethod mth = (TMethod) m.item;
-                    for (Arg.ArgMeta a : mth.arguments) {
-
-                        if (a.ann == null)
-                            continue;
-
-                        String clsName = a.cls.raw.getSimpleName().toLowerCase();
-                        if (a.cls.raw == Object.class)
-                            clsName = null;
-                        
-                        if (Number.class.isAssignableFrom(a.cls.raw))
-                            clsName = "number";
-
-                        if (a.cls.raw == JObject.class)
-                            clsName = "object";
-
-                        if (a.cls.raw == JArray.class)
-                            clsName = "array";
-
-                        json.arrayC(a.name).add(clsName).add(a.required);
-                    }
-                }
-
-                String flags = "CRUD";
-
-                writer.lineBreak()
-                        .intent(writer.getLevel() + 1)
-                        .append("return api.call(\"")
-                        .append(new Strings(parent, m.name).toString("/"))
-                        .append("\", '")
-                        .append(m.hash)
-                        .append("', '")
-                        .append(flags)
-                        .append("', data, ");
-
-                writer.nextLevel(() -> {
-                    json.getContent(writer);
-                });
-
-                writer.append(");");
-
-                writer.lineBreak().intent().append("}");
-                if (root)
-                    writer.append(";").lineBreak();
-
-                //    visit(m.returnWebApi, path + m.name + "/", level + 1, ul);
-            }
-
-        if (root)
-            writer.lineBreak()
-                    .intent()
-                    .append("api.initImpl(this);")
-                    .lineBreak()
-                    .lineBreak()
-                    .append("}")
-                    .setLevel(writer.getLevel() - 1);
     }
 
     static void tester(WebApiController controller, HttpRequest http, WebApiRequest req)

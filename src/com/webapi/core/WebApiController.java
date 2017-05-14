@@ -135,14 +135,15 @@ public abstract class WebApiController extends WebSocketController
                     data.getStr("location", null),
                     data.getStr("endpoint"),
                     requestId,
-                    data.element("data", null), params -> {
-                for (JElement je : data.objectD("params"))
-                    if (je.isArray())
-                        for (JElement e : je.asArray())
-                            params.add(je.getName(), e.asString());
-                    else
-                        params.add(je.getName(), je.asString());
-            });
+                    data.element("data", null),
+                    params -> {
+                        for (JElement je : data.objectD("params"))
+//                    if (je.isArray())
+//                        for (JElement e : je.asArray())
+//                            params.add(je.getName(), e.asString());
+//                    else
+                            params.add(je.getName(), je.asString());
+                    });
 
             req.source = data;
             th.setName("WebApi: " + req.endpointName);
@@ -560,7 +561,7 @@ public abstract class WebApiController extends WebSocketController
 
     private String hash = null;
 
-    String getHash() {
+    public String getHash() {
         if (hash == null) {
             StringBuilder sb = new StringBuilder();
             getHash(getClass(), sb);

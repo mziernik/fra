@@ -1,9 +1,7 @@
 package com.utils.text;
 
 import com.utils.StrUtils;
-import static com.utils.StrUtils.convertPolishChars;
 import com.utils.Utils;
-import com.utils.Is;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,6 +11,7 @@ public class NameFormat {
     public final Set<String> reserved = new HashSet<>();
     public boolean convertPolishChars = true;
     public CaseConvert caseConvert = CaseConvert.CAMEL;
+    public CaseConvert firstChar = CaseConvert.NONE;
 
     public Set<Character> breakChars = new HashSet<>();
     public Set<Character> allow = new HashSet<>();
@@ -36,6 +35,16 @@ public class NameFormat {
 
     public NameFormat caseConvert(CaseConvert caseConvert) {
         this.caseConvert = Utils.coalesce(caseConvert, CaseConvert.NONE);
+        return this;
+    }
+
+    public NameFormat firstUpper() {
+        this.firstChar = CaseConvert.UPPER;
+        return this;
+    }
+
+    public NameFormat firstLower() {
+        this.firstChar = CaseConvert.LOWER;
         return this;
     }
 
@@ -103,6 +112,11 @@ public class NameFormat {
 
             if (cv)
                 continue;
+
+            CaseConvert caseConvert = this.caseConvert;
+
+            if (i == 0 && (firstChar == CaseConvert.LOWER || firstChar == CaseConvert.UPPER))
+                caseConvert = firstChar;
 
             if (caseConvert == CaseConvert.LOWER)
                 c = Character.toLowerCase(c);

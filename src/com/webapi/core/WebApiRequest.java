@@ -26,6 +26,7 @@ public class WebApiRequest {
     public final TDate created = new TDate();
     public final Params params = new Params();
     public Params headers = new Params();
+    @Deprecated
     final JElement json;
     public final String id;
     public final String endpointName;
@@ -203,6 +204,7 @@ public class WebApiRequest {
         ThreadObject.language.set(language);
     }
 
+    @Deprecated
     public JElement getJson() {
         if (json == null || json.isNull())
             throw new Error("Missing JSON data");
