@@ -89,7 +89,7 @@ public class Ecma6 extends WebApiClientBuilder {
                     + "\n"
                     + "export default class ")
                     .append(new NameFormat().firstUpper().camelCase().format(AppConfig.getServiceName()))
-                    .append("Api(api) {")
+                    .append("Api {")
                     .lineBreak().lineBreak();
 
             writer.setLevel(writer.getLevel() + 1);
@@ -118,7 +118,7 @@ public class Ecma6 extends WebApiClientBuilder {
                                 .append(controller.getHash())
                                 .append("';")
                                 .lineBreak();
-                    });
+                    }).lineBreak().intent().append("}");
 
         }
 
@@ -138,7 +138,7 @@ public class Ecma6 extends WebApiClientBuilder {
                 writer.lineBreak().intent();
 
                 if (root)
-                    writer.append(m.name).append(" = {");
+                    writer.append(m.name).append(": Object = {");
                 else
                     writer.append(m.name).append(": {");
 
@@ -171,20 +171,20 @@ public class Ecma6 extends WebApiClientBuilder {
                             .lineBreak()
                             .intent();
 
-                writer.append(m.name).append(root ? "" : ": ").append("(");
+                writer.append(m.name).append(root ? ": Object = " : ": ").append("(");
                 boolean hasParams = buildParams(m);
-                writer.append("onSuccess: ?SuccessCallback) => ");
+                writer.append("onSuccess: ?OnSuccess = null, onError: ?OnError = null): WebApiResponse => ");
 //                }
 
                 writer.lineBreak().intent(writer.getLevel() + 1);
 
-                writer.append("return this.api.call(\"")
+                writer.append("this.api.call(\"")
                         .append(new Strings(parent, m.name).toString("/"))
                         .append("\", '")
                         .append(m.hash)
                         .append("', ")
                         .append(hasParams ? "params" : "null")
-                        .append(" , onSuccess)");
+                        .append(", onSuccess, onError)");
 
                 writer.lineBreak().intent();
                 if (root)
@@ -196,9 +196,9 @@ public class Ecma6 extends WebApiClientBuilder {
         if (root)
             writer.lineBreak()
                     .intent()
-                    .append("api.initImpl(this);")
-                    .lineBreak()
-                    .lineBreak()
+//                    .append("api.initImpl(this);")
+//                    .lineBreak()
+//                    .lineBreak()
                     .append("}")
                     .setLevel(writer.getLevel() - 1);
     }
