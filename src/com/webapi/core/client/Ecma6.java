@@ -87,6 +87,9 @@ public class Ecma6 extends WebApiClientBuilder {
                     + "import WebApiRequest from \"../core/webapi/Request\";\n"
                     + "import WebApiResponse from \"../core/webapi/Response\";\n"
                     + "\n"
+                    + "type OnSuccess = (data: ?any, response: WebApiResponse) => void;\n"
+                    + "type OnError = (error: Object, response: WebApiResponse) => void;\n"
+                    + "\n"
                     + "export default class ")
                     .append(new NameFormat().firstUpper().camelCase().format(AppConfig.getServiceName()))
                     .append("Api {")
@@ -173,7 +176,7 @@ public class Ecma6 extends WebApiClientBuilder {
 
                 writer.append(m.name).append(root ? ": Object = " : ": ").append("(");
                 boolean hasParams = buildParams(m);
-                writer.append("onSuccess: ?OnSuccess = null, onError: ?OnError = null): WebApiResponse => ");
+                writer.append("onSuccess: ?OnSuccess = null, onError: ?OnError = null): WebApiRequest => ");
 //                }
 
                 writer.lineBreak().intent(writer.getLevel() + 1);
@@ -196,9 +199,9 @@ public class Ecma6 extends WebApiClientBuilder {
         if (root)
             writer.lineBreak()
                     .intent()
-//                    .append("api.initImpl(this);")
-//                    .lineBreak()
-//                    .lineBreak()
+                    //                    .append("api.initImpl(this);")
+                    //                    .lineBreak()
+                    //                    .lineBreak()
                     .append("}")
                     .setLevel(writer.getLevel() - 1);
     }

@@ -101,9 +101,10 @@ public abstract class WebApiController extends WebSocketController
 
         WebApiRequest req = null;
         Thread th = Thread.currentThread();
+        String requestId = null;
         try {
             JObject data = JObject.parse(message);
-            String requestId = data.getStr("id");
+            requestId = data.getStr("id");
 
             String event = data.getStr("event", "");
 
@@ -135,15 +136,7 @@ public abstract class WebApiController extends WebSocketController
                     data.getStr("location", null),
                     data.getStr("endpoint"),
                     requestId,
-                    data.element("data", null),
-                    params -> {
-                        for (JElement je : data.objectD("params"))
-//                    if (je.isArray())
-//                        for (JElement e : je.asArray())
-//                            params.add(je.getName(), e.asString());
-//                    else
-                            params.add(je.getName(), je.asString());
-                    });
+                    data.object("params"));
 
             req.source = data;
             th.setName("WebApi: " + req.endpointName);
@@ -155,7 +148,7 @@ public abstract class WebApiController extends WebSocketController
 
         } catch (Throwable ex) {
             try {
-                response(connection, null, req, null, ex);
+                response(connection, null, req, requestId, null, ex);
             } catch (Throwable e) {
                 Log.error(e);
             }
@@ -167,6 +160,8 @@ public abstract class WebApiController extends WebSocketController
 
     @Override
     public void onRequest(HttpRequest http) throws Exception {
+
+        String requestId = null;
         WebApiRequest req = null;
         try {
 
@@ -206,6 +201,9 @@ public abstract class WebApiController extends WebSocketController
                 http.params.remove("%data");
             }
 
+            //FixMe
+            JObject params = new JObject();
+
             req = new WebApiRequest(this,
                     http,
                     null,
@@ -214,14 +212,14 @@ public abstract class WebApiController extends WebSocketController
                     http.headers.get("location"),
                     spath.toString("/"),
                     null,
-                    content, params -> params.addAll(http.params));
+                    params);
 
             req.headers.addAll(http.headers);
 
             process(req);
 
         } catch (Throwable ex) {
-            response(null, http, req, null, ex);
+            response(null, http, req, requestId, null, ex);
         }
 
     }
@@ -306,7 +304,7 @@ public abstract class WebApiController extends WebSocketController
                 req.responseCommit(result);
 
             } catch (Throwable e) {
-                response(wsConn, http, req, null, e);
+                response(wsConn, http, req, req.id, null, e);
             } finally {
                 th.setName(thName);
                 ThreadObject.clear();
@@ -339,7 +337,7 @@ public abstract class WebApiController extends WebSocketController
         return obj;
     }
 
-    void response(WebSocketConnection wsConn, HttpRequest http, WebApiRequest req, Object result, Throwable ex) {
+    void response(WebSocketConnection wsConn, HttpRequest http, WebApiRequest req, String requestId, Object result, Throwable ex) {
 
         if (ex == null
                 && req != null
@@ -351,7 +349,7 @@ public abstract class WebApiController extends WebSocketController
                     jExport.remove();
                     CachedData data = DsUtils.export((AbstractDataSet) result, req, jExport);
                     if (data != null) {
-                        response(wsConn, http, req, data, null);
+                        response(wsConn, http, req, requestId, data, null);
                         return;
                     }
                 } catch (Throwable e) {
@@ -393,6 +391,8 @@ public abstract class WebApiController extends WebSocketController
             obj.put("lang", language.get().key);
             //  obj.put("mode", CService.mode.value().name().toLowerCase());
 
+            obj.put("id", requestId);
+
             String hash = null;
             if (req != null) {
                 obj.put("lang", req.language.key);
@@ -400,8 +400,6 @@ public abstract class WebApiController extends WebSocketController
                 obj.put("endpoint", req.endpointName);
                 if (req.meta != null)
                     hash = req.meta.hash;
-                if (http == null)
-                    obj.put("id", req.id);
 
                 obj.put("headers", req.responseHeaders);
             }
@@ -498,8 +496,8 @@ public abstract class WebApiController extends WebSocketController
                 log.user(ses.user.username);
         }
 
-        for (Param p : req.params)
-            log.attribute("Params", p.name, p.value);
+        for (JElement p : req.params)
+            log.attribute("Params", p.getName(), Utils.cutLongName(p.toString(), 100, false));
 
         for (Param p : req.headers)
             log.attribute("Headers", p.name, p.value);

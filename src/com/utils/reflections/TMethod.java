@@ -7,10 +7,12 @@ import com.intf.callable.Callable1;
 import com.intf.callable.Callable2;
 import com.json.JArray;
 import com.json.JElement;
+import com.json.JObject;
 import com.lang.LUtil;
 import com.servlet.interfaces.Arg;
 import com.servlet.interfaces.Arg.ArgMeta;
 import com.utils.collections.Strings;
+import com.utils.collections.TList;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -131,7 +133,7 @@ public class TMethod implements TReflection {
         return raw.getDeclaringClass().getName() + "." + raw.getName();
     }
 
-    public Object[] createArguments(Callable1<List<String>, String> argumentsProvider,
+    public Object[] createArguments(Callable1<List<Object>, String> argumentsProvider,
             String methodName, Callable2<Object, ArgMeta, Object> postProcess) {
         List<Object> lst = new LinkedList<>();
         for (Arg.ArgMeta arg : arguments) {
@@ -139,6 +141,25 @@ public class TMethod implements TReflection {
             if (arg.ann != null)
                 obj = arg.toObject(argumentsProvider.run(arg.name), methodName, null);
 
+            if (postProcess != null)
+                obj = postProcess.run(arg, obj);
+            lst.add(obj);
+        }
+        Object[] arr = new Object[lst.size()];
+        return lst.toArray(arr);
+    }
+
+    public Object[] createArguments(JObject argumentsProvider,
+            String methodName, Callable2<Object, ArgMeta, Object> postProcess) {
+        List<Object> lst = new LinkedList<>();
+        for (Arg.ArgMeta arg : arguments) {
+            Object obj = null;
+            if (arg.ann != null) {
+                Object val = argumentsProvider.getRawValue(arg.name, null);
+                TList<Object> list = new TList<Object>();
+                list.add(val);
+                obj = arg.toObject(list, methodName, null);
+            }
             if (postProcess != null)
                 obj = postProcess.run(arg, obj);
             lst.add(obj);

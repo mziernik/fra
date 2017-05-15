@@ -231,7 +231,7 @@
         "jahQkg:754C5AE4:com/service/menu.css",
         "i38bpA:563BCBFE:com/service/service.css",
         "HwuFRg:AFA2F296:com/service/service.js",
-        "0uvQ7w:517182C5:com/service/serviceApi.js",
+        "0uvQ7w:0F9B00EE:com/service/serviceApi.js",
         "KLCrlQ:CFC060F5:com/service/sessions/sessions.html",
         "Z7Hpmg:73F6DA70:com/service/sessions/sessions.js",
         "yCluFw:A506BE49:com/service/shell/shell.css",
@@ -434,7 +434,7 @@
         "OtG4jw:C586FF5D:res/popup/submenu.png",
         "7s7aAA:75C1D132:res/showdown.js",
         "PmsdaA:DFFBBC45:res/similarity.js",
-        "2BQlmg:23974D57:res/spa/spa-controller.js",
+        "2BQlmg:DD7FAFCA:res/spa/spa-controller.js",
         "LwbOTw:E5ED3E22:res/spa/spa-core.js",
         "gMMTyg:88B432D9:res/spa/spa-loader.js",
         "c6rQyA:3ED9E3A8:res/swal/sweetalert-min.js",
@@ -443,10 +443,7 @@
         "QPj4tg:7958FC38:res/utils.js",
         "s27sOw:6360E032:res/webApi.js",
         "4OoYtg:388A821D:WEB-INF/web.xml",
-        "YYGyZQ:86690E2A:com/mlogger/console/console.js",
-        "N99Haw:98E76DB4:res/ds-modal/ds-modal.js",
-        "Zg6rxQ:4C2BF340:res/ds-tree/ds-tree.js",
-        "gMMTyg:88B432D9:res/spa/spa-loader.js",
-        "s27sOw:6360E032:res/webApi.js"
+        "0uvQ7w:0F9B00EE:com/service/serviceApi.js",
+        "2BQlmg:DD7FAFCA:res/spa/spa-controller.js"
     ]
 }

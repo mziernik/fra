@@ -301,12 +301,15 @@ public class JObject extends JCollection {
     }
 
     public Object getRawValue(final String name, final Object def) {
-        JValue val = getValue(name, def);
-        return val != null && val.value() != null ? val.value() : def;
+        JElement el = element(name);
+        if (el == null)
+            return def;
+        return el.isValue() ? el.asValue().value() : el;
     }
 
     public Object getRawValue(final String name) throws JException {
-        return getValue(name).value();
+        JElement el = elementF(name);
+        return el.isValue() ? el.asValue().value() : el;
     }
 
     /**

@@ -2,7 +2,6 @@ package com.webapi.core;
 
 import com.exceptions.EError;
 import com.exceptions.ErrorMessage;
-import com.intf.runnable.Runnable1;
 import com.intf.runnable.RunnableEx2;
 import com.json.*;
 import com.lang.core.Language;
@@ -24,7 +23,7 @@ import java.util.*;
 public class WebApiRequest {
 
     public final TDate created = new TDate();
-    public final Params params = new Params();
+    public final JObject params;
     public Params headers = new Params();
     @Deprecated
     final JElement json;
@@ -116,11 +115,11 @@ public class WebApiRequest {
     }
 
     public void responseCommit(Object result) {
-        controller.response(wsConn, http, this, result, null);
+        controller.response(wsConn, http, this, id, result, null);
     }
 
     public void responseError(Throwable ex) {
-        controller.response(wsConn, http, this, null, ex);
+        controller.response(wsConn, http, this, id, null, ex);
     }
 
     public void success(CharSequence value) {
@@ -174,8 +173,8 @@ public class WebApiRequest {
 
     WebApiRequest(WebApiController controller, HttpRequest http,
             WebSocketController webSocket, Language language, Url url, String location,
-            String endpointName, String requestId, JElement data,
-            Runnable1<Params> fillParams) throws Exception {
+            String endpointName, String requestId,
+            JObject params) throws Exception {
         if (Is.empty(requestId))
             requestId = Utils.randomId();
         this.location = location;
@@ -186,10 +185,10 @@ public class WebApiRequest {
         this.controller = controller;
         this.url = url;
         this.id = requestId;
-        this.json = data == null ? new JNull() : data;
+        this.json = null;
         this.language = Objects.requireNonNull(language, "WebApiRequest Language");
+        this.params = params;
 
-        fillParams.run(this.params);
         Pair<WebApiControllerMeta, WebApi> endp = controller.getEndpoint(this, endpointName);
 
         if (endp == null)

@@ -166,7 +166,7 @@ public class TClass<T> implements TReflection {
         return (T) deserialize(Arrays.asList(values), null);
     }
 
-    public T deserialize(Collection<String> values, Object instance) {
+    public T deserialize(Collection<? extends Object> values, Object instance) {
         return new TypeAdapter<T>(raw).collection(values, instance);
     }
 

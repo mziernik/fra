@@ -50,26 +50,6 @@ function SPAController(spa, ctrlFunct, helper) {
     this.onUnload = null;
 
 
-    /**
-     * Wczytaj wartość zapamiętaną w LocalStorage. Rezultatem jest wartość, obiekt lub tablica
-     * @param {type} name
-     * @returns {undefined|Array|Object}
-     */
-    this.loadValue = (name) => {
-        var result = window.localStorage.getItem(this.id + "." + name);
-        return result ? JSON.parse(result) : undefined;
-    };
-
-    /**
-     * Zapamiętaj wartość w local storage powiązaną z danym kontrolerem - wartością jest dowolny obiekt
-     * @param {type} name
-     * @param {type} value
-     * @returns {undefined}
-     */
-    this.saveValue = (name, value) => {
-        window.localStorage.setItem(this.id + "." + name, JSON.stringify(value));
-    };
-
 
     Object.preventExtensions(this);
     // musi być na końcu

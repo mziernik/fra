@@ -126,8 +126,8 @@ public @interface Arg {
                     + (CService.devMode() ? " (" + fullName + ")" : "")).trim();
         }
 
-        public Object toObject(Collection<String> argList, String methodName, Object instance) {
-            TList<String> list = new TList<>(argList);
+        public Object toObject(Collection<Object> argList, String methodName, Object instance) {
+            TList<Object> list = new TList<>(argList);
 
             if (required && list.isEmpty() && defaultValue != null)
                 list.add(defaultValue);

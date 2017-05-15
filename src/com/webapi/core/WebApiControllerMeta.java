@@ -69,8 +69,7 @@ public class WebApiControllerMeta {
     public Object invoke(WebApiRequest req, WebApi wapi, boolean useControllerInvoker) throws Exception {
 
         Object[] arr = item instanceof TMethod
-                ? ((TMethod) item).createArguments(name -> req.params.getValuesStr(name),
-                        req.endpointName,
+                ? ((TMethod) item).createArguments(req.params, req.endpointName,
                         (ArgMeta arg, Object obj) -> arg.cls.raw == WebApiRequest.class ? req : obj)
                 : new Object[0];
 
@@ -129,7 +128,7 @@ public class WebApiControllerMeta {
             throw new FileNotFoundException(file.getAbsolutePath());
 
         StrWriter writer = new StrWriter();
-    
+
         new Ecma5(webApiClientController.run(), writer).build();
 
         String cdata = IOUtils.readUtf(file.toURI().toURL());
@@ -137,7 +136,7 @@ public class WebApiControllerMeta {
 
         if (cdata.equals(data))
             return;
-        
+
         Log.info("Aktualizuję plik " + file.getAbsolutePath());
 
         IOUtils.write(data, file, Utils.UTF8);

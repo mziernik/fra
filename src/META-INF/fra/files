@@ -136,6 +136,7 @@ com/context/ServiceStatus$SvnHistoryEntry.class
 com/context/ServiceStatus.class
 com/context/WebAppContext.class
 com/context/fra/Framework.class
+com/context/fra/handler/Auth.class
 com/context/index/ClassScanner.class
 com/context/index/Index$1.class
 com/context/index/Index$IdxWebService.class
@@ -1725,6 +1726,9 @@ com/webapi/core/WebApiControllerMeta.class
 com/webapi/core/WebApiEndpoint.class
 com/webapi/core/WebApiRequest$WebApiMessageType.class
 com/webapi/core/WebApiRequest.class
+com/webapi/core/client/Ecma5.class
+com/webapi/core/client/Ecma6.class
+com/webapi/core/client/WebApiClientBuilder.class
 com/webapi/core/tester.js
 com/webapi/test/mac.txt
 com/webapi/test/numbers.json
@@ -1752,7 +1756,6 @@ com/xml/elements/XmlCdata.class
 com/xml/elements/XmlComment.class
 com/xml/elements/XmlTextNode.class
 favicon.ico
-main/handler/Auth.class
 org/apache/juli/logging/DirectJDKLog.class
 org/apache/juli/logging/Log.class
 org/apache/juli/logging/LogFactory.class

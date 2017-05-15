@@ -27,10 +27,12 @@ import com.servlet.requests.ServletInputStreamEx;
 import com.thread.ThreadObject;
 import com.user.BaseAuthHandler;
 import com.user.pages.PLogin;
+import com.utils.collections.TList;
 import com.utils.reflections.TField;
 import com.utils.reflections.TMethod;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -179,9 +181,8 @@ public class ControllerEndpoint<Ctrl extends Controller> implements Endpoint {
                     else
                         target.method.invoke(target.lambdaController, http);
                 else if (method != null) {
-
                     Object[] arr = method.createArguments((String arg) -> {
-                        return http.params.getValuesStr(arg);
+                        return (List) http.params.getValuesStr(arg);
                     }, http.relativePath, null);
 
                     if (invoker != null)
