@@ -3,6 +3,7 @@ package com.servlet.interfaces;
 import com.config.CService;
 import com.exceptions.CoreException;
 import com.exceptions.ServiceException;
+import com.json.JSON;
 import com.utils.Utils;
 import com.utils.Is;
 import com.utils.collections.Strings;
@@ -126,29 +127,27 @@ public @interface Arg {
                     + (CService.devMode() ? " (" + fullName + ")" : "")).trim();
         }
 
-        public Object toObject(Collection<Object> argList, String methodName, Object instance) {
-            TList<Object> list = new TList<>(argList);
+        public Object toObject(Object value, String methodName, Object instance) {
 
-            if (required && list.isEmpty() && defaultValue != null)
-                list.add(defaultValue);
+            if (value == null && defaultValue != null)
+                value = defaultValue;
 
-            if (required && list.isEmpty())
+            if (required && value == null)
                 throw new ServiceException(String.format("Brak argumentu \"%s\" metody %s",
                         name, methodName(methodName)));
 
-            if (nonEmpty && (list.isEmpty()
-                    || (!cls.instanceOf(Collection.class)
-                    && !cls.raw.isArray()
-                    && Is.empty(new TList<>(argList).first()))))
+            if (nonEmpty && Is.empty(value))
                 throw new ServiceException(String.format("Wartość argumentu \"%s\" metody %s nie może być pusta",
                         name, methodName(methodName)));
 
             Object result;
             try {
-                result = cls.deserialize(list, instance);
+                result = cls.deserialize(value, instance);
             } catch (Throwable e) {
-                throw new ServiceException(String.format("Nieprawidłowa wartość (\"%s\") argumentu \"%s\" metody %s",
-                        list.toString(", "), name, methodName(methodName)));
+                throw new ServiceException(String.format(
+                        "Nieprawidłowa wartość (%s) argumentu \"%s\" metody %s",
+                        JSON.serialize(value).toString(), name, methodName(methodName))
+                , e);
             }
 
             if (result == null && required)

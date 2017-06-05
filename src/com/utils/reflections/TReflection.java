@@ -7,6 +7,8 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Miłosz Ziernik
@@ -16,6 +18,16 @@ import java.lang.reflect.TypeVariable;
 public interface TReflection {
 
     public int getModifiers();
+
+    static Class[] getGeneric(Type type) {
+        List<Class<?>> list = new LinkedList<>();
+        if (type instanceof ParameterizedType)
+            for (Type t : ((ParameterizedType) type).getActualTypeArguments())
+                if (t instanceof Class)
+                    list.add((Class<?>) t);
+
+        return list.toArray(new Class[0]);
+    }
 
     default boolean isFinal() {
         return Modifier.isFinal(getModifiers());

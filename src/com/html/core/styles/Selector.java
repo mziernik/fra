@@ -43,7 +43,7 @@ public final class Selector<TTag extends Element> implements WritableContent {
             return writer;
 
         if (!isSelector)
-            writer.lineBreak().intent();
+            writer.br().intent();
 
         boolean firstSelector = true;
         for (Selector<TTag> sel : selectors) {
@@ -56,7 +56,7 @@ public final class Selector<TTag extends Element> implements WritableContent {
             if (sel.names != null)
                 for (String name : sel.names) {
                     if (!first)
-                        writer.append(",").lineBreak().intent();
+                        writer.append(",").br().intent();
                     writer.append(name);
                     first = false;
                 }
@@ -68,7 +68,7 @@ public final class Selector<TTag extends Element> implements WritableContent {
                 sel.getContent(writer, true);
             });
 
-            writer.lineBreak().intent();
+            writer.br().intent();
             writer.append("}");
         }
 
@@ -87,7 +87,7 @@ public final class Selector<TTag extends Element> implements WritableContent {
         }
 
         if (!isSelector)
-            writer.lineBreak().intent(writer.getLevel() - 1);
+            writer.br().intent(writer.getLevel() - 1);
         return writer;
     }
 

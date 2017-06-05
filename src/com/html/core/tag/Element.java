@@ -225,7 +225,7 @@ public abstract class Element<TTag extends Element>
             writer.append("<!-- ")
                     .append(comment)
                     .append(" -->")
-                    .lineBreak().intent();
+                    .br().intent();
 
         Object prop = writer.properties.get("xhtml");
         boolean xhtml = prop instanceof Boolean ? (Boolean) prop : false;
@@ -271,7 +271,7 @@ public abstract class Element<TTag extends Element>
             writer.nextLevel(() -> {
                 for (Element tag : children) {
                     if (!(prev.get() instanceof Text || tag instanceof Text))
-                        writer.lineBreak();
+                        writer.br();
 
                     writer.properties.put("prev-tag", prev.get());
 
@@ -283,7 +283,7 @@ public abstract class Element<TTag extends Element>
         writeContentText(writer);
 
         if (!prev.isNull() && !(prev.get() instanceof Text) && lineBreakCount != writer.getLineBreakCount())
-            writer.lineBreak().intent();
+            writer.br().intent();
 
         writer.append("</").append(name).append(">");
     }

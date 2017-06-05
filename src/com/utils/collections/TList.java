@@ -145,12 +145,14 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
 //        modCount++;
 //        size += len;
 //    }
-    public boolean _add(Object element) {
-        return add((T) element);
+    public TList _add(Object element) {
+        add((T) element);
+        return this;
     }
 
-    public void _add(int index, Object element) {
+    public TList _add(int index, Object element) {
         add(index, (T) element);
+        return this;
     }
 
     @Override

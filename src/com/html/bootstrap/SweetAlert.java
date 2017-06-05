@@ -92,11 +92,11 @@ public class SweetAlert extends JsAction {
         }
 
         if (!onDone.isEmpty()) {
-            writer.append(",").append("function(inputValue){").lineBreak();
-            writer.lineBreak().intent();
+            writer.append(",").append("function(inputValue){").br();
+            writer.br().intent();
             // new Call("swal.close").getContent(writer, level + 1);
             onDone.getContent(writer);
-            writer.lineBreak().intent().append("}");
+            writer.br().intent().append("}");
         }
 
         writer.append(");");

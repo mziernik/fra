@@ -48,13 +48,13 @@ public abstract class ECollection extends Element
 
                 for (Element el : children) {
                     if (!first)
-                        writer.append(";").lineBreak().intent();
+                        writer.append(";").br().intent();
                     el.getContent(writer);
                     first = false;
                 }
             });
             if (this != evaluator)
-                writer.lineBreak().intent().append("}");
+                writer.br().intent().append("}");
             return;
         }
 

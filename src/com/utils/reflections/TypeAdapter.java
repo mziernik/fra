@@ -1,14 +1,12 @@
 package com.utils.reflections;
 
 import com.exceptions.ThrowableException;
-import com.json.JArray;
-import com.json.JElement;
-import com.json.JObject;
-import com.json.JSON;
+import com.json.*;
 import com.lang.LUtil;
 import com.utils.Utils;
 import com.utils.Is;
 import com.utils.collections.Strings;
+import com.utils.collections.TList;
 import com.utils.date.TDate;
 import static com.utils.reflections.TClass.sep;
 import java.lang.reflect.Array;
@@ -19,7 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * Klasa zbiorcza zajmująca się parsowaniem róznego rodzaju obiektów
+ * Klasa zbiorcza zajmująca się parsowaniem różnego rodzaju obiektów
  */
 public class TypeAdapter<T> {
 
@@ -74,33 +72,37 @@ public class TypeAdapter<T> {
     }
 
     public T collection(Object... values) {
-        return collection(Arrays.asList(values), null);
+        return process(Arrays.asList(values), null);
     }
 
-    public T process(Object value) {
+    private Collection<Object> asCollection(Object value) {
+
+        if (value instanceof Collection)
+            return (Collection<Object>) value;
+
+        TList<Object> list = new TList<>();
+        if (value instanceof Iterable)
+            ((Iterable) value).forEach(obj -> list.add(obj));
+        return list;
+    }
+
+    public T process(Object value, Object parentInstance) {
         if (value == null)
             return null;
 
-        if (value instanceof Collection)
-            return collection((Collection) value);
-
-        return single(value, null);
-    }
-
-    public T collection(Collection<? extends Object> values, Object instance) {
-
         if (cls.isArray()) {
             Class<?> cType = cls.getComponentType();
+            Collection<Object> values = asCollection(value);
             Object array = Array.newInstance(cType, values.size());
 
             int idx = 0;
             for (Object s : values)
-                Array.set(array, idx++, collection(new TClass<T>(cType), s));
+                Array.set(array, idx++, new TypeAdapter(cType).process(s, parentInstance));
             return (T) array;
         }
 
         if (cls == Strings.class)
-            return (T) new Strings().addAll(values);
+            return (T) new Strings().addAll(asCollection(value));
 
         {
             Collection collection = null;
@@ -112,11 +114,11 @@ public class TypeAdapter<T> {
                 collection = new LinkedHashSet();
 
             if (collection == null && Collection.class.isAssignableFrom(cls))
-                collection = (Collection) tcls.newInstance(instance);
+                collection = (Collection) tcls.newInstance(parentInstance);
 
             if (collection != null) {
 
-                for (Object s : values)
+                for (Object s : asCollection(value))
                     collection.add(tcls.generic.length == 1
                             ? collection(new TClass<>(tcls.generic[0]), s) : s);
 
@@ -128,30 +130,29 @@ public class TypeAdapter<T> {
             if (Map.class.isAssignableFrom(cls)) {
                 Map map = tcls.isAbstract()
                         ? new LinkedHashMap()
-                        : (Map) tcls.newInstance(instance);
+                        : (Map) tcls.newInstance(parentInstance);
 
-                for (Object key : values) {
+                for (Object key : asCollection(value)) {
                     String skey = Utils.toString(key);
 
-                    String value = null;
+                    String val = null;
                     if (skey.contains(mapSeparator)) {
-                        value = skey.substring(skey.indexOf(":") + 1);
+                        val = skey.substring(skey.indexOf(":") + 1);
                         skey = skey.substring(0, skey.indexOf(":"));
                     }
 
                     if (tcls.generic.length == 2)
-                        map.put(new TypeAdapter<>(tcls.generic[0]).single(skey, instance),
-                                new TypeAdapter<>(tcls.generic[1]).single(value, instance));
+                        map.put(new TypeAdapter<>(tcls.generic[0]).single(skey, parentInstance),
+                                new TypeAdapter<>(tcls.generic[1]).single(val, parentInstance));
                     else
-                        map.put(skey, value);
+                        map.put(skey, val);
                     return (T) map;
                 }
 
             }
         }
-        Iterator<? extends Object> itr = values.iterator();
-        Object value = itr.hasNext() ? values.iterator().next() : null;
-        return single(value, instance);
+
+        return single(value, parentInstance);
     }
 
     public T single(Object value, Object instance) {
@@ -159,6 +160,9 @@ public class TypeAdapter<T> {
         if (value == null)
             return null;
 
+        if (value instanceof JValue)
+            value = ((JValue)value).value();
+        
         if (cls.isAssignableFrom(value.getClass()))
             return (T) value;
 

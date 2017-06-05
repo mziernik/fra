@@ -74,7 +74,7 @@ public class Function extends JsAction {
 
         writer.nextLevel(() -> {
             for (Object value : body) {
-                writer.lineBreak().intent();
+                writer.br().intent();
 
                 if (value instanceof JsAction) {
                     ((JsAction) value).getContent(writer);
@@ -85,7 +85,7 @@ public class Function extends JsAction {
         });
 
         if (!body.isEmpty())
-            writer.lineBreak().intent();
+            writer.br().intent();
         writer.append("}");
     }
 

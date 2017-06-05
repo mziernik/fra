@@ -57,7 +57,7 @@ public class AwesomeTest {
                 writer.append("\tpublic final static Awesome ")
                         .append(StrUtils.formatMethodName(name))
                         .append(" = new Awesome(\"" + name + "\");")
-                        .lineBreak();
+                        .br();
             }
         }
 

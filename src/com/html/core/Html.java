@@ -107,7 +107,7 @@ public class Html extends Element<Html> implements Parent<Html>, OneInstance {
             writer.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
                     + "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
         } else
-            writer.append("<!doctype html>").lineBreak();
+            writer.append("<!doctype html>").br();
 
         getContent(writer);
 
@@ -130,7 +130,7 @@ public class Html extends Element<Html> implements Parent<Html>, OneInstance {
 
             if (c == '\n') {
                 //Może powodować problemy
-                writer.lineBreak().intent();
+                writer.br().intent();
                 continue;
             }
 

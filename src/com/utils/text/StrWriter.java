@@ -15,7 +15,9 @@ public class StrWriter extends StringWriter {
     private final Writer[] mirrors;
     private int length;
     //------------
+    private boolean hasBr; // ostatni znak to enter
     private String intent = "    ";
+    private boolean autoIntent;
     private String lineBreak = "\n";
     private boolean _isCompact;
 
@@ -134,6 +136,11 @@ public class StrWriter extends StringWriter {
 
     @Override
     public void write(String str) {
+        if (autoIntent && hasBr && !str.equals(lineBreak)) {
+            hasBr = false;
+            intent();
+        }
+
         if (memoryCopy)
             super.write(str);
 
@@ -150,6 +157,7 @@ public class StrWriter extends StringWriter {
 
     @Override
     public void write(char[] cbuf) throws IOException {
+        
         if (memoryCopy)
             super.write(cbuf);
 
@@ -219,6 +227,11 @@ public class StrWriter extends StringWriter {
         return this;
     }
 
+    public StrWriter setAutoIntent(boolean autoIntent) {
+        this.autoIntent = autoIntent;
+        return this;
+    }
+
     public StrWriter setLineBreak(String lineBreak) {
         this.lineBreak = lineBreak;
         _isCompact = !(lineBreak != null && (lineBreak.contains("\n") || lineBreak.contains("\r")));
@@ -254,7 +267,7 @@ public class StrWriter extends StringWriter {
         String[] lines = text.split("\\n");
         for (int i = 0; i < lines.length; i++) {
             if (i > 0)
-                lineBreak().intent();
+                br().intent();
             append(lines[i]);
         }
         return this;
@@ -268,8 +281,10 @@ public class StrWriter extends StringWriter {
         return this;
     }
 
-    public StrWriter lineBreak() {
-        return lineBreak(null);
+    public StrWriter br() {
+        lineBreak(null);
+        this.hasBr = true;
+        return this;
     }
 
     /**

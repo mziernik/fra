@@ -34,6 +34,7 @@ import com.utils.reflections.TMethod;
 import com.utils.text.StrWriter;
 import com.webapi.core.client.Ecma5;
 import com.webapi.core.client.Ecma6;
+import com.webapi.core.client.Repositories;
 import java.io.IOException;
 import java.util.LinkedList;
 
@@ -167,6 +168,7 @@ class Html {
         d.style().fontSize("0.8em").paddingLeft("10px");
         d.a("ecma5.js").href("?.clinet=ecma5");
         d.a("ecma6.js").href("?.clinet=ecma6");
+        d.a("repositories.js").href("?.clinet=repositories");
         http.returnHTML(html, 200);
     }
 
@@ -186,6 +188,12 @@ class Html {
                 new Ecma6(controller, writer).build(http, cls, endpoint);
                 http.contentDisposition.inline = true;
                 http.contentDisposition.setHeader("webapi.js");
+                http.returnCustom(writer.toString(), "application/javascript");
+                return;
+            case "repositories":
+                new Repositories(controller, writer).build(http, cls, endpoint);
+                http.contentDisposition.inline = true;
+                http.contentDisposition.setHeader("Repositories.js");
                 http.returnCustom(writer.toString(), "application/javascript");
                 return;
         }

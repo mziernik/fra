@@ -48,7 +48,7 @@ public class FunctionTest {
         writer.append("<script>");
 
         writer.nextLevel(() -> {
-            writer.lineBreak().intent();
+            writer.br().intent();
 
             new Function("nazwa_funkcji", "param1", "param2")
                     .body(new Alert("Komunikat"))
@@ -67,7 +67,7 @@ public class FunctionTest {
                     .getContent(writer);
         });
 
-        writer.lineBreak().intent().append("</script>");
+        writer.br().intent().append("</script>");
 
         System.out.println(writer.toString());
 

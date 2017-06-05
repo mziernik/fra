@@ -6,8 +6,12 @@ import com.exceptions.ThrowableException;
 import com.lang.LUtil;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Miłosz Ziernik
@@ -17,6 +21,7 @@ import java.util.Collection;
 public class TField implements TReflection {
 
     public final Field raw;
+    public final Class[] generic;
 
     public TField(String field) {
 
@@ -33,6 +38,8 @@ public class TField implements TReflection {
             this.raw = new TClass<>(className).raw
                     .getDeclaredField(fieldName);
 
+            generic = TReflection.getGeneric(this.raw.getGenericType());
+
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable e) {
@@ -42,6 +49,7 @@ public class TField implements TReflection {
 
     public TField(Field field) {
         this.raw = field;
+        generic = TReflection.getGeneric(this.raw.getGenericType());
     }
 
     @Override

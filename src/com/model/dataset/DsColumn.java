@@ -11,7 +11,10 @@ import com.model.dataset.intf.DSColumnAlign;
 import com.model.dataset.intf.DataSetException;
 import com.utils.Is;
 import com.utils.Str;
+import com.utils.Utils;
 import com.utils.collections.Props;
+import com.utils.reflections.TClass;
+import com.utils.reflections.TField;
 import com.utils.text.NameFormat;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -77,6 +80,11 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
 
     public CharSequence getName() {
         return name;
+    }
+
+    public DataType getType() {
+        //FixMe: Ustawienie typu
+        return Utils.coalesce(type, DataType.INT);
     }
 
     public Field getField() {
@@ -290,9 +298,11 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
             if (!Is.empty(dbCol.name()))
                 dbColumnName = dbCol.name();
         }
+
         Objects.requireNonNull(key, "Missing column key in " + parent.key);
         Objects.requireNonNull(clazz, "Missing generic type of " + parent.key + "." + key);
 
+        this.type = DataType.of(clazz);
         initialized = true;
     }
 

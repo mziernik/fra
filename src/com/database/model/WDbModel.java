@@ -33,11 +33,12 @@ public class WDbModel implements WebApi {
         return json;
     }
 
-    @WebApiEndpoint(description = "Zwraca dane z wielu tabel", dataType = DataType.ARRAY)
-    public JObject getAll(WebApiRequest req) throws FileNotFoundException {
+    @WebApiEndpoint(description = "Zwraca dane z wielu tabel")
+    public JObject getAll(WebApiRequest req, 
+            @Arg(name = "repositories") String[] repositories) throws FileNotFoundException {
 
         TList<DsTable<?, ?>> tbls = new TList<>();
-        for (String s : req.getJson().asArray().getValuesStr())
+        for (String s : repositories)
             tbls.add(DsTable.getTableF(s));
 
         JObject json = new JObject();

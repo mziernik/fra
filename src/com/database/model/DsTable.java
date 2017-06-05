@@ -231,7 +231,7 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
             DsColumn col = (DsColumn) tbl.columns.get(en.getKey());
             if (col == null)
                 throw new Error("Column \"" + en.getKey() + "\" not found");
-            Object val = new TypeAdapter<>(col.getRawClass()).process(en.getValue());
+            Object val = new TypeAdapter<>(col.getRawClass()).process(en.getValue(), null);
             trans.set(col, val);
         }
 

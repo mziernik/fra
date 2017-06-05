@@ -58,7 +58,7 @@ public class SqlCondition implements IUnquoted {
             writer.append("( ");
 
             if (hasChildren)
-                writer.lineBreak().intent();
+                writer.br().intent();
         }
 
         for (SqlCondition sc : list) {
@@ -66,7 +66,7 @@ public class SqlCondition implements IUnquoted {
             //   sb.append(offset).append(intent);
             if (!first)
                 if (hasChildren)
-                    writer.lineBreak().intent();
+                    writer.br().intent();
                 else
                     writer.append(" ");
 
@@ -86,7 +86,7 @@ public class SqlCondition implements IUnquoted {
         if (writer.getLevel() > 0) {
 
             if (hasChildren)
-                writer.lineBreak().intent(writer.getLevel() - 1);
+                writer.br().intent(writer.getLevel() - 1);
             writer.append(" )");
         }
     }

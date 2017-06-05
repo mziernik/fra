@@ -48,7 +48,7 @@ public class Text extends Element<Text> implements Parent<Text> {
             if (!script)
                 writer.setLevel(0);
             else
-                writer.lineBreak().intent();
+                writer.br().intent();
 
             if (cdata)
                 writer.append("<![CDATA[").append(text).append("]]>");
@@ -57,7 +57,7 @@ public class Text extends Element<Text> implements Parent<Text> {
             writer.setLevel(level);
 
             if (script)
-                writer.lineBreak().intent(writer.getLevel() - 1);
+                writer.br().intent(writer.getLevel() - 1);
         }
     }
 

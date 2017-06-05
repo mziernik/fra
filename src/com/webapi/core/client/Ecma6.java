@@ -93,35 +93,35 @@ public class Ecma6 extends WebApiClientBuilder {
                     + "export default class ")
                     .append(new NameFormat().firstUpper().camelCase().format(AppConfig.getServiceName()))
                     .append("Api {")
-                    .lineBreak().lineBreak();
+                    .br().br();
 
             writer.setLevel(writer.getLevel() + 1);
 
             writer.intent()
                     .append("api: WebApi;")
-                    .lineBreak()
-                    .lineBreak()
+                    .br()
+                    .br()
                     .intent()
                     .append("constructor(api: WebApi) {")
-                    .lineBreak()
+                    .br()
                     .nextLevel(() -> {
-                        writer.intent().append("this.api = api;").lineBreak();
+                        writer.intent().append("this.api = api;").br();
 
                         writer.intent().append("api.httpUrl = api.httpUrl || \"")
                                 .append(httpUrl)
                                 .append("\";")
-                                .lineBreak();
+                                .br();
 
                         writer.intent().append("api.wsUrl = api.wsUrl || \"")
                                 .append(wsUrl)
                                 .append("\";")
-                                .lineBreak();
+                                .br();
 
                         writer.intent().append("api.hash = '")
                                 .append(controller.getHash())
                                 .append("';")
-                                .lineBreak();
-                    }).lineBreak().intent().append("}");
+                                .br();
+                    }).br().intent().append("}");
 
         }
 
@@ -138,7 +138,7 @@ public class Ecma6 extends WebApiClientBuilder {
 
                 first = false;
 
-                writer.lineBreak().intent();
+                writer.br().intent();
 
                 if (root)
                     writer.append(m.name).append(": Object = {");
@@ -154,9 +154,9 @@ public class Ecma6 extends WebApiClientBuilder {
                             (Is.empty(sparrent) ? "" : sparrent + "/") + m.name, false);
                 });
 
-                writer.lineBreak().intent().append("}");
+                writer.br().intent().append("}");
                 if (root)
-                    writer.append(";").lineBreak();
+                    writer.append(";").br();
             }
 
         for (WebApiControllerMeta m : list)
@@ -167,11 +167,11 @@ public class Ecma6 extends WebApiClientBuilder {
 
                 first = false;
 
-                writer.lineBreak().intent();
+                writer.br().intent();
 
                 if (!Is.empty(m.endp.description()))
                     writer.append("/** ").append(Escape.unquoted(m.endp.description())).append(" */")
-                            .lineBreak()
+                            .br()
                             .intent();
 
                 writer.append(m.name).append(root ? ": Object = " : ": ").append("(");
@@ -179,7 +179,7 @@ public class Ecma6 extends WebApiClientBuilder {
                 writer.append("onSuccess: ?OnSuccess = null, onError: ?OnError = null): WebApiRequest => ");
 //                }
 
-                writer.lineBreak().intent(writer.getLevel() + 1);
+                writer.br().intent(writer.getLevel() + 1);
 
                 writer.append("this.api.call(\"")
                         .append(new Strings(parent, m.name).toString("/"))
@@ -189,19 +189,19 @@ public class Ecma6 extends WebApiClientBuilder {
                         .append(hasParams ? "params" : "null")
                         .append(", onSuccess, onError)");
 
-                writer.lineBreak().intent();
+                writer.br().intent();
                 if (root)
-                    writer.append(";").lineBreak();
+                    writer.append(";").br();
 
                 //    visit(m.returnWebApi, path + m.name + "/", level + 1, ul);
             }
 
         if (root)
-            writer.lineBreak()
+            writer.br()
                     .intent()
                     //                    .append("api.initImpl(this);")
-                    //                    .lineBreak()
-                    //                    .lineBreak()
+                    //                    .br()
+                    //                    .br()
                     .append("}")
                     .setLevel(writer.getLevel() - 1);
     }

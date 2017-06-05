@@ -136,7 +136,7 @@ public abstract class WebApiController extends WebSocketController
                     data.getStr("location", null),
                     data.getStr("endpoint"),
                     requestId,
-                    data.object("params"));
+                    data.objectD("params"));
 
             req.source = data;
             th.setName("WebApi: " + req.endpointName);

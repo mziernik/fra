@@ -47,13 +47,7 @@ public class TClass<T> implements TReflection {
         this.raw = clazz;
         this.type = type;
 
-        List<Class<?>> list = new LinkedList<>();
-        if (type instanceof ParameterizedType)
-            for (Type t : ((ParameterizedType) type).getActualTypeArguments())
-                if (t instanceof Class)
-                    list.add((Class<?>) t);
-
-        generic = list.toArray(new Class[0]);
+        generic = TReflection.getGeneric(type);
     }
 
     /**
@@ -162,12 +156,15 @@ public class TClass<T> implements TReflection {
         return newInstance(parent, args);
     }
 
-    public T deserialize(String... values) {
-        return (T) deserialize(Arrays.asList(values), null);
+//    public T deserialize(String... values) {
+//        return (T) deserialize(Arrays.asList(values), null);
+//    }
+    public T deserialize(Object value) {
+        return deserialize(value, null);
     }
 
-    public T deserialize(Collection<? extends Object> values, Object instance) {
-        return new TypeAdapter<T>(raw).collection(values, instance);
+    public T deserialize(Object value, Object instance) {
+        return new TypeAdapter<T>(raw).process(value, instance);
     }
 
     public Class<?>[] getClassGenericTypes() {

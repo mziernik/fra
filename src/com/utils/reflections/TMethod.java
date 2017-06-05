@@ -94,7 +94,7 @@ public class TMethod implements TReflection {
         for (int i = 0; i < params.size(); i++) {
             JElement el = params.element(i);
             if (el.isValue())
-                args[i] = new TClass<>(pTypes[i]).deserialize(el.asValue().asString());
+                args[i] = new TClass<>(pTypes[i]).deserialize(el.asValue(), parent);
         }
 
         raw.invoke(parent, args);
@@ -156,9 +156,7 @@ public class TMethod implements TReflection {
             Object obj = null;
             if (arg.ann != null) {
                 Object val = argumentsProvider.getRawValue(arg.name, null);
-                TList<Object> list = new TList<Object>();
-                list.add(val);
-                obj = arg.toObject(list, methodName, null);
+                obj = arg.toObject(val, methodName, null);
             }
             if (postProcess != null)
                 obj = postProcess.run(arg, obj);
