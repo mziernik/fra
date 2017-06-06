@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+//ToDo: Dodać konwersję z CamelCase do UPPER
 public class NameFormat {
 
     public final Set<String> reserved = new HashSet<>();
@@ -16,6 +17,8 @@ public class NameFormat {
     public Set<Character> breakChars = new HashSet<>();
     public Set<Character> allow = new HashSet<>();
     public String separator = "_";
+    public boolean sourceCamelCase = false; // wartość źródłowa zapisana jest w postaci CamelCase 
+    //- wtedy przy konwersji na upper alobo lower będą zamieniane wielkie litery na podkkreslniki
 
     public NameFormat() {
         breakChars.addAll(Arrays.asList(new Character[]{
@@ -35,6 +38,11 @@ public class NameFormat {
 
     public NameFormat caseConvert(CaseConvert caseConvert) {
         this.caseConvert = Utils.coalesce(caseConvert, CaseConvert.NONE);
+        return this;
+    }
+
+    public NameFormat sourceCamelCase(boolean sourceCamelCase) {
+        this.sourceCamelCase = sourceCamelCase;
         return this;
     }
 
@@ -112,6 +120,8 @@ public class NameFormat {
 
             if (cv)
                 continue;
+
+            conv |= i > 0 && sourceCamelCase && Character.isUpperCase(c);
 
             CaseConvert caseConvert = this.caseConvert;
 

@@ -4,6 +4,7 @@ import com.database.model.DsTable;
 import com.json.JObject;
 import com.model.dataset.DsColumn;
 import com.servlet.requests.HttpRequest;
+import com.utils.text.NameFormat;
 import com.utils.text.StrWriter;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiController;
@@ -29,11 +30,22 @@ public class Repositories extends WebApiClientBuilder {
     public void build() {
         writer.setAutoIntent(true);
 
+        writer.append("import {Field, DataType, Repository, Record} from \"../core/core\";").br().br();
+
+        StrWriter exports = new StrWriter();
+
+        writer.br().br();
+
         for (DsTable<?, ?> tbl : DsTable.getTables().values()) {
 
-            writer.append("export default class ")
-                    .append(tbl.getClass().getSimpleName()).append("Repo")
-                    .append(" extends Repository {").br().br();
+            String name = tbl.getClass().getSimpleName();
+
+            String format = new NameFormat().sourceCamelCase(true).upperCase().format(name);
+            name += "Repo";
+
+            exports.add("export const ", format, ": ", name, " = Repository.register(new ", name, "());").br();
+
+            writer.add("export class ", name, " extends Repository {").br().br();
 
             writer.nextLevel(() -> {
 
@@ -55,13 +67,23 @@ public class Repositories extends WebApiClientBuilder {
             writer.br().append("}").br();
             writer.br();
 
-            writer.append("export default class ")
+            writer.append("export class ")
                     .append(tbl.getClass().getSimpleName())
                     .append(" extends Record {")
                     .br()
                     .br();
 
             writer.nextLevel(() -> {
+
+                for (DsColumn<?, ?, ?, ?> col : tbl.getColumns().values())
+                    writer.append(col.getKey().toUpperCase())
+                            .append(": Field = new Field(DataType.")
+                            .append(col.getType().name())
+                            .add(").name(").escape(col.getKey())
+                            .add(").title(").escape(col.getName())
+                            .add(")", tbl.getPrimaryKeyColumn() == col ? ".primaryKey()" : "", ";")
+                            .br().br(); //ID: Field = new Field(DataType.INT).primaryKey();
+
                 writer.br().append("constructor() {").br();
 
                 writer.nextLevel(() -> {
@@ -70,18 +92,13 @@ public class Repositories extends WebApiClientBuilder {
                 });
 
                 writer.append("};").br().br();
-
-                for (DsColumn<?, ?, ?, ?> col : tbl.getColumns().values())
-                    writer.append(col.getKey().toUpperCase())
-                            .append(": Field = new Field(DataType.")
-                            .append(col.getType().name())
-                            .append(");")
-                            .br().br(); //ID: Field = new Field(DataType.INT).primaryKey();
             });
 //          
             writer.br().append("}").br();
             writer.br();
         }
+
+        writer.append(exports.toString());
     }
 
 }

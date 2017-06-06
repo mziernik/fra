@@ -7,7 +7,10 @@ import com.json.Escape;
 import java.io.*;
 import java.util.*;
 
-//ToDo: Funkcja autoIntent - jesli ustawiona po breakLine() przed zapisaniem danych należy wstawiać wcięcie
+//ToDo: Usunąć dziedziczenie po StringWriter (opcjonalna klasa rozszerzająca)
+// usunąć zbędne metody typu append
+// autoIntent - dodać intent nie po metodzie br() ale po każdym znaku \n
+
 public class StrWriter extends StringWriter {
 
     // dowolne właściwości
@@ -57,6 +60,13 @@ public class StrWriter extends StringWriter {
 
     public StrWriter singleQuote(boolean singleQuote) {
         this.singleQuote = singleQuote;
+        return this;
+    }
+
+    public StrWriter add(CharSequence... csqs) {
+        if (csqs != null)
+            for (CharSequence cs : csqs)
+                append(cs);
         return this;
     }
 
@@ -157,7 +167,7 @@ public class StrWriter extends StringWriter {
 
     @Override
     public void write(char[] cbuf) throws IOException {
-        
+
         if (memoryCopy)
             super.write(cbuf);
 

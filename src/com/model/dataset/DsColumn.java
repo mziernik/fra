@@ -176,6 +176,7 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
         json.options.singleLine(true);
         json.options.acceptNulls(false);
 
+        json.put("key", key);
         json.put("primaryKey", primaryKey);
         json.put("hidden", hidden);
         json.put("unique", unique);

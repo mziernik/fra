@@ -243,9 +243,9 @@ public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, P
 //        json.put("selectable", selectable);
 //        json.put("sortable", sortable);
 
-        JObject cols = json.objectC("columns");
+        JArray cols = json.arrayC("columns");
         for (DsColumn<? extends DsColumn, SELF, DATA, ?> col : columns.values())
-            cols.add(col.key, col.getJson());
+            cols.add(col.getJson());
 
         JArray jRows = json.arrayC("rows");
 

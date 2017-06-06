@@ -1,7 +1,8 @@
 package com.config.engine;
 
+@Deprecated
 public enum DataType {
-    //  BOOL("bool"),
+    BOOL("bool"),
     INT("int"),
     DOUBLE("double"),
     TEXT("text"),
