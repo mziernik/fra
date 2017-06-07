@@ -105,19 +105,19 @@ public class DataType<T> {
             (value, parent) -> Pattern.compile(Utils.toString(value))
     );
 
-    public final static DataType<Byte> BYTE = new DataType(JsonType.NUMBER, "integer", Byte.class, (value, parent) -> {
+    public final static DataType<Byte> BYTE = new DataType(JsonType.NUMBER, "byte", Byte.class, (value, parent) -> {
         if (value instanceof Number)
             return ((Number) value).byteValue();
         return Byte.parseByte(Utils.toString(value));
     });
 
-    public final static DataType<Short> SHORT = new DataType(JsonType.NUMBER, "integer", Short.class, (value, parent) -> {
+    public final static DataType<Short> SHORT = new DataType(JsonType.NUMBER, "short", Short.class, (value, parent) -> {
         if (value instanceof Number)
             return ((Number) value).shortValue();
         return Short.parseShort(Utils.toString(value));
     });
 
-    public final static DataType<Integer> INT = new DataType(JsonType.NUMBER, "integer", Integer.class, (value, parent) -> {
+    public final static DataType<Integer> INT = new DataType(JsonType.NUMBER, "int", Integer.class, (value, parent) -> {
         if (value instanceof Number)
             return ((Number) value).intValue();
         return Integer.parseInt(Utils.toString(value));
