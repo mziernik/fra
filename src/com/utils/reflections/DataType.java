@@ -2,6 +2,7 @@ package com.utils.reflections;
 
 import com.exceptions.ServiceException;
 import com.google.gson.JsonElement;
+import com.json.JArray;
 import com.json.JObject;
 import com.utils.Utils;
 import com.utils.collections.TList;
@@ -25,6 +26,26 @@ REGEX
  */
 public class DataType<T> {
 
+    public static class DataTypeUnit {
+
+        public final String key;
+        public final String name;
+        public final Long multipier;
+
+        public DataTypeUnit(String key, String name, Long multipier) {
+            this.key = key;
+            this.name = name;
+            this.multipier = multipier;
+        }
+
+        public DataTypeUnit(String key, String name) {
+            this.key = key;
+            this.name = name;
+            this.multipier = null;
+        }
+
+    }
+
     public static interface Adapter<T> {
 
         T parse(Object value, Object parent) throws Exception;
@@ -41,8 +62,8 @@ public class DataType<T> {
     public final String name;
     public final Adapter<T> adapter;
 
-    Map<String, String> units;
-    Map<String, String> enumerate;
+    public final TList<DataTypeUnit> units = new TList<>();
+    public final Map<String, T> enumerate = new LinkedHashMap<>();
 
     public DataType(JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
 
@@ -59,6 +80,17 @@ public class DataType<T> {
     public JObject getJson() {
         JObject result = new JObject();
         result.put("name", name);
+        result.put("raw", type.name().toLowerCase());
+
+        if (!units.isEmpty()) {
+            JArray junits = result.arrayC("units");
+            for (DataTypeUnit dtu : units)
+                junits.array().addAll(dtu.key, dtu.name, dtu.multipier);
+        }
+
+        if (!enumerate.isEmpty())
+            result.put("enumerate", enumerate);
+
         return result;
     }
 
@@ -143,6 +175,13 @@ public class DataType<T> {
         return Long.parseLong(Utils.toString(value));
     });
 
+    static {
+        SIZE.units.add(new DataTypeUnit("b", "B", 0l));
+        SIZE.units.add(new DataTypeUnit("kb", "KB", 1024l));
+        SIZE.units.add(new DataTypeUnit("mb", "MB", 1024l * 1024l));
+        SIZE.units.add(new DataTypeUnit("gb", "GB", 1024l * 1024l * 1024l));
+    }
+
     public final static DataType<UUID> UUID = new DataType(JsonType.STRING, "uid", UUID.class, (value, parent) -> {
         if (value instanceof byte[])
             return java.util.UUID.nameUUIDFromBytes((byte[]) value);
@@ -166,6 +205,14 @@ public class DataType<T> {
             return new Interval(((Number) value).doubleValue());
         return null;
     });
+
+    static {
+        DURATION.units.add(new DataTypeUnit("ms", "milisekund", 0l));
+        DURATION.units.add(new DataTypeUnit("s", "sekund", 1000l));
+        DURATION.units.add(new DataTypeUnit("m", "minut", 1000l * 60l));
+        DURATION.units.add(new DataTypeUnit("h", "godzin", 1000l * 60l * 60l));
+        DURATION.units.add(new DataTypeUnit("d", "dni", 1000l * 60l * 60l * 24l));
+    }
 
     public final static DataType<TList> LIST = new DataType(JsonType.ARRAY, "list", Collection.class, (value, parent) -> {
         return new TList<>();
