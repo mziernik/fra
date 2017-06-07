@@ -1,7 +1,7 @@
 package com.config.engine.cell;
 
 import com.config.engine.ConfigCell;
-import com.config.engine.DataType;
+import com.config.engine.DataType_old;
 import com.json.*;
 
 import com.utils.Size;
@@ -10,7 +10,7 @@ import com.utils.Size.SizeUnit;
 public class CcSize extends ConfigCell<Size, Size> {
 
     public CcSize(CharSequence name) {
-        super(DataType.SIZE, Size.class, name);
+        super(DataType_old.SIZE, Size.class, name);
         units((map) -> {
             for (SizeUnit u : SizeUnit.values())
                 map.put(u.name().toLowerCase(), u.name());

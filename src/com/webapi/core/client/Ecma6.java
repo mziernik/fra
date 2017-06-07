@@ -15,7 +15,7 @@ import com.utils.collections.Strings;
 import com.utils.reflections.TMethod;
 import com.utils.text.NameFormat;
 import com.utils.text.StrWriter;
-import com.webapi.core.DataType;
+import com.webapi.core.DataType_old;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiController;
 import com.webapi.core.WebApiControllerMeta;

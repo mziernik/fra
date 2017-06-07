@@ -11,7 +11,7 @@ public class WTools implements WebApi {
 
     }
 
-    @WebApiEndpoint(dataType = DataType.STRING, description = "Evaluator")
+    @WebApiEndpoint(dataType = DataType_old.STRING, description = "Evaluator")
     public String eval(WebApiRequest req) throws IOException {
         String src = req.getJson().asString();
         JObject json = new ConfFile(src).process();

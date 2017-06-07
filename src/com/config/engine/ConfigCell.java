@@ -40,9 +40,9 @@ public abstract class ConfigCell<ROW, RAW> {
     protected ConfigField<?, ?, ?> field;
 
     public final Class<? extends ROW> cls;
-    public final DataType type;
+    public final DataType_old type;
 
-    public ConfigCell(DataType type, Class<? extends ROW> cls, CharSequence name) {
+    public ConfigCell(DataType_old type, Class<? extends ROW> cls, CharSequence name) {
         if (this instanceof CcEnumMultiple || this instanceof CcSelectMultiple)
             cls = (Class<? extends ROW>) TList.class;
         this.cls = Objects.requireNonNull(cls, "ConfigCell class");

@@ -1,5 +1,6 @@
 package com.mlogger;
 
+@Deprecated // użyć com.utils.reflections.DataType
 public enum DataType {
 
     TEXT(0),

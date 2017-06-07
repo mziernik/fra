@@ -20,7 +20,7 @@ import com.utils.collections.Strings;
 import com.service.events.filter.EventFilter.TableSearchType;
 import com.lang.LService;
 import com.model.dataset.DataSet;
-import com.model.dataset.intf.DataType;
+import com.utils.reflections.DataType;
 
 /**
  * @author Błażej Palmąka 2017/01/26
@@ -145,29 +145,29 @@ public abstract class BaseEventsFilterHandler<TSelf extends BaseEventsFilterHand
                 + "JOIN UNNEST(ARRAY" + ids.toString() + "::integer[]) WITH ORDINALITY t(id, sort_order) ON (t.id = e.id)\n"
                 + "ORDER BY sort_order ASC");
 
-        data.column(Integer.class, "id", LService.ID, row -> row.getInt("id"))
+        data.column(Integer.class, "id", DataType.INT, LService.ID, row -> row.getInt("id"))
                 .primaryKey();
 
-        data.column(Date.class, "date", LService.DATA, row -> row.getDate("date"))
+        data.column(Date.class, "date", DataType.TIMESTAMP, LService.DATA, row -> row.getDate("date"))
                 .searchable(true)
                 .dateFormat("yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss");
 
-        data.column(String.class, "type", LService.TYPE, row -> EventType.getByKey(row.getChar("type")).name())
+        data.column(String.class, "type", DataType.STRING, LService.TYPE, row -> EventType.getByKey(row.getChar("type")).name())
                 .searchable(true);
 
-        data.column(String[].class, "tags", LService.TAGS, row -> row.getArray("tags", false).toArray())
+        data.column(String[].class, "tags", null, LService.TAGS, row -> row.getArray("tags", false).toArray())
                 .searchable(true);
 
-        data.column(String.class, "source", LService.SOURCE, row -> row.getStr("source", null))
+        data.column(String.class, "source", DataType.STRING, LService.SOURCE, row -> row.getStr("source", null))
                 .searchable(true);
 
-        data.column(String.class, "event", LService.EVENT, row -> row.getStr("event", null))
+        data.column(String.class, "event", DataType.STRING, LService.EVENT, row -> row.getStr("event", null))
                 .searchable(true);
 
-        data.column(String.class, "username", LService.USER, row -> row.getStr("username", null))
+        data.column(String.class, "username", DataType.STRING, LService.USER, row -> row.getStr("username", null))
                 .searchable(true);
 
-        data.column(String.class, "address", LService.ADDRESS, row -> row.getStr("address", null))
+        data.column(String.class, "address", DataType.STRING, LService.ADDRESS, row -> row.getStr("address", null))
                 .searchable(true);
 
         data.fillRows(rows);

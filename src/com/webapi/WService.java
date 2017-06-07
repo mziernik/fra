@@ -30,7 +30,7 @@ public class WService implements WebApi {
         return json;
     }
 
-    @WebApiEndpoint(dataType = DataType.ARRAY, description = "Zwraca wszystko co może się przydać")
+    @WebApiEndpoint(dataType = DataType_old.ARRAY, description = "Zwraca wszystko co może się przydać")
     public JObject getData(WebApiRequest req) throws Exception {
         JObject json = new JObject();
 

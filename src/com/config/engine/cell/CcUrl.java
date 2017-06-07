@@ -1,7 +1,7 @@
 package com.config.engine.cell;
 
 import com.config.engine.ConfigCell;
-import com.config.engine.DataType;
+import com.config.engine.DataType_old;
 import com.json.JElement;
 import com.json.JValue;
 import com.utils.Url;
@@ -9,7 +9,7 @@ import com.utils.Url;
 public class CcUrl extends ConfigCell<Url, Url> {
 
     public CcUrl(CharSequence name) {
-        super(DataType.TEXT, Url.class, name);
+        super(DataType_old.TEXT, Url.class, name);
     }
 
     @Override

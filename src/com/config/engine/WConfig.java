@@ -4,11 +4,11 @@ import com.config.CService;
 import com.exceptions.ServiceError;
 import com.json.*;
 import com.lang.core.LStr;
-import com.model.dataset.AbstractDataSet;
 import com.model.dataset.DataSet;
 import com.servlet.interfaces.Arg;
+import com.utils.reflections.DataType;
 import com.webapi.core.*;
-import com.webapi.core.DataType;
+import com.webapi.core.DataType_old;
 
 public class WConfig implements WebApi {
 
@@ -38,34 +38,34 @@ public class WConfig implements WebApi {
         DataSet<ConfigField, String> dataSet = new DataSet<>("configList",
                 new LStr("Konfiguracja"));
 
-        dataSet.column(String.class, "key", new LStr("Klucz"),
+        dataSet.column(String.class, "key", DataType.KEY, new LStr("Klucz"),
                 cf -> cf.getKey()).primaryKey();
 
-        dataSet.column(String.class, "name", new LStr("Nazwa"),
+        dataSet.column(String.class, "name", DataType.STRING, new LStr("Nazwa"),
                 cf -> cf.getName());
 
-        dataSet.column(String.class, "type", new LStr("Type"),
+        dataSet.column(String.class, "type", DataType.STRING, new LStr("Type"),
                 cf -> cf.getTypeName());
 
-        dataSet.column(String.class, "value", new LStr("Wartość"),
+        dataSet.column(String.class, "value", DataType.STRING, new LStr("Wartość"),
                 cf -> cf.getDisplayValue(null, true));
 
-        dataSet.column(Boolean.class, "def", new LStr("Domyślna"),
+        dataSet.column(Boolean.class, "def", DataType.BOOLEAN, new LStr("Domyślna"),
                 cf -> cf.isDefaultState());
 
-        dataSet.column(String.class, "def_val", new LStr("Wart. domyślna"),
+        dataSet.column(String.class, "def_val", DataType.STRING, new LStr("Wart. domyślna"),
                 cf -> cf.getDisplayValue(ValueSource.USER, false));
 
-        dataSet.column(String.class, "user_val", new LStr("Wart. użytkownika"),
+        dataSet.column(String.class, "user_val", DataType.STRING, new LStr("Wart. użytkownika"),
                 cf -> cf.getDisplayValue(ValueSource.DEFAULT, false));
 
-        dataSet.column(Boolean.class, "multiple", new LStr("Multiple"),
+        dataSet.column(Boolean.class, "multiple", DataType.BOOLEAN, new LStr("Multiple"),
                 cf -> cf.isMultiple());
 
-        dataSet.column(Boolean.class, "req", new LStr("Wymagane"),
+        dataSet.column(Boolean.class, "req", DataType.BOOLEAN, new LStr("Wymagane"),
                 cf -> cf.isRequired());
 
-        dataSet.column(Boolean.class, "miss", new LStr("Brakujące"),
+        dataSet.column(Boolean.class, "miss", DataType.BOOLEAN, new LStr("Brakujące"),
                 cf -> cf.isMissing());
 
         for (ConfigElement ce : HConfig.instance().getAll())
@@ -94,12 +94,12 @@ public class WConfig implements WebApi {
         return JSON.serialize(node.getFieldF(id).value());
     }
 
-    @WebApiEndpoint(dataType = DataType.JSON)
+    @WebApiEndpoint(dataType = DataType_old.JSON)
     public JObject validate(WebApiRequest req, @Arg(name = "id") String id) throws Exception {
         return node.getFieldF(id).store().validateRow(req.getJson());
     }
 
-    @WebApiEndpoint(dataType = DataType.OBJECT)
+    @WebApiEndpoint(dataType = DataType_old.OBJECT)
     public JObject save(WebApiRequest request, @Arg(name = "id") String id) throws Exception {
         ConfigField<?, ?, ?> field = node.getFieldF(id);
         field.store().set(request.getJson().asObject());
@@ -108,7 +108,7 @@ public class WConfig implements WebApi {
         return node.getStructure();
     }
 
-    @WebApiEndpoint(dataType = DataType.OBJECT)
+    @WebApiEndpoint(dataType = DataType_old.OBJECT)
     public JObject getDisplayValue(WebApiRequest request, @Arg(name = "id") String id) throws Exception {
         ConfigField<?, ?, ?> field = node.getFieldF(id);
         field = field.clone();

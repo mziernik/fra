@@ -41,7 +41,7 @@ com/config/engine/ConfigField.class
 com/config/engine/ConfigNode$1.class
 com/config/engine/ConfigNode.class
 com/config/engine/ConfigStoreFactory.class
-com/config/engine/DataType.class
+com/config/engine/DataType_old.class
 com/config/engine/HConfig.class
 com/config/engine/MultipleConfigFields.class
 com/config/engine/SingleConfigField.class
@@ -1060,7 +1060,6 @@ com/model/dataset/DsRecord.class
 com/model/dataset/DsUtils.class
 com/model/dataset/intf/DSColumnAlign.class
 com/model/dataset/intf/DataSetException.class
-com/model/dataset/intf/DataType.class
 com/model/dataset/intf/ModifyType.class
 com/net/HTTP.class
 com/net/HttpClient$1.class
@@ -1677,6 +1676,10 @@ com/utils/hashes/ReedSolomon$GF256Poly.class
 com/utils/hashes/ReedSolomon$ReedSolomonException.class
 com/utils/hashes/ReedSolomon.class
 com/utils/hashes/Rijndael.class
+com/utils/reflections/DataType$Adapter.class
+com/utils/reflections/DataType$EnumDataType.class
+com/utils/reflections/DataType$JsonType.class
+com/utils/reflections/DataType.class
 com/utils/reflections/Reflections.class
 com/utils/reflections/Revertable$SnapshotRunnable.class
 com/utils/reflections/Revertable.class
@@ -1686,6 +1689,7 @@ com/utils/reflections/TExecutable.class
 com/utils/reflections/TField.class
 com/utils/reflections/TMethod.class
 com/utils/reflections/TReflection.class
+com/utils/reflections/TypeAdapter$Adapter.class
 com/utils/reflections/TypeAdapter$IDeserializer.class
 com/utils/reflections/TypeAdapter.class
 com/utils/text/NameFormat$1.class
@@ -1715,7 +1719,7 @@ com/webapi/WSystem.class
 com/webapi/WTest.class
 com/webapi/WTools.class
 com/webapi/WebSocet.class
-com/webapi/core/DataType.class
+com/webapi/core/DataType_old.class
 com/webapi/core/Html.class
 com/webapi/core/Invoker.class
 com/webapi/core/WebApi.class
@@ -1728,6 +1732,7 @@ com/webapi/core/WebApiRequest$WebApiMessageType.class
 com/webapi/core/WebApiRequest.class
 com/webapi/core/client/Ecma5.class
 com/webapi/core/client/Ecma6.class
+com/webapi/core/client/Repositories.class
 com/webapi/core/client/WebApiClientBuilder.class
 com/webapi/core/tester.js
 com/webapi/test/mac.txt

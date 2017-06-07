@@ -1,14 +1,14 @@
 package com.config.engine.cell;
 
 import com.config.engine.ConfigCell;
-import com.config.engine.DataType;
+import com.config.engine.DataType_old;
 import com.json.JElement;
 
 
 public class CcStringMultiLine extends ConfigCell<String, String> {
 
     public CcStringMultiLine(CharSequence name) {
-        super(DataType.TEXT, String.class, name);
+        super(DataType_old.TEXT, String.class, name);
     }
 
     @Override

@@ -17,7 +17,7 @@ public @interface WebApiEndpoint {
     String description() default "";
 
     @Deprecated
-    DataType dataType() default DataType.NONE;
+    DataType_old dataType() default DataType_old.NONE;
 
     Class<? extends UserRight>[] rights() default {};
 

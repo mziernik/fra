@@ -217,13 +217,13 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
         return records;
     }
 
-    static DsTable edit(DsTable tbl, Object primaryKeyObj, Map<String, Object> values, DbRecordTransaction trans) {
+    static DsTable edit(DsTable tbl, Map<String, Object> values, DbRecordTransaction trans) {
 
         DsColumn primaryKey = tbl.getPrimaryKeyColumn();
 
-        Object pk = primaryKeyObj == null ? null
-                : new TypeAdapter<>(primaryKey.getRawClass())
-                        .single(primaryKeyObj, null);
+        Object pk = values.get(tbl.primaryKey.getKey());
+        if (pk != null)
+            pk = new TypeAdapter<>(primaryKey.getRawClass()).process(pk);
 
         tbl = (DsTable) (pk != null ? tbl.getByKeyF(pk) : tbl.newInstance());
 

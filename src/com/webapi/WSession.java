@@ -35,7 +35,7 @@ public class WSession implements WebApi {
         return user != null ? user.getWebApiData() : null;
     }
 
-    @WebApiEndpoint(auth = false, dataType = DataType.JSON)
+    @WebApiEndpoint(auth = false, dataType = DataType_old.JSON)
     public JObject authorize(WebApiRequest request,
             @Arg(name = "username") String username) throws JException, Exception {
 

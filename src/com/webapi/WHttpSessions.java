@@ -6,6 +6,7 @@ import com.servlet.controller.BaseSession;
 import com.utils.date.TDate;
 import com.utils.date.time.Interval;
 import com.utils.date.time.Unit;
+import com.utils.reflections.DataType;
 import com.webapi.core.*;
 
 public class WHttpSessions implements WebApi {
@@ -19,43 +20,43 @@ public class WHttpSessions implements WebApi {
 
         DataSet<BaseSession, String> ds = new DataSet<>("sessions", LWebapi.SESSIONS);
 
-        ds.column(String.class, "id", LWebapi.ID,
+        ds.column(String.class, "id", DataType.KEY, LWebapi.ID,
                 ses -> ses.id).primaryKey();
 
-        ds.column(TDate.class, "created", LWebapi.CREATED,
+        ds.column(TDate.class, "created", DataType.TIMESTAMP, LWebapi.CREATED,
                 ses -> ses.created);
 
-        ds.column(Interval.class, "lastAccess", LWebapi.LAST_REQUESTR,
+        ds.column(Interval.class, "lastAccess", DataType.DURATION, LWebapi.LAST_REQUESTR,
                 ses -> new Interval(ses.getLastAccessedTime(), Unit.MILLISECONDS));
 
-        ds.column(Interval.class, "maxInactive", LWebapi.TIME_LIMIT,
+        ds.column(Interval.class, "maxInactive", DataType.DURATION, LWebapi.TIME_LIMIT,
                 ses -> ses.getMaxInactiveInterval());
 
-        ds.column(Interval.class, "remTime", LWebapi.REMAINING_TIME,
+        ds.column(Interval.class, "remTime", DataType.DURATION, LWebapi.REMAINING_TIME,
                 ses -> new Interval(ses.getRemainingTime(), Unit.MILLISECONDS));
 
-        ds.column(Integer.class, "wsConn", LWebapi.WEBSOCKET_CONNECTIONS,
+        ds.column(Integer.class, "wsConn", DataType.INT, LWebapi.WEBSOCKET_CONNECTIONS,
                 ses -> ses.webSocketConnections.size());
 
-        ds.column(String.class, "host", LWebapi.HOST,
+        ds.column(String.class, "host", DataType.STRING, LWebapi.HOST,
                 ses -> ses.remoteAddress.getHostString());
 
-        ds.column(String.class, "ua", LWebapi.USER_AGENT,
+        ds.column(String.class, "ua", DataType.STRING, LWebapi.USER_AGENT,
                 ses -> ses.userAgent.toString());
 
-        ds.column(String.class, "lang", LWebapi.LANGUAGE,
+        ds.column(String.class, "lang", DataType.STRING, LWebapi.LANGUAGE,
                 ses -> ses.language.get().name);
 
-        ds.column(String.class, "user", LWebapi.USER,
+        ds.column(String.class, "user", DataType.STRING, LWebapi.USER,
                 ses -> ses.user != null ? ses.user.username : null);
 
-        ds.column(Long.class, "recB", LWebapi.RECEIVED,
+        ds.column(Long.class, "recB", DataType.SIZE, LWebapi.RECEIVED,
                 ses -> ses.bytesReceived);
 
-        ds.column(Long.class, "sendB", LWebapi.SENT,
+        ds.column(Long.class, "sendB", DataType.SIZE, LWebapi.SENT,
                 ses -> ses.bytesReturned);
 
-        ds.column(Integer.class, "reqC", LWebapi.REQUEST_COUNT,
+        ds.column(Integer.class, "reqC", DataType.INT, LWebapi.REQUEST_COUNT,
                 ses -> ses.requestCount.get());
 
         ds.fillRows(BaseSession.getSessions());

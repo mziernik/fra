@@ -4,7 +4,6 @@ import com.cache.CachedData;
 import com.config.CService;
 import com.json.*;
 import com.lang.core.Language.LangEntry;
-import com.model.dataset.AbstractDataSet;
 import com.model.dataset.DataSet;
 import com.net.http.HttpClient;
 import com.net.http.HttpRequest;
@@ -15,6 +14,7 @@ import com.servlet.interfaces.Arg;
 import com.utils.Url;
 import com.utils.Is;
 import com.utils.collections.TList;
+import com.utils.reflections.DataType;
 import com.webapi.core.*;
 import java.io.IOException;
 
@@ -128,26 +128,26 @@ public class WLanguage implements WebApi {
         Language lang = Languages.getF(langKey);
         Language ref = Is.empty(refKey) ? null : Languages.getF(refKey);
 
-        dataSet.column(String.class, "id", new LStr("Id"), e -> e.id)
+        dataSet.column(String.class, "id", DataType.KEY, new LStr("Id"), e -> e.id)
                 .primaryKey()
                 .hidden(true);
 
-        dataSet.column(String.class, "group", new LStr("Group"), e -> e.group);
+        dataSet.column(String.class, "group", DataType.STRING, new LStr("Group"), e -> e.group);
 
-        dataSet.column(String.class, "key", new LStr("Key"), e -> e.key);
+        dataSet.column(String.class, "key", DataType.KEY, new LStr("Key"), e -> e.key);
 
         if (ref != null)
-            dataSet.column(String.class, "ref", new LStr(ref.name), e -> {
+            dataSet.column(String.class, "ref", DataType.STRING, new LStr(ref.name), e -> {
                 LangEntry en = e.get(ref);
                 return en != null ? en.value : null;
             });
 
-        dataSet.column(String.class, "val", new LStr(lang.name), e -> {
+        dataSet.column(String.class, "val", DataType.STRING, new LStr(lang.name), e -> {
             LangEntry en = e.get(lang);
             return en != null ? en.value : null;
         });
 
-        dataSet.column(Boolean.class, "complete", new LStr("Zatwierdzone"), e -> {
+        dataSet.column(Boolean.class, "complete", DataType.BOOLEAN, new LStr("Zatwierdzone"), e -> {
             LangEntry en = e.get(lang);
             return en != null ? en.complete : false;
         });

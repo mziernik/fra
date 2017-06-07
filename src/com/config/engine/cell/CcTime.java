@@ -1,7 +1,7 @@
 package com.config.engine.cell;
 
 import com.config.engine.ConfigCell;
-import com.config.engine.DataType;
+import com.config.engine.DataType_old;
 import com.json.JElement;
 import com.json.JValue;
 
@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 public class CcTime extends ConfigCell<Interval, Interval> {
 
     public CcTime(CharSequence name) {
-        super(DataType.TIME, Interval.class, name);
+        super(DataType_old.TIME, Interval.class, name);
     }
 
     @Override

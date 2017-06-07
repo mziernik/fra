@@ -1,5 +1,6 @@
 package com.utils.reflections;
 
+import com.exceptions.ServiceException;
 import com.exceptions.ThrowableException;
 import com.json.*;
 import com.lang.LUtil;
@@ -20,6 +21,13 @@ import java.util.*;
  * Klasa zbiorcza zajmująca się parsowaniem różnego rodzaju obiektów
  */
 public class TypeAdapter<T> {
+
+    public static interface Adapter<T> {
+
+        T parse(Object value, Object parent) throws Exception;
+    }
+
+    public final static Map<Class<?>, Adapter<?>> ADAPTERS = new LinkedHashMap<>();
 
     public String mapSeparator = ":";
     public final Class<T> cls;
@@ -86,10 +94,24 @@ public class TypeAdapter<T> {
         return list;
     }
 
+    public T process(Object value) {
+        return process(value, null);
+    }
+
     public T process(Object value, Object parentInstance) {
         if (value == null)
             return null;
 
+        try {
+            Adapter<?> adapter = ADAPTERS.get(cls);
+            if (adapter != null)
+                return (T) adapter.parse(value, parentInstance);
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new ServiceException(e);
+        }
+        
         if (cls.isArray()) {
             Class<?> cType = cls.getComponentType();
             Collection<Object> values = asCollection(value);
@@ -161,8 +183,8 @@ public class TypeAdapter<T> {
             return null;
 
         if (value instanceof JValue)
-            value = ((JValue)value).value();
-        
+            value = ((JValue) value).value();
+
         if (cls.isAssignableFrom(value.getClass()))
             return (T) value;
 
@@ -244,14 +266,30 @@ public class TypeAdapter<T> {
             try {
                 Constructor<?>[] constructors = cls.getDeclaredConstructors();
                 for (Constructor<?> c : constructors)
+                    // jeśli konstruktor ma jeden argument i jest on identycznego typu co wartość
+                    if (c.getParameterCount() == 1 && c.getParameterTypes()[0] == value.getClass())
+                        return tcls.newInstance(instance, value);
+
+                for (Constructor<?> c : constructors)
                     if (c.getParameterCount() == 1 && isSupporterd(c.getParameterTypes()[0]))
-                        return (T) collection((TClass<T>) new TClass<>(
-                                c.getParameterTypes()[0]), value, instance);
+                        return tcls.newInstance(instance, new TypeAdapter<>(c.getParameterTypes()[0]).process(value, instance));
 
             } catch (Exception ex) {
-                throw new ThrowableException(ex);
+                throw new ThrowableException("Missing TypeAdapter of " + cls.getName(), ex);
             }
 
         throw new UnsupportedOperationException(LUtil.CANT_DESERIALIZE_CLASS.toString(tcls.getFullName()));
     }
+
+    static {
+
+        TypeAdapter.ADAPTERS.put(UUID.class, (value, parent) -> {
+            if (value instanceof String)
+                return UUID.fromString((String) value);
+
+            throw new UnsupportedOperationException();
+        });
+
+    }
+
 }

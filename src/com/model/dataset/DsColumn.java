@@ -1,7 +1,7 @@
 package com.model.dataset;
 
 import com.database.model.DbCol;
-import com.model.dataset.intf.DataType;
+import com.utils.reflections.DataType;
 import com.exceptions.ThrowableException;
 import com.intf.callable.CallableEx1;
 import com.json.Escape;
@@ -11,13 +11,9 @@ import com.model.dataset.intf.DSColumnAlign;
 import com.model.dataset.intf.DataSetException;
 import com.utils.Is;
 import com.utils.Str;
-import com.utils.Utils;
 import com.utils.collections.Props;
-import com.utils.reflections.TClass;
-import com.utils.reflections.TField;
 import com.utils.text.NameFormat;
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.util.Objects;
 
 public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
@@ -31,6 +27,7 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
     public final Props extra = new Props();
     protected String dbColumnName;
     protected String dbColumnCast;
+    public final DataType<? extends RAW> type;
 //---------------------------
 
     private Boolean primaryKey;
@@ -38,9 +35,9 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
     private Boolean unique;
     private Boolean nullable;
     private DSColumnAlign align;
+    private Boolean readOnly = false;
 
     private CharSequence subtitle;
-    private DataType type;
     private String foreignDataSet;
     private String foreignColumn;
     private Boolean disabled; // kolumna niewidoczna, zawiera daodatkowe dane, nie można jej wyświetliś
@@ -82,11 +79,6 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
         return name;
     }
 
-    public DataType getType() {
-        //FixMe: Ustawienie typu
-        return Utils.coalesce(type, DataType.INT);
-    }
-
     public Field getField() {
         return field;
     }
@@ -108,13 +100,16 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
         return key + (parent.record != null ? " = " + Escape.escape(get()) : "");
     }
 
-    public DsColumn(DS parent, String key, CharSequence name, CallableEx1<RAW, DATA> setter) {
+    public DsColumn(DS parent, String key, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
+
+        if (type == null)
+            type = (DataType<? extends RAW>) DataType.ANY;
 
         this.key = key;
         this.name = name;
         this.parent = parent;
         this.setter = setter;
-
+        this.type = type;
         if (parent.immutable)
             throw new DataSetException("DataSet is immutable");
 
@@ -179,11 +174,12 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
         json.put("key", key);
         json.put("primaryKey", primaryKey);
         json.put("hidden", hidden);
+        json.put("readOnly", readOnly);
         json.put("unique", unique);
         json.put("caption", name);
         json.put("subtitle", subtitle);
         json.put("sortOrder", sortOrder);
-        json.put("type", type != null ? type.name().toLowerCase() : null);
+        json.put("type", type.getJson());
         json.put("align", align != null ? align.key : null);
         json.put("editable", editable);
         json.put("searchable", searchable);
@@ -191,14 +187,17 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
         json.put("disabled", disabled);
         json.put("nullable", nullable);
         json.put("sortable", sortable);
-        if (type == DataType.DATE)
-            json.arrayC("dateFormat").add(dateFormat).add(dateFormats);
 
         return json;
     }
 
     public SELF hidden(boolean hidden) {
         this.hidden = hidden;
+        return self;
+    }
+
+    public SELF readOnly(boolean readOnly) {
+        this.readOnly = readOnly;
         return self;
     }
 
@@ -230,11 +229,6 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
     public SELF dateFormat(String format, String... formats) {
         this.dateFormat = format;
         this.dateFormats = formats;
-        return self;
-    }
-
-    public SELF type(DataType type) {
-        this.type = type;
         return self;
     }
 
@@ -303,7 +297,6 @@ public abstract class DsColumn<SELF extends DsColumn<SELF, DS, DATA, RAW>, //
         Objects.requireNonNull(key, "Missing column key in " + parent.key);
         Objects.requireNonNull(clazz, "Missing generic type of " + parent.key + "." + key);
 
-        this.type = DataType.of(clazz);
         initialized = true;
     }
 

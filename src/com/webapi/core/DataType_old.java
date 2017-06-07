@@ -1,7 +1,7 @@
 package com.webapi.core;
 
-@Deprecated
-public enum DataType {
+@Deprecated // użyć com.utils.reflections.DataType
+public enum DataType_old {
     NONE,
     STRING,
     NUMBER,

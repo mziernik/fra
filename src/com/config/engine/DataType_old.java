@@ -1,7 +1,7 @@
 package com.config.engine;
 
-@Deprecated
-public enum DataType {
+@Deprecated // użyć com.utils.reflections.DataType
+public enum DataType_old {
     BOOL("bool"),
     INT("int"),
     DOUBLE("double"),
@@ -15,7 +15,7 @@ public enum DataType {
 
     public final String key;
 
-    private DataType(String key) {
+    private DataType_old(String key) {
         this.key = key;
     }
 

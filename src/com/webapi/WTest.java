@@ -1,6 +1,5 @@
 package com.webapi;
 
-
 import com.cache.CachedData;
 import com.json.*;
 import com.resources.dict.Names;
@@ -12,6 +11,7 @@ import com.lang.LWebapi;
 import com.model.dataset.AbstractDataSet;
 import com.model.dataset.DataSet;
 import com.utils.TObject;
+import com.utils.reflections.DataType;
 import java.io.IOException;
 import java.util.*;
 
@@ -34,14 +34,14 @@ public class WTest implements WebApi {
         data.offset = offset;
         data.limit = limit;
 
-        data.column(Integer.class, "id", LWebapi.ID,
+        data.column(Integer.class, "id", DataType.INT, LWebapi.ID,
                 arr -> (Integer) arr.get(0))
                 .primaryKey();
 
-        data.column(String.class, "firstname", LWebapi.FIRSTNAME,
+        data.column(String.class, "firstname", DataType.STRING, LWebapi.FIRSTNAME,
                 arr -> (String) arr.get(1));
 
-        data.column(String.class, "lastname", LWebapi.LASTNAME,
+        data.column(String.class, "lastname", DataType.STRING, LWebapi.LASTNAME,
                 arr -> (String) arr.get(2));
 
         if (names.isEmpty())

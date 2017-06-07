@@ -152,7 +152,7 @@ class Html {
                 liArgs.span(")");
 
                 Strings comment = new Strings().nonEmpty(true);
-                if (m.endp.dataType() != DataType.NONE)
+                if (m.endp.dataType() != DataType_old.NONE)
                     comment.add("[" + m.endp.dataType().name().toLowerCase() + "]");
 
                 if (m.endp.rights().length > 0)
@@ -324,10 +324,10 @@ class Html {
                     .height("100%")
                     .border("1px solid #ccc");;
 
-            if (req.meta.endp.dataType() == DataType.ARRAY)
+            if (req.meta.endp.dataType() == DataType_old.ARRAY)
                 ta.text("[\n\n]");
 
-            if (req.meta.endp.dataType() == DataType.OBJECT)
+            if (req.meta.endp.dataType() == DataType_old.OBJECT)
                 ta.text("{\n\n}");
         }
 

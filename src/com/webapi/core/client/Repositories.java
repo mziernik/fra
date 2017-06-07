@@ -78,7 +78,7 @@ public class Repositories extends WebApiClientBuilder {
                 for (DsColumn<?, ?, ?, ?> col : tbl.getColumns().values())
                     writer.append(col.getKey().toUpperCase())
                             .append(": Field = new Field(DataType.")
-                            .append(col.getType().name())
+                            .append(col.type.name)
                             .add(").name(").escape(col.getKey())
                             .add(").title(").escape(col.getName())
                             .add(")", tbl.getPrimaryKeyColumn() == col ? ".primaryKey()" : "", ";")

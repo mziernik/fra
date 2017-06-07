@@ -12,6 +12,7 @@ import com.json.JObject;
 import com.model.dataset.intf.DataSetException;
 import com.utils.Lock;
 import com.utils.collections.TList;
+import com.utils.reflections.DataType;
 import com.utils.reflections.TClass;
 import com.utils.text.StrWriter;
 import java.util.Map.Entry;
@@ -255,56 +256,57 @@ public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, P
         return json;
     }
 
-    protected <RAW> Col<RAW> column(Class<RAW> cls, CharSequence name,
+    protected <RAW> Col<RAW> column(Class<RAW> cls,
+            DataType<? extends RAW> type, CharSequence name,
             CallableEx1<RAW, DATA> setter) {
-        return new Col<>(cls, null, name, setter);
+        return new Col<>(cls, null, type, name, setter);
     }
 
-    protected <RAW> Col<RAW> column(String key, CharSequence name,
-            CallableEx1<RAW, DATA> setter) {
-        return new Col<>(null, key, name, setter);
+    protected <RAW> Col<RAW> column(String key, DataType<? extends RAW> type,
+            CharSequence name, CallableEx1<RAW, DATA> setter) {
+        return new Col<>(null, key, type, name, setter);
     }
 
-    protected <RAW> Col<RAW> column(Class<RAW> cls, String key, CharSequence name,
-            CallableEx1<RAW, DATA> setter) {
-        return new Col<>(cls, key, name, setter);
+    protected <RAW> Col<RAW> column(Class<RAW> cls, String key, DataType<? extends RAW> type,
+            CharSequence name, CallableEx1<RAW, DATA> setter) {
+        return new Col<>(cls, key, type, name, setter);
     }
 
     protected <RAW, DS extends DsTable<?, ?>> ColF<RAW, DS> columnF(
-            CharSequence name, CallableEx1<RAW, DATA> setter) {
-        return new ColF<>(null, name, setter);
+            DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
+        return new ColF<>(null, type, name, setter);
     }
 
     protected <RAW, DS extends DsTable<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
-            CharSequence name, CallableEx1<RAW, DATA> setter) {
-        return new ColF<>(cls, name, setter);
+            DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
+        return new ColF<>(cls, type, name, setter);
     }
 
     protected <RAW, DS extends DsTable<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
-            String key, CharSequence name, CallableEx1<RAW, DATA> setter) {
-        return new ColF<>(cls, key, name, setter);
+            String key, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
+        return new ColF<>(cls, key, type, name, setter);
     }
 
     public class Col<RAW> extends DsColumn<Col<RAW>, SELF, DATA, RAW> {
 
-        Col(Class<RAW> cls, CharSequence name, CallableEx1<RAW, DATA> setter) {
-            this(cls, null, name, setter);
+        Col(Class<RAW> cls, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
+            this(cls, null, type, name, setter);
         }
 
-        Col(Class<RAW> cls, String key, CharSequence name, CallableEx1<RAW, DATA> setter) {
-            super(self, key, name, setter);
+        Col(Class<RAW> cls, String key, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
+            super(self, key, type, name, setter);
             this.clazz = cls;
         }
     }
 
     public class ColF<RAW, DS extends DsTable<?, ?>> extends Col<RAW> {
 
-        ColF(Class<RAW> cls, CharSequence name, CallableEx1<RAW, DATA> setter) {
-            super(cls, name, setter);
+        ColF(Class<RAW> cls, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
+            super(cls, type, name, setter);
         }
 
-        ColF(Class<RAW> cls, String key, CharSequence name, CallableEx1<RAW, DATA> setter) {
-            super(cls, key, name, setter);
+        ColF(Class<RAW> cls, String key, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
+            super(cls, key, type, name, setter);
         }
 
     }

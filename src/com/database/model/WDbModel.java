@@ -7,7 +7,7 @@ import com.model.dataset.DsColumn;
 import com.servlet.Handlers;
 import com.servlet.interfaces.Arg;
 import com.utils.collections.TList;
-import com.webapi.core.DataType;
+import com.webapi.core.DataType_old;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiEndpoint;
 import com.webapi.core.WebApiRequest;
@@ -34,7 +34,7 @@ public class WDbModel implements WebApi {
     }
 
     @WebApiEndpoint(description = "Zwraca dane z wielu tabel")
-    public JObject getAll(WebApiRequest req, 
+    public JObject getAll(WebApiRequest req,
             @Arg(name = "repositories") String[] repositories) throws FileNotFoundException {
 
         TList<DsTable<?, ?>> tbls = new TList<>();
@@ -50,17 +50,30 @@ public class WDbModel implements WebApi {
         return json;
     }
 
-    @WebApiEndpoint(dataType = DataType.OBJECT)
-    public DsTable<?, ?> edit(
+    @WebApiEndpoint(dataType = DataType_old.OBJECT)
+    public JObject edit(
             WebApiRequest req,
-            @Arg(name = "table") String table,
-            @Arg(name = "key", required = false) Object key
+            @Arg(name = "data") JObject json
     ) throws Exception {
-        DsTable tbl = DsTable.getTable(table);
+
+        final JObject result = new JObject();
+
         DbRecordTransaction trans = new DbRecordTransaction();
-        tbl = DsTable.edit(tbl, key, req.getJson().asObject().asMap(), trans);
+
+        for (JArray arr : json.getArrays()) {
+
+            DsTable tbl = DsTable.getTable(arr.getName());
+
+            JArray jRes = result.arrayC(arr.getName());
+
+            for (JObject obj : arr.getObjects()) {
+                DsTable t = DsTable.edit(tbl, obj.asMap(), trans);
+                jRes.add(t.getJson());
+            }
+        }
+
         trans.commit(Handlers.database.getInstance().getDatabase());
-        return tbl;
+        return result;
     }
 
     @WebApiEndpoint()
@@ -73,28 +86,6 @@ public class WDbModel implements WebApi {
         tbl = DsTable.remove(tbl, key, trans);
         trans.commit(Handlers.database.getInstance().getDatabase());
         return tbl;
-    }
-
-    @WebApiEndpoint(dataType = DataType.ARRAY)
-    public DsTable<?, ?>[] editMultiple(WebApiRequest req) throws Exception {
-
-        TList<JObject> objs = req.getJson().asArray().getObjects();
-        if (objs.isEmpty())
-            return null;
-
-        TList<DsTable<?, ?>> list = new TList<>();
-
-        DbRecordTransaction trans = new DbRecordTransaction();
-
-        for (JObject obj : objs) {
-            DsTable tbl = DsTable.getTable(obj.getStr("table"));
-            tbl = DsTable.edit(tbl, obj.getRawValue("key", null),
-                    obj.objectF("data").asMap(), trans);
-            list.add(tbl);
-        }
-
-        trans.commit(Handlers.database.getInstance().getDatabase());
-        return list.toArray(new DsTable[0]);
     }
 
     @WebApiEndpoint

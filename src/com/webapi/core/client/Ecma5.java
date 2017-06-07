@@ -21,7 +21,7 @@ import com.utils.reflections.TMethod;
 import com.utils.text.NameFormat;
 import com.utils.text.NameFormat.CaseConvert;
 import com.utils.text.StrWriter;
-import com.webapi.core.DataType;
+import com.webapi.core.DataType_old;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiController;
 import com.webapi.core.WebApiControllerMeta;
@@ -176,7 +176,7 @@ public class Ecma5 extends WebApiClientBuilder {
 
                 if (m.item instanceof TMethod) {
 
-                    if (m.endp.dataType() != DataType.NONE)
+                    if (m.endp.dataType() != DataType_old.NONE)
                         json.arrayC("")
                                 .add(m.endp.dataType().name().toLowerCase())
                                 .add(true).options.quotaNames(true);

@@ -2,7 +2,7 @@ package com.config.engine.cell.select;
 
 import com.config.engine.ConfigCell;
 import com.config.engine.ConfigException;
-import com.config.engine.DataType;
+import com.config.engine.DataType_old;
 import com.config.engine.cell.select.SelectEntries.SelectEntry;
 import com.intf.callable.Callable;
 import com.intf.runnable.Runnable1;
@@ -20,7 +20,7 @@ public class CcSelect<ROW, RAW> extends ConfigCell<ROW, RAW> {
     protected Callable<SelectEntries<RAW>> enumerate;
 
     public CcSelect(Class<? extends ROW> clazz, CharSequence name) {
-        super(DataType.ENUM, clazz, name);
+        super(DataType_old.ENUM, clazz, name);
     }
 
     public CcSelect<ROW, RAW> enumerate(Runnable1<SelectEntries<RAW>> runnable) {

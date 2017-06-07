@@ -5,6 +5,7 @@ import com.model.dataset.AbstractDataSet.Col;
 import com.json.JArray;
 import com.json.JObject;
 import com.utils.collections.TList;
+import com.utils.reflections.DataType;
 import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -13,15 +14,15 @@ public class DataSetTest {
 
     class SimpleDS extends AbstractDataSet<SimpleDS, JObject, Integer> {
 
-        final Col<Integer> pk = column(Integer.class, "klucz_glowny", "Klucz główny", obj -> obj.getInt("pk"))
+        final Col<Integer> pk = column(Integer.class, "klucz_glowny", DataType.INT, "Klucz główny", obj -> obj.getInt("pk"))
                 .primaryKey();
-        final Col<String> login = column("login", "Login", obj -> obj.getStr("login"));
-        final Col<Boolean> active = column("active", "Aktywny", obj -> obj.getBool("active"));
+        final Col<String> login = column("login", DataType.STRING, "Login", obj -> obj.getStr("login"));
+        final Col<Boolean> active = column("active", DataType.BOOLEAN, "Aktywny", obj -> obj.getBool("active"));
 
         public SimpleDS() {
             super("nazwa", "Tytuł");
-            column(String.class, "a", "A", o -> "A");
-            column(Integer.class, "xxxx", "YYYY", null);
+            column(String.class, "a", DataType.STRING, "A", o -> "A");
+            column(Integer.class, "xxxx", DataType.INT, "YYYY", null);
             init();
         }
 

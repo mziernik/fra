@@ -1,7 +1,7 @@
 package com.config.engine.cell;
 
 import com.config.engine.ConfigCell;
-import com.config.engine.DataType;
+import com.config.engine.DataType_old;
 import com.json.JElement;
 import com.json.JNull;
 import com.json.JValue;
@@ -11,7 +11,7 @@ import com.utils.Utils;
 public class CcString extends ConfigCell<String, String> {
 
     public CcString(CharSequence name) {
-        super(DataType.TEXT, String.class, name);
+        super(DataType_old.TEXT, String.class, name);
     }
 
     @Override

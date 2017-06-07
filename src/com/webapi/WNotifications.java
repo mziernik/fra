@@ -6,7 +6,7 @@ import com.lang.core.LString;
 import com.mlogger.Log;
 import com.servlet.interfaces.Arg;
 import com.utils.collections.*;
-import com.webapi.core.DataType;
+import com.webapi.core.DataType_old;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiEndpoint;
 import com.webapi.core.WebApiRequest;
@@ -22,7 +22,7 @@ public class WNotifications implements WebApi {
     public final static SyncMap<String, LString> notifySources = new SyncMap<>();
     public final MapList<String, Pattern> notifyPatterns = new MapList<>();
 
-    @WebApiEndpoint(dataType = DataType.OBJECT)
+    @WebApiEndpoint(dataType = DataType_old.OBJECT)
     public void register(WebApiRequest request) {
         JObject json = request.getJson().asObject();
         MapList<String, Pattern> map = new MapList<>();
@@ -72,7 +72,7 @@ public class WNotifications implements WebApi {
         return json;
     }
 
-    @WebApiEndpoint(dataType = DataType.OBJECT)
+    @WebApiEndpoint(dataType = DataType_old.OBJECT)
     public void log(WebApiRequest req,
             @Arg(name = "type") String type,
             @Arg(name = "value") String value) {

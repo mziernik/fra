@@ -6,6 +6,7 @@ import com.model.dataset.AbstractDataSet;
 import com.model.dataset.DataSet;
 import com.servlet.interfaces.Arg;
 import com.utils.hashes.Hashes;
+import com.utils.reflections.DataType;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiEndpoint;
 import java.util.LinkedHashMap;
@@ -116,14 +117,13 @@ public class WDatabase implements WebApi {
         DataSet dataSet = new DataSet("db", "Rezultat");
 
         for (QueryColumn col : rows.columns)
-            dataSet.column(String.class, col.name, col.name, null)
+            dataSet.column(String.class, col.name, DataType.STRING, col.name, null)
                     .subtitle(col.type);
 
         for (QueryRow qrow : rows)
             dataSet.addRow(null, qrow.values);
-        
-//            dataSet.addRow().addAll(qrow.values);
 
+//            dataSet.addRow().addAll(qrow.values);
         return dataSet;
     }
 

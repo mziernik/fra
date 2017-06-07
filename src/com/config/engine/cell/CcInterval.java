@@ -1,7 +1,7 @@
 package com.config.engine.cell;
 
 import com.config.engine.ConfigCell;
-import com.config.engine.DataType;
+import com.config.engine.DataType_old;
 import com.config.engine.ConfigException;
 import com.json.JArray;
 import com.json.JElement;
@@ -22,7 +22,7 @@ public class CcInterval extends ConfigCell<Interval, Interval> {
     }
 
     public CcInterval(CharSequence name, Unit defaultUnit) {
-        super(DataType.INTERVAL, Interval.class, name);
+        super(DataType_old.INTERVAL, Interval.class, name);
         this.defaultUnit = defaultUnit;
 
         units(() -> {
