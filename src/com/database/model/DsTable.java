@@ -13,6 +13,7 @@ import com.json.Escape;
 import com.model.dataset.AbstractDataSet;
 import com.model.dataset.DsColumn;
 import com.model.dataset.DsRecord;
+import com.model.dataset.intf.CRUDE;
 import com.model.dataset.intf.DataSetException;
 import com.utils.Is;
 import com.utils.Ready;
@@ -25,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 //ToDo: Dodać tryb lazy
 public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_KEY>
@@ -217,15 +219,35 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
         return records;
     }
 
-    static DsTable edit(DsTable tbl, Map<String, Object> values, DbRecordTransaction trans) {
+    public DsTable action(CRUDE action, Map<String, Object> values, DbRecordTransaction trans) {
 
-        DsColumn primaryKey = tbl.getPrimaryKeyColumn();
+        Objects.requireNonNull(action);
 
-        Object pk = values.get(tbl.primaryKey.getKey());
+        DsColumn primaryKey = getPrimaryKeyColumn();
+
+        PRIMARY_KEY pk = (PRIMARY_KEY) values.get(primaryKey.getKey());
         if (pk != null)
-            pk = new TypeAdapter<>(primaryKey.getRawClass()).process(pk);
+            pk = (PRIMARY_KEY) new TypeAdapter<>(primaryKey.getRawClass()).process(pk);
 
-        tbl = (DsTable) (pk != null ? tbl.getByKeyF(pk) : tbl.newInstance());
+        DsTable tbl = null;
+        switch (action) {
+
+            case CREATE:
+                tbl = this.newInstance();
+                trans.initializeInsert(tbl);
+                break;
+
+            case UPDATE:
+                tbl = this.getByKeyF(pk);
+                break;
+
+            case DELETE:
+                tbl = this.getByKeyF(pk);
+                trans.delete(tbl);
+                return tbl;
+            default:
+                throw new UnsupportedOperationException(action.name);
+        }
 
         for (Entry<String, Object> en : values.entrySet()) {
             DsColumn col = (DsColumn) tbl.columns.get(en.getKey());
@@ -235,18 +257,6 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
             trans.set(col, val);
         }
 
-        return tbl;
-    }
-
-    static DsTable remove(DsTable tbl, Object primaryKeyObj, DbRecordTransaction trans) {
-        DsColumn primaryKey = tbl.getPrimaryKeyColumn();
-
-        Object pk = primaryKeyObj == null ? null
-                : new TypeAdapter<>(primaryKey.getRawClass())
-                        .single(primaryKeyObj, null);
-
-        tbl = (DsTable) tbl.getByKeyF(pk);
-        trans.delete(tbl);
         return tbl;
     }
 

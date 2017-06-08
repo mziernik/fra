@@ -8,7 +8,6 @@ META-INF/fra/db/service/database.conf
 META-INF/fra/db/service/update/02.sql
 META-INF/fra/db/service/update/03.sql
 META-INF/fra/files
-META-INF/fra/index
 META-INF/fra/version.properties
 WEB-INF/web.xml
 com/cache/CacheManager.class
@@ -247,7 +246,7 @@ com/database/model/DbCol.class
 com/database/model/DbRecordTransaction.class
 com/database/model/DbUtils.class
 com/database/model/DsTable.class
-com/database/model/WDbModel.class
+com/database/model/WRepository.class
 com/database/orm/DbCheck.class
 com/database/orm/DbColumn.class
 com/database/orm/DbColumnFK.class
@@ -1677,6 +1676,7 @@ com/utils/hashes/ReedSolomon$ReedSolomonException.class
 com/utils/hashes/ReedSolomon.class
 com/utils/hashes/Rijndael.class
 com/utils/reflections/DataType$Adapter.class
+com/utils/reflections/DataType$DataTypeUnit.class
 com/utils/reflections/DataType$EnumDataType.class
 com/utils/reflections/DataType$JsonType.class
 com/utils/reflections/DataType.class

@@ -1,17 +1,15 @@
 package com.database.queries;
 
-import com.utils.Utils;
 import com.utils.Is;
 import com.utils.text.StrWriter;
 import com.database.queries.builder.QueryBuilder;
 import com.database.Database;
-import com.exceptions.SQLError;
 import com.database.queries.builder.QueryStringWriter;
 import com.utils.collections.Strings;
 
 /**
- * W zalezności od tego czy parametr 'where' jest zdefiniowany, wykoany zostanie
- * insert lub update
+ * W zależności od tego czy parametr 'where' jest zdefiniowany, wykonany
+ * zostanie insert lub update
  *
  * @author milosz
  */
@@ -63,12 +61,17 @@ public class InsertOrUpdate extends QueryBuilder<InsertOrUpdate> {
     }
 
     @Override
+    public boolean isEmpty() {
+        return isUpdate() && params.isEmpty();
+    }
+
+    @Override
     public String buildQuery() {
         return isUpdate() ? buildUpdate() : buildInsert();
     }
 
     protected String buildUpdate() {
-        if (params.isEmpty())
+        if (isEmpty())
             return "";
 
         StrWriter sb = new StrWriter();
@@ -95,24 +98,25 @@ public class InsertOrUpdate extends QueryBuilder<InsertOrUpdate> {
 
     protected String buildInsert() {
 
-        if (params.isEmpty())
-            return "";
-
         QueryStringWriter sw = new QueryStringWriter(this)
                 .append("INSERT").append(orReplace ? " OR REPLACE" : "").append(" INTO ")
                 .append(table)
-                .space()
-                .append("(")
-                .getNames()
-                .append(")")
-                .lineBreak()
-                .append("VALUES")
-                .space()
-                .append("(")
-                .lineBreak()
-                .getValues()
-                .lineBreak()
-                .append(")");
+                .space();
+
+        if (params.isEmpty())
+            sw.append("DEFAULT VALUES");
+        else
+            sw.append("(")
+                    .getNames()
+                    .append(")")
+                    .lineBreak()
+                    .append("VALUES")
+                    .space()
+                    .append("(")
+                    .lineBreak()
+                    .getValues()
+                    .lineBreak()
+                    .append(")");
 
         if (!returning.isEmpty())
             sw.append("\nRETURNING ").append(returning.toString(", "));

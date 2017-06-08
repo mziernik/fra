@@ -17,6 +17,15 @@ public class DbRecordTransaction {
     final Map<DsTable<?, ?>, Map<DsColumn<?, ? extends DsTable<?, ?>, QueryRow, ?>, Object>> update = new LinkedHashMap<>();
     final Set<DsRecord<?, QueryRow, ?>> delete = new LinkedHashSet<>();
 
+    public <T> DbRecordTransaction initializeInsert(DsTable<?, ?> table) {
+        Map<DsColumn<?, ? extends DsTable<?, ?>, QueryRow, ?>, Object> map = update.get(table);
+        if (map == null) {
+            map = new LinkedHashMap<>();
+            update.put(table, map);
+        }
+        return this;
+    }
+
     public <T> DbRecordTransaction set(DsColumn<?, ? extends DsTable<?, ?>, QueryRow, T> cell, T value) {
         Map<DsColumn<?, ? extends DsTable<?, ?>, QueryRow, ?>, Object> map = update.get(cell.getParent());
         if (map == null) {
@@ -50,6 +59,10 @@ public class DbRecordTransaction {
                 mqry.add(DbUtils.addMarker(d, ((DsTable) rec.dataSet)));
                 ((DsTable) rec.dataSet).getDeleteQuery(mqry, rec);
             }
+
+            if (mqry.isEmpty())
+                return;
+
             QueryRows rows = mqry.execute();
 
             DbUtils.processMarkers(rows, update.keySet(), (qr, tbl) -> {

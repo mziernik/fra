@@ -4,6 +4,7 @@ import com.cache.CachedData;
 import com.json.JArray;
 import com.json.JObject;
 import com.model.dataset.DsColumn;
+import com.model.dataset.intf.CRUDE;
 import com.servlet.Handlers;
 import com.servlet.interfaces.Arg;
 import com.utils.collections.TList;
@@ -13,9 +14,10 @@ import com.webapi.core.WebApiEndpoint;
 import com.webapi.core.WebApiRequest;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Map.Entry;
 
-public class WDbModel implements WebApi {
+public class WRepository implements WebApi {
 
     @WebApiEndpoint(description = "Lista wszystkich rekordów w cache")
     public JObject list() {
@@ -35,11 +37,14 @@ public class WDbModel implements WebApi {
 
     @WebApiEndpoint(description = "Zwraca dane z wielu tabel")
     public JObject getAll(WebApiRequest req,
-            @Arg(name = "repositories") String[] repositories) throws FileNotFoundException {
+            @Arg(name = "repositories", required = false) String[] repositories) throws FileNotFoundException {
 
         TList<DsTable<?, ?>> tbls = new TList<>();
-        for (String s : repositories)
-            tbls.add(DsTable.getTableF(s));
+        if (repositories != null && repositories.length > 0)
+            for (String s : repositories)
+                tbls.add(DsTable.getTableF(s));
+        else
+            tbls.addAll(DsTable.tables1.values());
 
         JObject json = new JObject();
 
@@ -63,29 +68,17 @@ public class WDbModel implements WebApi {
         for (JArray arr : json.getArrays()) {
 
             DsTable tbl = DsTable.getTable(arr.getName());
-
             JArray jRes = result.arrayC(arr.getName());
-
             for (JObject obj : arr.getObjects()) {
-                DsTable t = DsTable.edit(tbl, obj.asMap(), trans);
+                CRUDE crude = CRUDE.get(obj.getStr("action"));
+                Map<String, Object> fields = obj.objectF("fields").asMap();
+                DsTable t = tbl.action(crude, fields, trans);
                 jRes.add(t.getJson());
             }
         }
 
         trans.commit(Handlers.database.getInstance().getDatabase());
         return result;
-    }
-
-    @WebApiEndpoint()
-    public DsTable<?, ?> remove(
-            @Arg(name = "table") String table,
-            @Arg(name = "key") Object key
-    ) throws Exception {
-        DsTable tbl = DsTable.getTable(table);
-        DbRecordTransaction trans = new DbRecordTransaction();
-        tbl = DsTable.remove(tbl, key, trans);
-        trans.commit(Handlers.database.getInstance().getDatabase());
-        return tbl;
     }
 
     @WebApiEndpoint
