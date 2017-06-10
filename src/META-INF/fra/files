@@ -8,7 +8,6 @@ META-INF/fra/db/service/database.conf
 META-INF/fra/db/service/update/02.sql
 META-INF/fra/db/service/update/03.sql
 META-INF/fra/files
-META-INF/fra/index
 META-INF/fra/version.properties
 WEB-INF/web.xml
 com/cache/CacheManager.class
