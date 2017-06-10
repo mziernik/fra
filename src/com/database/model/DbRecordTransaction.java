@@ -14,11 +14,20 @@ import java.util.Map.Entry;
 
 public class DbRecordTransaction {
 
-    final Map<DsTable<?, ?>, Map<DsColumn<?, ? extends DsTable<?, ?>, QueryRow, ?>, Object>> update = new LinkedHashMap<>();
+    final Map<Repository<?, ?>, Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object>> update = new LinkedHashMap<>();
     final Set<DsRecord<?, QueryRow, ?>> delete = new LinkedHashSet<>();
 
-    public <T> DbRecordTransaction set(DsColumn<?, ? extends DsTable<?, ?>, QueryRow, T> cell, T value) {
-        Map<DsColumn<?, ? extends DsTable<?, ?>, QueryRow, ?>, Object> map = update.get(cell.getParent());
+    public <T> DbRecordTransaction initializeInsert(Repository<?, ?> table) {
+        Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object> map = update.get(table);
+        if (map == null) {
+            map = new LinkedHashMap<>();
+            update.put(table, map);
+        }
+        return this;
+    }
+
+    public <T> DbRecordTransaction set(DsColumn<?, ? extends Repository<?, ?>, QueryRow, T> cell, T value) {
+        Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object> map = update.get(cell.getParent());
         if (map == null) {
             map = new LinkedHashMap<>();
             update.put(cell.getParent(), map);
@@ -28,7 +37,7 @@ public class DbRecordTransaction {
         return this;
     }
 
-    public DbRecordTransaction delete(DsTable<?, ?> tbl) {
+    public DbRecordTransaction delete(Repository<?, ?> tbl) {
         delete.add(tbl.getRecord());
         return this;
     }
@@ -36,20 +45,24 @@ public class DbRecordTransaction {
     public void commit(Database db) throws SQLError, SQLException {
 
         db.transaction((d) -> {
-            final Set<DsTable> sortTables = new HashSet<>();
+            final Set<Repository> sortTables = new HashSet<>();
 
             MultipleQuery mqry = d.multipleQuery();
 
-            for (Entry<DsTable<?, ?>, Map<DsColumn<?, ? extends DsTable<?, ?>, QueryRow, ?>, Object>> en : update.entrySet()) {
-                DsTable<? extends DsTable<?, ?>, ?> tbl = en.getKey();
+            for (Entry<Repository<?, ?>, Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object>> en : update.entrySet()) {
+                Repository<? extends Repository<?, ?>, ?> tbl = en.getKey();
                 mqry.add(DbUtils.addMarker(d, tbl));
                 tbl.getUpdateQuery(mqry, (Map) en.getValue());
             }
 
             for (DsRecord<?, QueryRow, ?> rec : delete) {
-                mqry.add(DbUtils.addMarker(d, ((DsTable) rec.dataSet)));
-                ((DsTable) rec.dataSet).getDeleteQuery(mqry, rec);
+                mqry.add(DbUtils.addMarker(d, ((Repository) rec.dataSet)));
+                ((Repository) rec.dataSet).getDeleteQuery(mqry, rec);
             }
+
+            if (mqry.isEmpty())
+                return;
+
             QueryRows rows = mqry.execute();
 
             DbUtils.processMarkers(rows, update.keySet(), (qr, tbl) -> {
@@ -59,16 +72,16 @@ public class DbRecordTransaction {
             });
 
             for (DsRecord<?, QueryRow, ?> rec : delete)
-                ((DsTable) rec.dataSet)._removeRecord(rec);
+                ((Repository) rec.dataSet)._removeRecord(rec);
 
             // przepisanie danych z tabeli tymczasowej do mastera
-            for (Entry<DsTable<?, ?>, Map<DsColumn<?, ? extends DsTable<?, ?>, QueryRow, ?>, Object>> en : update.entrySet()) {
-                DsTable tbl = DsTable.getTableF((Class) en.getKey().getClass());
+            for (Entry<Repository<?, ?>, Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object>> en : update.entrySet()) {
+                Repository tbl = Repository.getRepoF((Class) en.getKey().getClass());
                 tbl.apply(en.getKey(), en.getValue());
                 sortTables.add(tbl);
             }
 
-            for (DsTable tbl : sortTables)
+            for (Repository tbl : sortTables)
                 tbl.sort();
         });
 

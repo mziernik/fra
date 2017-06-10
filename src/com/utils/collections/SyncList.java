@@ -83,9 +83,9 @@ public class SyncList<T> extends TCollection<T> implements Collection<T> {
             return false;
         }
 
-        for (ChangeEvent<T> listener : listeners)
-            if (!listener.onChange(CollectionAction.BEFORE_MODIFY, Arrays.asList((T[]) new Object[]{from})))
-                return false;
+        if (!listeners.dispatchBreak(this, intf -> intf.onChange(
+                CollectionAction.BEFORE_MODIFY, Arrays.asList((T[]) new Object[]{from}))))
+            return false;
 
         boolean replaced = false;
 
@@ -114,8 +114,8 @@ public class SyncList<T> extends TCollection<T> implements Collection<T> {
             }
         }
 
-        for (ChangeEvent<T> listener : listeners)
-            listener.onChange(CollectionAction.AFTER_MODIFY, Arrays.asList((T[]) new Object[]{to}));
+        listeners.dispatch(this, intf -> intf.onChange(
+                CollectionAction.AFTER_MODIFY, Arrays.asList((T[]) new Object[]{to})));
 
         return replaced;
     }
@@ -166,9 +166,9 @@ public class SyncList<T> extends TCollection<T> implements Collection<T> {
             return false;
         }
 
-        for (ChangeEvent<T> listener : listeners)
-            if (!listener.onChange(CollectionAction.BEFORE_ADD, items))
-                return false;
+        if (!listeners.dispatchBreak(this, intf -> intf.onChange(
+                CollectionAction.BEFORE_ADD, items)))
+            return false;
 
         Collection<T> destination = unique ? new LinkedHashSet<>() : new TList<>();
 
@@ -237,8 +237,9 @@ public class SyncList<T> extends TCollection<T> implements Collection<T> {
                 added = raw.addAll(destination);
         }
 
-        for (ChangeEvent<T> listener : listeners)
-            listener.onChange(CollectionAction.AFTER_ADD, destination);
+        final Collection<T> _destination = destination;
+        listeners.dispatch(this, intf -> intf.onChange(
+                CollectionAction.AFTER_ADD, _destination));
 
         return added;
     }
@@ -280,16 +281,16 @@ public class SyncList<T> extends TCollection<T> implements Collection<T> {
 
         boolean removed = false;
 
-        for (ChangeEvent<T> listener : listeners)
-            if (!listener.onChange(CollectionAction.BEFORE_REMOVE, (Collection<? extends T>) c))
-                return false;
+        if (!listeners.dispatchBreak(this, intf -> intf.onChange(
+                CollectionAction.BEFORE_REMOVE, (Collection<? extends T>) c)))
+            return false;
 
         synchronized (raw) {
             removed = raw.removeAll(c);
         }
 
-        for (ChangeEvent<T> listener : listeners)
-            listener.onChange(CollectionAction.AFTER_REMOVE, (Collection<? extends T>) c);
+        listeners.dispatch(this, intf -> intf.onChange(
+                CollectionAction.AFTER_REMOVE, (Collection<? extends T>) c));
 
         return removed;
     }
@@ -324,16 +325,16 @@ public class SyncList<T> extends TCollection<T> implements Collection<T> {
             return;
         }
 
-        for (ChangeEvent<T> listener : listeners)
-            if (!listener.onChange(CollectionAction.BEFORE_CLEAR, null))
-                return;
+        if (!listeners.dispatchBreak(this, intf
+                -> intf.onChange(CollectionAction.BEFORE_CLEAR, null)))
+            return;
 
         synchronized (raw) {
             raw.clear();
         }
 
-        for (ChangeEvent<T> listener : listeners)
-            listener.onChange(CollectionAction.AFTER_CLEAR, null);
+        listeners.dispatch(this, intf -> intf.onChange(CollectionAction.AFTER_CLEAR, null));
+
     }
 
     @Override

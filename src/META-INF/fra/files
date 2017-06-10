@@ -246,8 +246,9 @@ com/database/elements/MetaTable.class
 com/database/model/DbCol.class
 com/database/model/DbRecordTransaction.class
 com/database/model/DbUtils.class
+com/database/model/DsTable$1.class
 com/database/model/DsTable.class
-com/database/model/WDbModel.class
+com/database/model/WRepository.class
 com/database/orm/DbCheck.class
 com/database/orm/DbColumn.class
 com/database/orm/DbColumnFK.class
@@ -307,6 +308,7 @@ com/dev/console/ActWww.class
 com/dev/console/DevConsole$Bridge.class
 com/dev/console/DevConsole.class
 com/dev/console/index.html
+com/events/EventListeners$ContextRunnable.class
 com/events/EventListeners.class
 com/events/Notifier.class
 com/events/NotifierException.class
@@ -1058,6 +1060,7 @@ com/model/dataset/DsColumn.class
 com/model/dataset/DsMetaData.class
 com/model/dataset/DsRecord.class
 com/model/dataset/DsUtils.class
+com/model/dataset/intf/CRUDE.class
 com/model/dataset/intf/DSColumnAlign.class
 com/model/dataset/intf/DataSetException.class
 com/model/dataset/intf/ModifyType.class
@@ -1677,6 +1680,7 @@ com/utils/hashes/ReedSolomon$ReedSolomonException.class
 com/utils/hashes/ReedSolomon.class
 com/utils/hashes/Rijndael.class
 com/utils/reflections/DataType$Adapter.class
+com/utils/reflections/DataType$DataTypeUnit.class
 com/utils/reflections/DataType$EnumDataType.class
 com/utils/reflections/DataType$JsonType.class
 com/utils/reflections/DataType.class

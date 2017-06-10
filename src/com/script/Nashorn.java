@@ -1,6 +1,6 @@
 package com.script;
 
-import com.events.EventListeners;
+import com.events.Dispatcher;
 import com.exceptions.ServiceException;
 import com.intf.callable.Callable1;
 import com.json.JElement;
@@ -15,7 +15,7 @@ public class Nashorn implements Compilable, Invocable, ScriptEngine {
 
     final NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
 
-    public final EventListeners<ClassFilter> classFilters = new EventListeners<>();
+    public final Dispatcher<ClassFilter> classFilters = new Dispatcher<>();
 
     ScriptEngineManager engineManager
             = new ScriptEngineManager();
@@ -24,7 +24,7 @@ public class Nashorn implements Compilable, Invocable, ScriptEngine {
     public Nashorn() {
 
         engine = (NashornScriptEngine) factory.getScriptEngine((String string) -> {
-            for (ClassFilter filter : classFilters)
+            for (ClassFilter filter : classFilters.getObservers())
                 if (!filter.exposeToScripts(string))
                     return false;
             return true;

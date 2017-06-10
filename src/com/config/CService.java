@@ -24,7 +24,7 @@ public class CService extends ConfigNode {
     @Cfg
     public final static CfEnum<ServiceMode> mode = new CfEnum<>("mode",
             SERVICE__MODE, ServiceMode.class, ServiceMode.DEV)
-            .onBeforeChange((item, isUserValue, oldValue, newValue) -> {
+            .onBeforeChange(CService.class, (item, isUserValue, oldValue, newValue) -> {
                 MLogger.instance().setMode(newValue.get());
                 return true;
             });

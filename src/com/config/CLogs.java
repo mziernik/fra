@@ -57,7 +57,5 @@ public class CLogs extends ConfigNode {
     public final static CfBoolStringList protocols = new CfBoolStringList("protocols",
             LOGS__PROTOCOLS, ACTIVE, URL)
             .description(LOGS__PROTOCOLS__DESCRIPTION)
-            .onAfterChange((item, isUserValue, newValue) -> {
-                instance.onInitialize();
-            });
+            .onAfterChange(CLogs.class, (item, isUserValue, newValue) -> instance.onInitialize());
 }

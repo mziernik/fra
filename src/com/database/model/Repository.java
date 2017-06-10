@@ -10,59 +10,76 @@ import com.exceptions.ServiceException;
 import com.exceptions.ThrowableException;
 import com.intf.callable.Callable;
 import com.json.Escape;
+import com.json.JObject;
 import com.model.dataset.AbstractDataSet;
 import com.model.dataset.DsColumn;
 import com.model.dataset.DsRecord;
+import com.model.dataset.intf.CRUDE;
 import com.model.dataset.intf.DataSetException;
+import com.servlet.websocket.WebSocketConnection;
+import com.servlet.websocket.WebSocketController;
 import com.utils.Is;
 import com.utils.Ready;
 import com.utils.collections.Pairs;
+import com.utils.collections.SyncList;
 import com.utils.collections.TList;
 import com.utils.reflections.TClass;
 import com.utils.reflections.TypeAdapter;
 import com.utils.text.StrWriter;
 import java.lang.reflect.Method;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 //ToDo: Dodać tryb lazy
-public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_KEY>
+public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRIMARY_KEY>
         extends AbstractDataSet<SELF, QueryRow, PRIMARY_KEY> {
 
-    final static Map<String, DsTable<?, ?>> tables1 = new LinkedHashMap<>();
-    final static Map<Class<? extends DsTable>, DsTable<?, ?>> tables2 = new LinkedHashMap<>();
+    final static Map<String, Repository<?, ?>> repos1 = new LinkedHashMap<>();
+    final static Map<Class<? extends Repository>, Repository<?, ?>> repos2 = new LinkedHashMap<>();
 
     protected final Pairs<Col<?>, Boolean> orderColumns = new Pairs<Col<?>, Boolean>(); // kolumna, ASC
 
+    public final SyncList<WebSocketController> wsConnections = new SyncList<>(true);
+
     public final String tableName;
     private boolean master;
+    private final AtomicInteger hash = new AtomicInteger(0);
     protected boolean hasCompareMethod;
+    protected boolean autoUpdate; //czy informaje o zmianach mają być automatycznie rozsyłane do klientów
 
     @Override
     public String toString() {
         return (master ? "[M] " : "") + super.toString();
     }
 
-//    public static <PK, TBL extends DsTable<?, PK>> TBL instance(Class<TBL> cls) {
+    @Override
+    public JObject getJson() {
+        JObject result = super.getJson();
+        result.put("autoUpdate", autoUpdate);
+        result.put("hash", hash.get());
+        return result;
+    }
+
+//    public static <PK, TBL extends Repository<?, PK>> TBL instance(Class<TBL> cls) {
 //        TBL tbl = new TClass<>(cls).newInstance(null);
 //
 //        return tbl;
 //    }
 //
-//    public static <PK, TBL extends DsTable<?, PK>> TBL instance(Class<TBL> cls, PK primaryKey) {
+//    public static <PK, TBL extends Repository<?, PK>> TBL instance(Class<TBL> cls, PK primaryKey) {
 //        TBL tbl = new TClass<>(cls).newInstance(null);
 //
 //        return tbl;
 //    }
-    protected DsTable(String key, String tableName, CharSequence title, PRIMARY_KEY pk) {
+    protected Repository(String key, String tableName, CharSequence title, PRIMARY_KEY pk) {
         super(key, title);
         this.tableName = tableName;
 
         if (pk == null)
             return;
 
-        SELF tbl = (SELF) tables2.get(getClass());
+        SELF tbl = (SELF) repos2.get(getClass());
         if (tbl == null)
             throw new DataSetException(String.format("Table %s not found", tableName));
 
@@ -74,47 +91,47 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
                     name, Escape.escape(pk)));
     }
 
-//    public static <PK, TBL extends DsTable<TBL, PK>> TBL getTable(Class<TBL> cls, PK key) {
-//        TBL tbl = (TBL) tables1.get(cls);
+//    public static <PK, TBL extends Repository<TBL, PK>> TBL getRepo(Class<TBL> cls, PK key) {
+//        TBL tbl = (TBL) repos1.get(cls);
 //        return tbl.get(key);
 //    }
-    public static void registerRecords(Class<? extends DsTable<?, ?>>... classes) {
-        for (Class<? extends DsTable<?, ?>> cls : classes)
+    public static void registerRecords(Class<? extends Repository<?, ?>>... classes) {
+        for (Class<? extends Repository<?, ?>> cls : classes)
             try {
-                DsTable<?, ?> tbl = new TClass<>(cls).newInstance(null);
+                Repository<?, ?> tbl = new TClass<>(cls).newInstance(null);
                 tbl.master = true;
-                tables1.put(tbl.key, tbl);
-                tables2.put(tbl.getClass(), tbl);
+                repos1.put(tbl.key, tbl);
+                repos2.put(tbl.getClass(), tbl);
                 tbl.init();
             } catch (Throwable e) {
                 throw new ThrowableException(e).details("Class", cls.getName());
             }
     }
 
-    public static DsTable<?, ?> getTableF(String key) {
-        DsTable<? extends DsTable<?, ?>, ?> tbl = getTable(key);
+    public static Repository<?, ?> getRepoF(String key) {
+        Repository<? extends Repository<?, ?>, ?> tbl = getRepo(key);
         if (tbl == null)
             throw new ServiceException("Table " + key + " not found");
         return tbl;
     }
 
-    public static DsTable<?, ?> getTableF(Class<? extends DsTable<?, ?>> tableClass) {
-        DsTable<? extends DsTable<?, ?>, ?> tbl = getTable(tableClass);
+    public static Repository<?, ?> getRepoF(Class<? extends Repository<?, ?>> tableClass) {
+        Repository<? extends Repository<?, ?>, ?> tbl = Repository.getRepo(tableClass);
         if (tbl == null)
             throw new ServiceException("Table " + tableClass.getName() + " not found");
         return tbl;
     }
 
-    public static DsTable<?, ?> getTable(Class<? extends DsTable<?, ?>> tableClass) {
-        return (DsTable<?, ?>) tables2.get(tableClass);
+    public static Repository<?, ?> getRepo(Class<? extends Repository<?, ?>> clazz) {
+        return (Repository<?, ?>) repos2.get(clazz);
     }
 
-    public static DsTable<?, ?> getTable(String key) {
-        return (DsTable<?, ?>) tables1.get(key);
+    public static Repository<?, ?> getRepo(String key) {
+        return (Repository<?, ?>) repos1.get(key);
     }
 
-    public static Map<String, DsTable<?, ?>> getTables() {
-        return new LinkedHashMap<>(tables1);
+    public static Map<String, Repository<?, ?>> getTables() {
+        return new LinkedHashMap<>(repos1);
     }
 
     protected boolean isDbCol(DsColumn<?, SELF, QueryRow, ?> col) {
@@ -127,8 +144,8 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
 
         MultipleQuery queries = db.multipleQuery();
 
-        for (AbstractDataSet<?, ?, ?> ds : tables1.values()) {
-            DsTable<?, ?> tbl = (DsTable<?, ?>) ds;
+        for (AbstractDataSet<?, ?, ?> ds : repos1.values()) {
+            Repository<?, ?> tbl = (Repository<?, ?>) ds;
             //DbRecord<?, ?> rec = tbl.recordClass.newInstance(null);
 
             MultipleQuery mqry = db.multipleQuery();
@@ -139,7 +156,7 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
 
         }
 
-        DbUtils.processMarkers(queries.execute(), tables1.values(), (rows, ds) -> {
+        DbUtils.processMarkers(queries.execute(), repos1.values(), (rows, ds) -> {
 
             ds.fillRows(rows);
             Ready.confirm(ds.getClass());
@@ -179,10 +196,16 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
 
         for (Map.Entry< DsColumn<?, SELF, QueryRow, ?>, Object> ve : cells.entrySet()) {
             DsColumn<? extends DsColumn<?, SELF, QueryRow, ?>, SELF, QueryRow, ?> col = ve.getKey();
-            QueryObject obj = ins.put(col.getDbColumnName(), ve.getValue()).array(true);
+
+            Object value = ve.getValue();
+            if (col.isAutoGenerated())
+                continue;
+
+            QueryObject obj = ins.put(col.getDbColumnName(), value).array(true);
             if (!Is.empty(col.getDbColumnCast()))
                 obj.cast(col.getDbColumnCast());
         }
+
         for (DsColumn<?, SELF, QueryRow, ?> col : this.columns.values())
             if (isDbCol(col))
                 ins.addReturningColumn(col.getDbColumnName());
@@ -197,13 +220,13 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
         return col.setter(row -> (RAW) row.getObj(col.getDbColumnName(), null));
     }
 
-    protected <RAW, FK extends DsTable<?, ?>> ColF<RAW, FK> columnF(Class<RAW> cls, CharSequence name) {
+    protected <RAW, FK extends Repository<?, ?>> ColF<RAW, FK> columnF(Class<RAW> cls, CharSequence name) {
         ColF<RAW, FK> col = super.columnF(cls, null, name, null);
         col.setter(row -> (RAW) row.getObj(col.getDbColumnName(), null));
         return col;
     }
 
-    protected <RAW, FK extends DsTable<?, ?>> ColF<RAW, FK> columnF(CharSequence name) {
+    protected <RAW, FK extends Repository<?, ?>> ColF<RAW, FK> columnF(CharSequence name) {
         return columnF(null, name);
     }
 
@@ -217,15 +240,35 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
         return records;
     }
 
-    static DsTable edit(DsTable tbl, Map<String, Object> values, DbRecordTransaction trans) {
+    public Repository action(CRUDE action, Map<String, Object> values, DbRecordTransaction trans) {
 
-        DsColumn primaryKey = tbl.getPrimaryKeyColumn();
+        Objects.requireNonNull(action);
 
-        Object pk = values.get(tbl.primaryKey.getKey());
+        DsColumn primaryKey = getPrimaryKeyColumn();
+
+        PRIMARY_KEY pk = (PRIMARY_KEY) values.get(primaryKey.getKey());
         if (pk != null)
-            pk = new TypeAdapter<>(primaryKey.getRawClass()).process(pk);
+            pk = (PRIMARY_KEY) new TypeAdapter<>(primaryKey.getRawClass()).process(pk);
 
-        tbl = (DsTable) (pk != null ? tbl.getByKeyF(pk) : tbl.newInstance());
+        Repository tbl = null;
+        switch (action) {
+
+            case CREATE:
+                tbl = this.newInstance();
+                trans.initializeInsert(tbl);
+                break;
+
+            case UPDATE:
+                tbl = this.getByKeyF(pk);
+                break;
+
+            case DELETE:
+                tbl = this.getByKeyF(pk);
+                trans.delete(tbl);
+                return tbl;
+            default:
+                throw new UnsupportedOperationException(action.name);
+        }
 
         for (Entry<String, Object> en : values.entrySet()) {
             DsColumn col = (DsColumn) tbl.columns.get(en.getKey());
@@ -238,19 +281,7 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
         return tbl;
     }
 
-    static DsTable remove(DsTable tbl, Object primaryKeyObj, DbRecordTransaction trans) {
-        DsColumn primaryKey = tbl.getPrimaryKeyColumn();
-
-        Object pk = primaryKeyObj == null ? null
-                : new TypeAdapter<>(primaryKey.getRawClass())
-                        .single(primaryKeyObj, null);
-
-        tbl = (DsTable) tbl.getByKeyF(pk);
-        trans.delete(tbl);
-        return tbl;
-    }
-
-    void apply(SELF tbl, Map<DsColumn<?, ? extends DsTable<?, ?>, QueryRow, ?>, Object> map) {
+    void apply(SELF tbl, Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object> map) {
         assert master;
 
         PRIMARY_KEY pk = new TList<>(tbl.records.keySet()).first();
@@ -261,7 +292,7 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
             rec = addRow(pk, tmpRec.data);
 
         synchronized (records) {
-            for (Entry<DsColumn<?, ? extends DsTable<?, ?>, QueryRow, ?>, Object> e : map.entrySet()) {
+            for (Entry<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object> e : map.entrySet()) {
                 DsColumn col = e.getKey();
                 rec.data[col.getIndex()] = e.getValue();
             }
@@ -309,7 +340,7 @@ public abstract class DsTable<SELF extends DsTable<SELF, PRIMARY_KEY>, PRIMARY_K
 
         super.init();
         try {
-            Method m = getClass().getDeclaredMethod("compare", DsTable.class);
+            Method m = getClass().getDeclaredMethod("compare", Repository.class);
             hasCompareMethod = m != null;
         } catch (Throwable ex) {
         }

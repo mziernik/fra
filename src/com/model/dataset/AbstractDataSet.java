@@ -1,11 +1,13 @@
 package com.model.dataset;
 
-import com.database.model.DsTable;
-import com.events.EventListeners;
+import com.database.model.Repository;
+import com.events.Dispatcher;
 import com.exceptions.ServiceException;
 import com.exceptions.ThrowableException;
 import com.intf.callable.CallableEx1;
 import com.intf.runnable.RunnableEx;
+import com.intf.runnable.RunnableEx1;
+import com.intf.runnable.RunnableEx2;
 import com.json.Escape;
 import com.json.JArray;
 import com.json.JObject;
@@ -39,7 +41,8 @@ public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, P
     public final CharSequence name;
     private final Lock lock = new Lock();
 
-    public final EventListeners<RunnableEx> onInit = new EventListeners<>();
+    public final Dispatcher<RunnableEx> onInit = new Dispatcher<>();
+    public final Dispatcher<RunnableEx2<AbstractDataSet<SELF, DATA, PRIMARY_KEY>, JObject>> onChange = new Dispatcher<>();
 
     protected AbstractDataSet(String key, CharSequence name) {
         this.key = key;
@@ -216,8 +219,7 @@ public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, P
             Objects.requireNonNull(primaryKey, "PrimaryKey of " + getClass().getName());
             DsMetaData.load(this);
 
-            for (RunnableEx init : onInit)
-                init.run();
+            onInit.dispatch(this, intf -> intf.run());
 
         } catch (Throwable e) {
             throw new ThrowableException(e);
@@ -237,13 +239,13 @@ public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, P
         json.put("key", key);
         json.put("name", name);
         json.put("pk", primaryKey != null ? primaryKey.key : null);
+
 //        json.put("results", results);
 //        json.put("offset", offset);
 //        json.put("limit", limit);
 //        json.put("updatable", updatable);
 //        json.put("selectable", selectable);
 //        json.put("sortable", sortable);
-
         JArray cols = json.arrayC("columns");
         for (DsColumn<? extends DsColumn, SELF, DATA, ?> col : columns.values())
             cols.add(col.getJson());
@@ -272,17 +274,17 @@ public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, P
         return new Col<>(cls, key, type, name, setter);
     }
 
-    protected <RAW, DS extends DsTable<?, ?>> ColF<RAW, DS> columnF(
+    protected <RAW, DS extends Repository<?, ?>> ColF<RAW, DS> columnF(
             DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
         return new ColF<>(null, type, name, setter);
     }
 
-    protected <RAW, DS extends DsTable<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
+    protected <RAW, DS extends Repository<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
             DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
         return new ColF<>(cls, type, name, setter);
     }
 
-    protected <RAW, DS extends DsTable<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
+    protected <RAW, DS extends Repository<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
             String key, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
         return new ColF<>(cls, key, type, name, setter);
     }
@@ -299,7 +301,7 @@ public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, P
         }
     }
 
-    public class ColF<RAW, DS extends DsTable<?, ?>> extends Col<RAW> {
+    public class ColF<RAW, DS extends Repository<?, ?>> extends Col<RAW> {
 
         ColF(Class<RAW> cls, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
             super(cls, type, name, setter);

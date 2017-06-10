@@ -2,7 +2,7 @@ package com.servlet.websocket;
 
 import com.config.CService;
 import com.context.AppContext;
-import com.events.EventListeners;
+import com.events.Dispatcher;
 import com.intf.runnable.Runnable1;
 import com.lang.core.Language;
 import com.mlogger.Log;
@@ -16,7 +16,7 @@ public abstract class WebSocketController {
 
     private transient boolean closed;
     public final WebSocketConnection connection;
-    public final EventListeners<Runnable1<CloseReason>> onClose = new EventListeners<>();
+    public final Dispatcher<Runnable1<CloseReason>> onClose = new Dispatcher<>();
     public final TObject<Language> language = new TObject<>(CService.language.value())
             .notNull(true);
 
@@ -84,7 +84,6 @@ public abstract class WebSocketController {
                     .user(connection.httpSession != null ? connection.httpSession.user.username : null)
                     .send();
 
-        for (Runnable1<CloseReason> r : onClose)
-            r.run(reason);
+        onClose.dispatch(this, intf -> intf.run(reason));
     }
 }

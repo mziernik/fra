@@ -30,9 +30,7 @@ public class CAdministration extends ConfigNode {
             enabled(false);
             description(SMTP__SMTP__DESCRIPTION);
 
-            onAfterChange((item, isUserValue, newValue) -> {
-                onInitialize();
-            });
+            onAfterChange(this, (item, isUserValue, newValue) -> onInitialize());
         }
 
         @Override
@@ -50,7 +48,7 @@ public class CAdministration extends ConfigNode {
         public final static CfString host = new CfString("host",
                 HOST, null)
                 .required(false)
-                .onBeforeChange((item, isUserValue, oldValue, newValue) -> {
+                .onBeforeChange(CAdministration.class, (item, isUserValue, oldValue, newValue) -> {
                     boolean req = !Is.empty(newValue);
                     CSMTP.username.required(req).enabled(!req);
                     CSMTP.password.required(req).enabled(!req);

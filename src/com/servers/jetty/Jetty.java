@@ -4,7 +4,7 @@ import com.utils.Utils;
 import com.utils.Is;
 import com.context.AppConfig;
 import com.context.AppContext;
-import com.events.EventListeners;
+import com.events.Dispatcher;
 import com.intf.runnable.Runnable1;
 import com.servers.Connector;
 import com.servers.WebAppServer;
@@ -43,7 +43,7 @@ public class Jetty extends WebAppServer {
     });
 
     private final ServletContextHandler context = new ServletContextHandler();
-    public final static EventListeners<Runnable1<ServletContextHandler>> onContextCreated = new EventListeners<>();
+    public final static Dispatcher<Runnable1<ServletContextHandler>> onContextCreated = new Dispatcher<>();
 
     public Jetty() throws Exception {
 
@@ -110,8 +110,7 @@ public class Jetty extends WebAppServer {
         }
 
         httpContext.setAttribute("javax.servlet.context.tempdir", AppContext.tempPath.toString());
-        for (Runnable1<ServletContextHandler> r : onContextCreated)
-            r.run(httpContext);
+        onContextCreated.dispatch(this, intf -> intf.run(httpContext));
 
         WebAppServer.context = httpContext.getServletContext();
 

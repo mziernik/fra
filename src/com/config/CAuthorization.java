@@ -19,7 +19,7 @@ public class CAuthorization extends ConfigNode {
     @Cfg
     public final static CfBool ssl = new CfBool("ssl", AUTH__SSL, null)
             .required(false)
-            .onGetValue((CfBool item, Boolean value, ValueSource source)
+            .onGetValue(CAuthorization.class, (CfBool item, Boolean value, ValueSource source)
                     -> value == null ? Connector.get(true) != null : value);
 
     @Cfg

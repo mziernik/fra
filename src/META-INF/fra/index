@@ -159,7 +159,7 @@
         "com.cache.WCache",
         "com.config.engine.WConfig",
         "com.database.WDatabase",
-        "com.database.model.WDbModel",
+        "com.database.model.WRepository",
         "com.lang.core.WLanguage",
         "com.lang.core.WLanguage$WGoogleTranslate",
         "com.mlogger.storage.WLogsStorage",
@@ -434,7 +434,7 @@
         "OtG4jw:C586FF5D:res/popup/submenu.png",
         "7s7aAA:75C1D132:res/showdown.js",
         "PmsdaA:DFFBBC45:res/similarity.js",
-        "2BQlmg:DD7FAFCA:res/spa/spa-controller.js",
+        "2BQlmg:13463E4E:res/spa/spa-controller.js",
         "LwbOTw:E5ED3E22:res/spa/spa-core.js",
         "gMMTyg:88B432D9:res/spa/spa-loader.js",
         "c6rQyA:3ED9E3A8:res/swal/sweetalert-min.js",
@@ -442,8 +442,6 @@
         "Df0W8g:67690F0F:res/swal/sweetalert.js",
         "QPj4tg:7958FC38:res/utils.js",
         "s27sOw:6360E032:res/webApi.js",
-        "4OoYtg:388A821D:WEB-INF/web.xml",
-        "0uvQ7w:0F9B00EE:com/service/serviceApi.js",
-        "2BQlmg:DD7FAFCA:res/spa/spa-controller.js"
+        "4OoYtg:388A821D:WEB-INF/web.xml"
     ]
 }

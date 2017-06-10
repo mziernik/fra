@@ -1,6 +1,6 @@
 package com.utils.collections;
 
-import com.events.EventListeners;
+import com.events.Dispatcher;
 import com.intf.callable.Callable1;
 import com.utils.TObject;
 import java.util.List;
@@ -14,7 +14,7 @@ public abstract class TCollection<T> implements Iterable<T> {
     protected boolean readOnlyException;
     protected boolean allowNulls = true;
     protected boolean nullException = false;
-    protected final EventListeners<ChangeEvent<T>> listeners = new EventListeners<>();
+    protected final Dispatcher<ChangeEvent<T>> listeners = new Dispatcher<>();
 
     public TCollection() {
 
@@ -62,7 +62,7 @@ public abstract class TCollection<T> implements Iterable<T> {
 
     public abstract TList<T> asList();
 
-    public void onChange(ChangeEvent<T> event) {
-        this.listeners.add(event);
+    public void onChange(Object context, ChangeEvent<T> event) {
+        this.listeners.listen(context, event);
     }
 }

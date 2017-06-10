@@ -496,8 +496,7 @@ public abstract class WebApiController extends WebSocketController
                 log.user(ses.user.username);
         }
 
-        for (JElement p : req.params)
-            log.attribute("Params", p.getName(), Utils.cutLongName(p.toString(), 100, false));
+        log.data("Params", req.params.toString());
 
         for (Param p : req.headers)
             log.attribute("Headers", p.name, p.value);
@@ -532,6 +531,8 @@ public abstract class WebApiController extends WebSocketController
             if (ses.user != null)
                 log.user(ses.user.username);
         }
+
+        log.data("Params", req.params.toString());
 
         if (e != null) {
 

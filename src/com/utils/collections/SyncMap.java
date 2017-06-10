@@ -1,7 +1,6 @@
 package com.utils.collections;
 
 import com.utils.Utils;
-import com.utils.Is;
 import com.utils.collections.CollectionException.CollectionExceptionType;
 import java.util.*;
 import java.util.Map.Entry;
@@ -87,9 +86,10 @@ public class SyncMap<Key, Value> extends TCollection<Entry<Key, Value>>
             destination.put(entry.getKey(), entry.getValue());
         }
 
-        for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-            if (!listener.onChange(CollectionAction.BEFORE_ADD, (Collection<? extends Entry<Key, Value>>) destination.entrySet()))
-                return;
+        if (!listeners.dispatchBreak(this, intf -> !intf.onChange(
+                CollectionAction.BEFORE_ADD,
+                (Collection<? extends Entry<Key, Value>>) destination.entrySet())))
+            return;
 
         synchronized (raw) {
             if (sizeLimit > 0 && destination.size() > sizeLimit)
@@ -121,8 +121,9 @@ public class SyncMap<Key, Value> extends TCollection<Entry<Key, Value>>
             raw.putAll(m);
         }
 
-        for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-            listener.onChange(CollectionAction.AFTER_ADD, (Collection<? extends Entry<Key, Value>>) destination.entrySet());
+        listeners.dispatch(this, intf -> intf.onChange(CollectionAction.AFTER_ADD,
+                (Collection<? extends Entry<Key, Value>>) destination.entrySet()));
+
     }
 
     @Override
@@ -209,15 +210,16 @@ public class SyncMap<Key, Value> extends TCollection<Entry<Key, Value>>
                             destination.put(t.getKey(), t.getValue());
                         });
 
-            for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-                if (!listener.onChange(CollectionAction.BEFORE_REMOVE, (Collection<? extends Entry<Key, Value>>) destination.entrySet()))
-                    return;
+            if (!listeners.dispatchBreak(this, intf -> intf.onChange(
+                    CollectionAction.BEFORE_REMOVE,
+                    (Collection<? extends Entry<Key, Value>>) destination.entrySet())))
+                return;
 
             raw.keySet().removeAll(destination.keySet());
         }
 
-        for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-            listener.onChange(CollectionAction.AFTER_REMOVE, (Collection<? extends Entry<Key, Value>>) destination.entrySet());
+        listeners.dispatch(this, intf -> intf.onChange(CollectionAction.AFTER_REMOVE,
+                (Collection<? extends Entry<Key, Value>>) destination.entrySet()));
     }
 
     @Override
@@ -228,16 +230,14 @@ public class SyncMap<Key, Value> extends TCollection<Entry<Key, Value>>
             return;
         }
 
-        for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-            if (!listener.onChange(CollectionAction.BEFORE_CLEAR, null))
-                return;
+        if (!listeners.dispatchBreak(this, intf -> intf.onChange(CollectionAction.BEFORE_CLEAR, null)))
+            return;
 
         synchronized (raw) {
             raw.clear();
         }
 
-        for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-            listener.onChange(CollectionAction.AFTER_CLEAR, null);
+        listeners.dispatch(this, intf -> intf.onChange(CollectionAction.AFTER_CLEAR, null));
     }
 
     @Override
@@ -313,16 +313,18 @@ public class SyncMap<Key, Value> extends TCollection<Entry<Key, Value>>
             Map<Key, Value> destination = new LinkedHashMap<>(1);
             destination.put(key, raw.get(key));
 
-            for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-                if (!listener.onChange(CollectionAction.BEFORE_MODIFY, (Collection<? extends Entry<Key, Value>>) destination.entrySet()))
-                    return null;
+            if (!listeners.dispatchBreak(this, intf -> intf.onChange(
+                    CollectionAction.BEFORE_MODIFY,
+                    (Collection<? extends Entry<Key, Value>>) destination.entrySet())))
+                return null;
 
             Value prevValue = raw.replace(key, value);
             destination.clear();
             destination.put(key, raw.get(key));
 
-            for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-                listener.onChange(CollectionAction.AFTER_MODIFY, (Collection<? extends Entry<Key, Value>>) destination.entrySet());
+            listeners.dispatch(this, intf -> intf.onChange(
+                    CollectionAction.AFTER_MODIFY,
+                    (Collection<? extends Entry<Key, Value>>) destination.entrySet()));
 
             return prevValue;
         }
@@ -352,17 +354,18 @@ public class SyncMap<Key, Value> extends TCollection<Entry<Key, Value>>
             Map<Key, Value> destination = new LinkedHashMap<>(1);
             destination.put(key, raw.get(key));
 
-            for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-                if (!listener.onChange(CollectionAction.BEFORE_MODIFY, (Collection<? extends Entry<Key, Value>>) destination.entrySet()))
-                    return false;
+            if (!listeners.dispatchBreak(this, intf -> intf.onChange(
+                    CollectionAction.BEFORE_MODIFY,
+                    (Collection<? extends Entry<Key, Value>>) destination.entrySet())))
+                return false;
 
             boolean replaced = raw.replace(key, oldValue, newValue);
             destination.clear();
             destination.put(key, raw.get(key));
 
-            for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-                listener.onChange(CollectionAction.AFTER_MODIFY, (Collection<? extends Entry<Key, Value>>) destination.entrySet());
-
+            listeners.dispatch(this, intf -> intf.onChange(
+                    CollectionAction.AFTER_MODIFY,
+                    (Collection<? extends Entry<Key, Value>>) destination.entrySet()));
             return replaced;
         }
     }
@@ -380,9 +383,10 @@ public class SyncMap<Key, Value> extends TCollection<Entry<Key, Value>>
 
         Pairs<Entry<Key, Value>, Value> newValues = new Pairs<>();
 
-        for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-            if (!listener.onChange(CollectionAction.BEFORE_MODIFY, (Collection<? extends Entry<Key, Value>>) asMap().entrySet()))
-                return;
+        if (!listeners.dispatchBreak(this, intf -> intf.onChange(
+                CollectionAction.BEFORE_MODIFY,
+                (Collection<? extends Entry<Key, Value>>) asMap().entrySet())))
+            return;
 
         synchronized (raw) {
             for (Entry<Key, Value> entry : raw.entrySet())
@@ -397,8 +401,8 @@ public class SyncMap<Key, Value> extends TCollection<Entry<Key, Value>>
             for (Pair<Entry<Key, Value>, Value> newValue : newValues)
                 newValue.first.setValue(newValue.second);
 
-            for (ChangeEvent<Entry<Key, Value>> listener : listeners)
-                listener.onChange(CollectionAction.AFTER_MODIFY, (Collection<? extends Entry<Key, Value>>) asMap().entrySet());
+            listeners.dispatch(this, intf -> intf.onChange(CollectionAction.AFTER_MODIFY,
+                    (Collection<? extends Entry<Key, Value>>) asMap().entrySet()));
         }
     }
 

@@ -2,7 +2,7 @@ package com.config.engine;
 
 import com.config.engine.interfaces.AfterChangeListener;
 import com.config.engine.interfaces.BeforeChangeListener;
-import com.events.EventListeners;
+import com.events.Dispatcher;
 import com.exceptions.CoreException;
 import com.intf.callable.Callable;
 import com.intf.callable.Callable1;
@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import com.utils.reflections.TField;
 import com.config.engine.interfaces.Cfg;
+import com.events.Dispatcher.ContextRunnable;
 import com.intf.runnable.Runnable1;
 import com.json.JArray;
 import com.json.JObject;
@@ -46,10 +47,10 @@ public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
 
     protected final SELF self = (SELF) this;
 
-    final EventListeners<ValueGetListener<SELF, RAW, ROW>> onGetValue = new EventListeners<>();
-    final EventListeners<BeforeChangeListener<SELF, RAW>> onBeforeChange = new EventListeners<>();
-    final EventListeners<AfterChangeListener<SELF, RAW>> onAfterChange = new EventListeners<>();
-    final EventListeners<ValueValidatorListener<SELF, RAW, ROW>> validators = new EventListeners<>();
+    final Dispatcher<ValueGetListener<SELF, RAW, ROW>> onGetValue = new Dispatcher<>();
+    final Dispatcher<BeforeChangeListener<SELF, RAW>> onBeforeChange = new Dispatcher<>();
+    final Dispatcher<AfterChangeListener<SELF, RAW>> onAfterChange = new Dispatcher<>();
+    final Dispatcher<ValueValidatorListener<SELF, RAW, ROW>> validators = new Dispatcher<>();
 
     protected ConfigField(String key, CharSequence name, RAW defaultValue, ConfigCell<?, ?>... cells) {
         super(key, name);
@@ -95,18 +96,18 @@ public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
         return strs.size() > 2 ? "[" + strs.toString(", ") + "]" : strs.toString(", ");
     }
 
-    public SELF onBeforeChange(BeforeChangeListener<SELF, RAW> listener) {
-        onBeforeChange.add(listener);
+    public SELF onBeforeChange(Object context, BeforeChangeListener<SELF, RAW> listener) {
+        onBeforeChange.listen(context, listener);
         return self;
     }
 
-    public SELF onAfterChange(AfterChangeListener<SELF, RAW> listener) {
-        onAfterChange.add(listener);
+    public SELF onAfterChange(Object context, AfterChangeListener<SELF, RAW> listener) {
+        onAfterChange.listen(context, listener);
         return self;
     }
 
-    public SELF onGetValue(ValueGetListener<SELF, RAW, ROW> listener) {
-        onGetValue.add(listener);
+    public SELF onGetValue(Object context, ValueGetListener<SELF, RAW, ROW> listener) {
+        onGetValue.listen(context, listener);
         return self;
     }
 
@@ -280,6 +281,11 @@ public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
         return multiple;
     }
 
+    protected void _notifyChange(TObject<RAW> result) {
+        onGetValue.dispatch(this, callable
+                -> result.set(callable.onGet(self, result.get(), ValueSource.VARIABLE)));
+    }
+
     public RAW getValue(ValueSource source) {
 
         if (source == null)
@@ -297,20 +303,23 @@ public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
                 for (int i = 0; i < cells.length; i++)
                     same &= cells[i].cls == val.cells[i].cls;
                 if (same) {
-                    RAW result = (RAW) val.value();
+                    final TObject<RAW> result = new TObject<>((RAW) val.value());
 
-                    for (ValueGetListener<SELF, RAW, ROW> listener : onGetValue)
-                        result = listener.onGet(self, result, ValueSource.VARIABLE);
+                    onGetValue.dispatch(this, callable -> result.set(
+                            callable.onGet(self, result.get(),
+                                    ValueSource.VARIABLE)));
 
                     if (parent != null)
-                        for (ValueGetListener listener : parent.onGetValue)
-                            result = (RAW) listener.onGet(self, result, ValueSource.VARIABLE);
+                        parent.onGetValue.dispatch(this, callable
+                                -> result.set((RAW) callable.onGet(self, result.get(),
+                                        ValueSource.VARIABLE)));
 
                     if (root != null && root != parent)
-                        for (ValueGetListener listener : root.onGetValue)
-                            result = (RAW) listener.onGet(self, result, ValueSource.VARIABLE);
+                        root.onGetValue.dispatch(this, callable
+                                -> result.set((RAW) callable.onGet(self, result.get(),
+                                        ValueSource.VARIABLE)));
 
-                    return (RAW) val.value();
+                    return result.get();
                 }
             }
 
@@ -326,25 +335,27 @@ public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
         if (source == ValueSource.AUTO)
             source = defaultState ? ValueSource.DEFAULT : ValueSource.USER;
 
-        RAW result = source == ValueSource.DEFAULT
+        final TObject< RAW> result = new TObject<>(source == ValueSource.DEFAULT
                 ? getDefaultValue()
-                : userValue;
+                : userValue);
 
-        for (ValueGetListener<SELF, RAW, ROW> listener : onGetValue)
-            result = listener.onGet(self, result, source);
+        final ValueSource _source = source;
+
+        onGetValue.dispatch(this, callable -> result.set(
+                callable.onGet(self, result.get(), _source)));
 
         if (parent != null)
-            for (ValueGetListener listener : parent.onGetValue)
-                result = (RAW) listener.onGet(self, result, source);
+            parent.onGetValue.dispatch(this, callable
+                    -> result.set((RAW) callable.onGet(self, result.get(), _source)));
 
         if (root != null && root != parent)
-            for (ValueGetListener listener : root.onGetValue)
-                result = (RAW) listener.onGet(self, result, source);
+            root.onGetValue.dispatch(this, callable
+                    -> result.set((RAW) callable.onGet(self, result.get(), _source)));
 
-        if (result == null && this instanceof MultipleConfigFields)
+        if (result.isNull() && this instanceof MultipleConfigFields)
             return (RAW) new TList<>();
 
-        return result;
+        return result.get();
     }
 
     public RAW value(RAW def) {
@@ -357,15 +368,16 @@ public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
 
     /**
      * Ustaw wartość użytkownika, oraz defaultState = false
+     *
      * @param value
-     * @return 
+     * @return
      */
     public boolean setUserValueAsCurrent(RAW value) {
         boolean state = setUserValue(value, true);
         if (state)
             setDefaultState(false);
         return state;
-        
+
         //  this.value()
     }
 
@@ -378,32 +390,37 @@ public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
 
         if (before) {
 
-            for (BeforeChangeListener<SELF, RAW> listener : onBeforeChange)
+            for (BeforeChangeListener<SELF, RAW> listener : onBeforeChange.getObservers())
                 if (!listener.onChange(self, isUserValue, oldValue, newValue))
                     return false;
 
             if (parent != null)
-                for (BeforeChangeListener listener : parent.onBeforeChange)
+                for (BeforeChangeListener<SELF, RAW> listener : parent.onBeforeChange.getObservers())
                     if (!listener.onChange(self, isUserValue, oldValue, newValue))
                         return false;
 
             if (root != null && root != parent)
-                for (BeforeChangeListener listener : root.onBeforeChange)
+                for (BeforeChangeListener<SELF, RAW> listener : root.onBeforeChange.getObservers())
                     if (!listener.onChange(self, isUserValue, oldValue, newValue))
-
                         return false;
+
         }
         if (!before) {
-            for (AfterChangeListener<SELF, RAW> listener : onAfterChange)
-                listener.onChange(self, isUserValue, newValue.get());
+
+            onAfterChange.dispatch(self, callable
+                    -> callable.onChange(self, isUserValue, newValue.get())
+            );
 
             if (parent != null)
-                for (AfterChangeListener listener : parent.onAfterChange)
-                    listener.onChange(self, isUserValue, newValue.get());
+                parent.onAfterChange.dispatch(self, callable
+                        -> callable.onChange(self, isUserValue, newValue.get())
+                );
 
             if (root != null && root != parent)
-                for (AfterChangeListener listener : root.onAfterChange)
-                    listener.onChange(self, isUserValue, newValue.get());
+                root.onAfterChange.dispatch(self, callable
+                        -> callable.onChange(self, isUserValue, newValue.get())
+                );
+
         }
         return true;
     }
@@ -468,9 +485,7 @@ public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
 
             for (Pair<ConfigCell<?, ?>, ROW> pair : getRowCellValues(row))
                 pair.first.validate_(pair.second);
-
-            for (ValueValidatorListener<SELF, RAW, ROW> validator : validators)
-                validator.validate(self, 1, row);
+            validators.dispatch(this, intf -> intf.validate(self, 1, row));
         }
     }
 

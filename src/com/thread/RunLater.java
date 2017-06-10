@@ -1,6 +1,6 @@
 package com.thread;
 
-import com.events.EventListeners;
+import com.events.Dispatcher;
 import com.exceptions.ServiceException;
 import com.intf.runnable.Runnable2;
 import com.intf.runnable.RunnableEx;
@@ -101,7 +101,7 @@ public class RunLater {
         public final Task<T> overrided;
         public final LinkedList<Task<?>> allTasks = new LinkedList<>();
         private boolean cancelled;
-        public final EventListeners<Runnable2<Task<T>, Throwable>> onError = new EventListeners<>();
+        public final Dispatcher<Runnable2<Task<T>, Throwable>> onError = new Dispatcher<>();
 
         private Task(T source, int delayMs, TaskRunnable runnable, Task<T> overrided) {
             this.source = source;
@@ -132,8 +132,8 @@ public class RunLater {
                 Log.error(e);
                 return;
             }
-            for (Runnable2<Task<T>, Throwable> r : onError)
-                r.run(this, e);
+
+            onError.dispatch(this, intf -> intf.run(this, e));
         }
 
     }

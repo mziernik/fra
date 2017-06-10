@@ -19,7 +19,7 @@ public class CDebug extends ConfigNode {
     @Cfg
     public final static CfBool statisticsEnabled = new CfBool("statistics.enabled",
             DEBUG__STATISTICS_ENABLED, false)
-            .onGetValue((CfBool item, Boolean value, ValueSource source)
+            .onGetValue(CDebug.class, (CfBool item, Boolean value, ValueSource source)
                     -> value != null ? value : AppContext.devMode);
 
 }

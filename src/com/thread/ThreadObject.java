@@ -1,7 +1,7 @@
 package com.thread;
 
 import com.cron.TTimer;
-import com.events.EventListeners;
+import com.events.Dispatcher;
 import com.intf.runnable.Runnable1;
 import com.lang.core.Language;
 import com.mlogger.Log;
@@ -20,7 +20,7 @@ import java.util.Set;
 public class ThreadObject<T> {
 
     public final String name;
-    public final EventListeners<Runnable1<T>> onSet = new EventListeners<>();
+    public final Dispatcher<Runnable1<T>> onSet = new Dispatcher<>();
     public final static ThreadObject<ThreadDump> parentThread = new ThreadObject<>("ParentThread");
     public final static ThreadObject<Language> language = new ThreadObject<>("Language");
     public final static ThreadObject<HttpRequest> httpRequest = new ThreadObject<>("HttpRequest");
@@ -75,8 +75,7 @@ public class ThreadObject<T> {
         if (thread == null || value == null)
             return this;
 
-        for (Runnable1 r : onSet)
-            r.run(value);
+        onSet.dispatch(this, intf -> intf.run(value));
 
         Map<ThreadObject<?>, Object> map;
         synchronized (threads) {

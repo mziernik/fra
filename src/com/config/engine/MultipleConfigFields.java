@@ -1,6 +1,5 @@
 package com.config.engine;
 
-
 import com.utils.TObject;
 import com.utils.collections.Pair;
 import java.util.*;
@@ -120,9 +119,10 @@ public class MultipleConfigFields<SELF extends MultipleConfigFields<SELF, RAW>, 
             for (Pair<ConfigCell<?, ?>, RAW> pair : getRowCellValues(val))
                 pair.first.validate_(pair.second);
 
-        for (ValueValidatorListener<SELF, Collection<RAW>, RAW> validator : validators)
+        validators.dispatch(this, intf -> {
             for (RAW val : value)
-                validator.validate(self, 1, val);
+                intf.validate(self, 1, val);
+        });
     }
 
 }

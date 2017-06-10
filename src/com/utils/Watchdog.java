@@ -1,7 +1,7 @@
 package com.utils;
 
 import com.cron.TTimer;
-import com.events.EventListeners;
+import com.events.Dispatcher;
 import com.utils.collections.SyncList;
 import com.utils.date.time.Interval;
 import com.utils.date.time.Unit;
@@ -14,7 +14,7 @@ public class Watchdog {
     private final Runnable onTimout;
     private long resetTs;
     public final long createTs = System.currentTimeMillis();
-    public final EventListeners<Runnable> onReset = new EventListeners<>();
+    public final Dispatcher<Runnable> onReset = new Dispatcher<>();
 
     private final static TTimer timer = TTimer.instance(
             new Interval(100, Unit.MILLISECONDS), (TTimer t) -> {
@@ -41,13 +41,12 @@ public class Watchdog {
 
     public Watchdog reset() {
         resetTs = System.currentTimeMillis();
-        for (Runnable r : onReset)
-            r.run();
+        onReset.dispatch(this, r -> r.run());
         return this;
     }
 
-    public Watchdog onReset(Runnable runnable) {
-        onReset.add(runnable);
+    public Watchdog onReset(Object context, Runnable runnable) {
+        onReset.listen(context, runnable);
         return this;
     }
 

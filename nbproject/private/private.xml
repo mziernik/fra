@@ -12,5 +12,18 @@
             <file>file:/W:/Framework/src/com/json/JObject.java</file>
             <file>file:/W:/Framework/src/com/webapi/core/WebApiRequest.java</file>
         </group>
+        <group name="Framework">
+            <file>file:/W:/Framework/src/com/webapi/core/client/Ecma6.java</file>
+            <file>file:/W:/Framework/src/com/utils/reflections/TClass.java</file>
+            <file>file:/W:/Framework/src/com/utils/reflections/TField.java</file>
+            <file>file:/W:/Framework/src/com/model/dataset/AbstractDataSet.java</file>
+            <file>file:/W:/Framework/src/com/model/dataset/DsColumn.java</file>
+            <file>file:/W:/Framework/src/com/webapi/core/Html.java</file>
+            <file>file:/W:/Framework/src/com/webapi/core/client/Repositories.java</file>
+            <file>file:/W:/Framework/src/com/model/dataset/intf/DataType.java</file>
+            <file>file:/W:/Framework/src/com/database/model/WDbModel.java</file>
+            <file>file:/W:/Framework/src/com/utils/text/StrWriter.java</file>
+            <file>file:/W:/Framework/src/com/database/model/DsTable.java</file>
+        </group>
     </open-files>
 </project-private>

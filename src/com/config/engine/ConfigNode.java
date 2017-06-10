@@ -3,7 +3,7 @@ package com.config.engine;
 import com.config.engine.interfaces.AfterChangeListener;
 import com.config.engine.interfaces.BeforeChangeListener;
 import com.config.engine.interfaces.FieldsOrder;
-import com.events.EventListeners;
+import com.events.Dispatcher;
 import com.intf.callable.Callable1;
 import com.json.JArray;
 import com.json.JElement;
@@ -29,9 +29,9 @@ public class ConfigNode extends ConfigElement<ConfigNode> implements Iterable<Co
     private boolean initialized;
     private FieldsOrder order = FieldsOrder.FIELD;
 
-    final EventListeners<ValueGetListener<?, ?, ?>> onGetValue = new EventListeners<>();
-    final EventListeners<BeforeChangeListener<?, ?>> onBeforeChange = new EventListeners<>();
-    final EventListeners<AfterChangeListener<?, ?>> onAfterChange = new EventListeners<>();
+    final Dispatcher<ValueGetListener> onGetValue = new Dispatcher<>();
+    final Dispatcher<BeforeChangeListener> onBeforeChange = new Dispatcher<>();
+    final Dispatcher<AfterChangeListener> onAfterChange = new Dispatcher<>();
 
     public ConfigNode orderBy(FieldsOrder order) {
         this.order = Utils.coalesce(order, FieldsOrder.FIELD);
@@ -334,18 +334,18 @@ public class ConfigNode extends ConfigElement<ConfigNode> implements Iterable<Co
         return true;
     }
 
-    public ConfigNode onBeforeChange(BeforeChangeListener<?, ?> listener) {
-        onBeforeChange.add(listener);
+    public ConfigNode onBeforeChange(Object context, BeforeChangeListener<?, ?> listener) {
+        onBeforeChange.listen(context, listener);
         return this;
     }
 
-    public ConfigNode onAfterChange(AfterChangeListener<?, ?> listener) {
-        onAfterChange.add(listener);
+    public ConfigNode onAfterChange(Object context, AfterChangeListener<?, ?> listener) {
+        onAfterChange.listen(context, listener);
         return this;
     }
 
-    public ConfigNode onGetValue(ValueGetListener<?, ?, ?> listener) {
-        onGetValue.add(listener);
+    public ConfigNode onGetValue(Object context, ValueGetListener<?, ?, ?> listener) {
+        onGetValue.listen(context, listener);
         return this;
     }
 

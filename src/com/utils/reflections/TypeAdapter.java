@@ -284,6 +284,9 @@ public class TypeAdapter<T> {
     static {
 
         TypeAdapter.ADAPTERS.put(UUID.class, (value, parent) -> {
+            if (Is.empty(value))
+                return null;
+            
             if (value instanceof String)
                 return UUID.fromString((String) value);
 

@@ -55,6 +55,16 @@ public abstract class MapCollection<Key, Item, Coll extends Collection<Item>>
         return this;
     }
 
+    public MapCollection<Key, Item, Coll> addAll(Key key, Collection<Item> items) {
+        Coll list = map.get(key);
+        if (list == null) {
+            list = getCollectionInstance();
+            map.put(key, list);
+        }
+        list.addAll(items);
+        return this;
+    }
+
     public MapCollection<Key, Item, Coll> add(Key key, Item item) {
         Coll list = map.get(key);
         if (list == null) {

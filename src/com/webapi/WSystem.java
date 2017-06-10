@@ -23,9 +23,7 @@ public class WSystem implements WebApi {
 
         final TObject<BufferedWriter> writer = new TObject<>();
 
-        request.webSocket.onClose.add((CloseReason arg) -> {
-            exec.destroy();
-        });
+        request.webSocket.onClose.listen(this, (CloseReason arg) -> exec.destroy());
 
         request.onEvent((String event, JElement data) -> {
             if (!writer.isNull()) {

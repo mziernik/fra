@@ -1,7 +1,7 @@
 package com.webapi;
 
 import com.model.dataset.AbstractDataSet;
-import com.database.model.WDbModel;
+import com.database.model.WRepository;
 import com.exceptions.EError;
 import com.json.JObject;
 import com.model.dataset.DataSet;
@@ -16,7 +16,7 @@ public class WService implements WebApi {
     public final WNotifications notifications = new WNotifications();
 
     @WebApiEndpoint
-    public final WDbModel dbModel = new WDbModel();
+    public final WRepository repository = new WRepository();
 
     @WebApiEndpoint
     public final WHttpSessions httpSession = new WHttpSessions();

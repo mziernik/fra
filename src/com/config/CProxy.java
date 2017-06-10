@@ -16,7 +16,7 @@ public class CProxy extends ConfigNode {
     public CProxy() {
         super(CService.class, "proxy", PROXY__PROXY);
 
-        onAfterChange((item, isUserValue, newValue) -> {
+        onAfterChange(this, (item, isUserValue, newValue) -> {
             if (item != enabled
                     && item != host
                     && item != port
