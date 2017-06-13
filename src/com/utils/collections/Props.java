@@ -1,10 +1,10 @@
 package com.utils.collections;
 
-import com.utils.vparser.VParser;
-import com.utils.vparser.VParserName;
+import com.model.dao.core.VParser;
 import java.util.HashMap;
+import com.model.dao.core.DAOName;
 
-public class Props extends HashMap<String, Object> implements VParserName {
+public class Props extends HashMap<String, Object> implements DAOName {
 
     @Override
     public VParser getDataProvider(String name) {

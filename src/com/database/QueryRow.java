@@ -2,13 +2,13 @@ package com.database;
 
 import com.utils.StrUtils;
 import com.utils.Utils;
-import com.utils.Is;
 import com.utils.collections.Strings;
 import com.utils.date.TDate;
 import com.context.AppContext;
 import com.json.Escape;
 import com.lang.LDatabase;
 import com.mlogger.Log;
+import com.model.dao.core.DAORow;
 import com.utils.TCurrency;
 import com.utils.text.StrWriter;
 import java.sql.*;
@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class QueryRow implements Iterable<QueryCell> {
+public class QueryRow extends DAORow implements Iterable<QueryCell> {
 
     public static QueryRow getDummy() {
         return new QueryRow(new Object[0], null);
@@ -104,9 +104,10 @@ public class QueryRow implements Iterable<QueryCell> {
         return result;
     }
 
-    QueryRow(Object[] cells, QueryRows qd) {
+    QueryRow(Object[] cells, QueryRows rows) {
+        super(rows);
         this.values = cells;
-        this.rows = qd;
+        this.rows = rows;
     }
 
     public int getColumnIdxDef(String columnName) {
@@ -141,6 +142,16 @@ public class QueryRow implements Iterable<QueryCell> {
             throw new SQLException(LDatabase.COLUMN_NOT_FOUND.toString(columnName));
 
         return idx;
+    }
+
+    @Override
+    protected Object getDAOValue(String name) {
+        return getObj(name, null);
+    }
+
+    @Override
+    protected Object getDAOValue(int index) {
+        return getObj(index, null);
     }
 
     public Object getObj(int column, Object def) {
@@ -597,4 +608,5 @@ public class QueryRow implements Iterable<QueryCell> {
     public Iterator<QueryCell> iterator() {
         return getValues().iterator();
     }
+
 }

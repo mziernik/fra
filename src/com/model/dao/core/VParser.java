@@ -1,4 +1,4 @@
-package com.utils.vparser;
+package com.model.dao.core;
 
 import com.utils.Utils;
 import com.utils.Is;

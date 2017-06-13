@@ -1,9 +1,9 @@
-package com.utils.vparser;
+package com.model.dao.core;
 
 import com.utils.TCurrency;
 import com.utils.date.TDate;
 
-public interface VParserName {
+public interface DAOName {
 
     VParser getDataProvider(String name);
 

@@ -7,7 +7,7 @@ import com.intf.callable.CallableEx1;
 import com.json.Escape;
 import com.json.JObject;
 import com.lang.core.LStr;
-import com.model.dataset.intf.DSColumnAlign;
+import com.model.repository.DSColumnAlign;
 import com.model.dataset.intf.DataSetException;
 import com.utils.Is;
 import com.utils.Str;

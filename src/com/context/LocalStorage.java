@@ -11,7 +11,7 @@ import com.utils.Unquoted;
 import com.utils.date.TDate;
 import com.utils.hashes.Base64;
 import com.utils.hashes.Crypto;
-import com.utils.vparser.VParser;
+import com.model.dao.core.VParser;
 import java.sql.SQLException;
 import java.util.LinkedList;
 

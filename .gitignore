@@ -2,3 +2,6 @@
 \.svn
 \bin
 /mvn
+/bin/tmp/build/
+/nbproject/private/private.xml
+/nbproject/private

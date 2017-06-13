@@ -14,7 +14,7 @@ import com.json.JObject;
 import com.model.dataset.AbstractDataSet;
 import com.model.dataset.DsColumn;
 import com.model.dataset.DsRecord;
-import com.model.dataset.intf.CRUDE;
+import com.model.repository.CRUDE;
 import com.model.dataset.intf.DataSetException;
 import com.servlet.websocket.WebSocketConnection;
 import com.servlet.websocket.WebSocketController;
@@ -44,7 +44,7 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
 
     public final String tableName;
     private boolean master;
-    private final AtomicInteger hash = new AtomicInteger(0);
+    private final AtomicInteger hash = new AtomicInteger(0); // identator zmiany
     protected boolean hasCompareMethod;
     protected boolean autoUpdate; //czy informaje o zmianach mają być automatycznie rozsyłane do klientów
 

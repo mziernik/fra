@@ -5,20 +5,23 @@ import com.utils.hashes.Hex;
 import com.utils.collections.Strings;
 import com.mlogger.Log;
 import com.utils.Utils;
-import com.utils.Is;
 import com.context.AppContext;
 import com.dev.Dev;
 import com.json.JArray;
 import com.json.JObject;
 import com.lang.LDatabase;
+import com.model.dao.core.DAOQuery;
+import com.model.dao.core.DAORow;
+import com.model.dao.core.DAORows;
+import com.utils.collections.TList;
 import com.utils.text.Similarity;
 import java.security.*;
 import java.sql.*;
 import java.util.*;
 
-public class QueryRows implements Iterable<QueryRow> {
+public class QueryRows extends DAORows<QueryRow> implements Iterable<QueryRow> {
 
-    final LinkedList<QueryRow> rows = new LinkedList<>();
+    final TList<QueryRow> rows = new TList<>();
     public final long executeTime; // czas w nanosekundach
     public final String query;
     public final Integer updateCount;
@@ -28,6 +31,7 @@ public class QueryRows implements Iterable<QueryRow> {
     private final QueryRows next;
     public final QueryRows generatedKeys;
     public final QueryColumn[] columns;
+    public final DAOQuery daoQuery;
 
     @Override
     public String toString() {
@@ -50,6 +54,8 @@ public class QueryRows implements Iterable<QueryRow> {
     }
 
     private QueryRows(QueryRows parent) {
+        super(parent.daoQuery);
+        daoQuery = parent.daoQuery;
         query = parent.query;
         executeTime = parent.executeTime;
         updateCount = parent.updateCount;
@@ -93,9 +99,12 @@ public class QueryRows implements Iterable<QueryRow> {
         return stmt.getResultSet();
     }
 
-    public QueryRows(Database db, Statement stmt, ResultSet rst, String query,
+    public QueryRows(Database db, DAOQuery daoQuery, Statement stmt, ResultSet rst, String query,
             long timestamp) throws SQLException {
 
+        super(daoQuery);
+
+        this.daoQuery = daoQuery;
         this.query = query;
         this.db = db;
 
@@ -119,10 +128,10 @@ public class QueryRows implements Iterable<QueryRow> {
             resultsCount = null;
 
             ResultSet nextResults = getNextResults(stmt);
-            next = nextResults != null ? new QueryRows(db, stmt, nextResults, query, timestamp) : null;
+            next = nextResults != null ? new QueryRows(db, daoQuery, stmt, nextResults, query, timestamp) : null;
 
             generatedKeys = stmt == null || updateCount == null || "#generatedKeys".equals(query)
-                    ? null : new QueryRows(db, null, stmt.getGeneratedKeys(),
+                    ? null : new QueryRows(db, daoQuery, null, stmt.getGeneratedKeys(),
                             "#generatedKeys", timestamp);
             return;
         }
@@ -150,7 +159,7 @@ public class QueryRows implements Iterable<QueryRow> {
 
             generatedKeys = stmt == null || updateCount == null || "#generatedKeys".equals(query)
                     ? null
-                    : new QueryRows(db, null, stmt.getGeneratedKeys(),
+                    : new QueryRows(db, daoQuery, null, stmt.getGeneratedKeys(),
                             "#generatedKeys", timestamp);
         } finally {
             rst.close();
@@ -159,7 +168,7 @@ public class QueryRows implements Iterable<QueryRow> {
         resultsCount = rows.size();
 
         ResultSet nextResults = getNextResults(stmt);
-        next = nextResults != null ? new QueryRows(db, stmt, nextResults, query, timestamp) : null;
+        next = nextResults != null ? new QueryRows(db, daoQuery, stmt, nextResults, query, timestamp) : null;
 
     }
 
@@ -315,11 +324,6 @@ public class QueryRows implements Iterable<QueryRow> {
         }
     }
 
-    @Override
-    public Iterator<QueryRow> iterator() {
-        return rows.iterator();
-    }
-
     /**
      * Grupuje rezultaty na podstawie nazwy kolumny
      *
@@ -390,6 +394,11 @@ public class QueryRows implements Iterable<QueryRow> {
             }
 
         return arr;
+    }
+
+    @Override
+    protected TList<QueryRow> getRows() {
+        return rows;
     }
 
 }

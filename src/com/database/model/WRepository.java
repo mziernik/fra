@@ -6,7 +6,7 @@ import com.json.JArray;
 import com.json.JObject;
 import com.json.JValue;
 import com.model.dataset.DsColumn;
-import com.model.dataset.intf.CRUDE;
+import com.model.repository.CRUDE;
 import com.servlet.Handlers;
 import com.servlet.interfaces.Arg;
 import com.servlet.websocket.WebSocketController;
@@ -38,8 +38,9 @@ public class WRepository implements WebApi {
     }
 
     @WebApiEndpoint(description = "Zwraca dane z wielu tabel")
-    public JObject getData(WebApiRequest req,
-            @Arg(name = "repositories", required = false) JObject repositories) throws FileNotFoundException {
+    public JObject get(WebApiRequest req,
+            @Arg(name = "repositories", required = false) JObject repositories)
+            throws FileNotFoundException {
 
         TList<Repository<?, ?>> tbls = new TList<>();
         if (repositories != null && !repositories.isEmpty())

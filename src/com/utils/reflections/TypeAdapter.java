@@ -102,6 +102,9 @@ public class TypeAdapter<T> {
         if (value == null)
             return null;
 
+        if (cls.isAssignableFrom(value.getClass()))
+            return (T) value;
+
         try {
             Adapter<?> adapter = ADAPTERS.get(cls);
             if (adapter != null)
@@ -111,7 +114,7 @@ public class TypeAdapter<T> {
         } catch (Throwable e) {
             throw new ServiceException(e);
         }
-        
+
         if (cls.isArray()) {
             Class<?> cType = cls.getComponentType();
             Collection<Object> values = asCollection(value);
@@ -286,7 +289,7 @@ public class TypeAdapter<T> {
         TypeAdapter.ADAPTERS.put(UUID.class, (value, parent) -> {
             if (Is.empty(value))
                 return null;
-            
+
             if (value instanceof String)
                 return UUID.fromString((String) value);
 

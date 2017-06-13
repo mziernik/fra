@@ -1,6 +1,7 @@
 package com.utils.collections;
 
 import com.intf.callable.Callable1;
+import com.intf.runnable.Runnable1;
 import com.utils.Utils;
 import com.utils.Is;
 import java.io.IOException;
@@ -21,8 +22,9 @@ import java.util.Objects;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +43,7 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
     int initialCapacity;
     private static final int DEFAULT_CAPACITY = 10;
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+    private boolean notNull;
 
     public TList() {
         Node<T> initNode = new Node<>(null, null, 0, DEFAULT_CAPACITY);
@@ -104,8 +107,26 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
             }
     }
 
+    public TList<T> notNull() {
+        this.notNull = true;
+        return this;
+    }
+
     public String toString(String separator) {
         return toString(separator, null);
+    }
+
+    public TList<T> find(final Predicate<? super T> filter) {
+        return new TList<>(stream()
+                .filter(filter)
+                .collect(Collectors.toList()));
+    }
+
+    public T findFirst(final Predicate<? super T> filter) {
+        return stream()
+                .filter(filter)
+                .findFirst()
+                .orElse(null);
     }
 
     public String toString(String separator, Function<T, String> mapper) {
@@ -155,8 +176,22 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
         return this;
     }
 
+    public boolean add(T element, Runnable1<T> runnable) {
+        if (runnable != null)
+            runnable.run(element);
+        return add(element);
+    }
+
+    public T addR(T element) {
+        add(element);
+        return element;
+    }
+
     @Override
     public boolean add(T element) {
+
+        if (notNull && element == null)
+            return false;
 
         Node<T> l = last;
 
@@ -231,6 +266,10 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
     @Override
     public boolean addAll(Collection<? extends T> c) {
         Objects.requireNonNull(c);
+
+        if (notNull)
+            c = c.stream().filter(t -> t != null).collect(Collectors.toList());
+
         Object[] collection = c.toArray();
         int len = collection.length;
 

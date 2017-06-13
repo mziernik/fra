@@ -19,6 +19,8 @@ import com.exceptions.ThrowableException;
 import com.io.IOUtils;
 import com.lang.LDatabase;
 import com.mlogger.*;
+import com.model.dao.DatabaseDAO;
+import com.model.dao.core.DAOQuery;
 import com.resources.core.ResData;
 import com.servlet.Handlers;
 import com.utils.Undefined;
@@ -33,7 +35,7 @@ import java.util.*;
  *
  * @author admin
  */
-public abstract class Database {
+public abstract class Database extends DatabaseDAO {
 
     public boolean logsEnabled = true;
     public final DbMeta meta;
@@ -169,19 +171,19 @@ public abstract class Database {
     }
 
     public QueryRows execute(String query, Object... params) throws SQLException {
-        return doExecute(query, null, params);
+        return doExecute(null, query, null, params);
     }
 
     public QueryRows execute(URL query, Object... params) throws IOException, SQLException {
-        return query != null ? doExecute(IOUtils.read(query, Utils.UTF8),
+        return query != null ? doExecute(null, IOUtils.read(query, Utils.UTF8),
                 StrUtils.decodeURIComponent(query.getFile()), params) : null;
     }
 
     public QueryRows execute(ResData query, Object... params) throws IOException, SQLException {
-        return doExecute(query.getStringUtf8(), query.getFileName(), params);
+        return doExecute(null, query.getStringUtf8(), query.getFileName(), params);
     }
 
-    protected QueryRows doExecute(String query, String fileName, Object... params) throws SQLException {
+    protected QueryRows doExecute(DAOQuery daoQ, String query, String fileName, Object... params) throws SQLException {
 
         if (query == null)
             return null;
@@ -227,7 +229,7 @@ public abstract class Database {
                     for (Throwable w : warns)
                         messages.add(w.getLocalizedMessage());
             }
-            result = new QueryRows(this, stmt, stmt.getResultSet(), query, timestamp);
+            result = new QueryRows(this, daoQ, stmt, stmt.getResultSet(), query, timestamp);
 
             if (lock.connection.isClosed())
                 return result;
@@ -291,7 +293,7 @@ public abstract class Database {
 
         } finally {
             if (result == null)
-                result = new QueryRows(this, null, null, query, timestamp);
+                result = new QueryRows(this, daoQ, null, null, query, timestamp);
 
             if (logsEnabled) {
 

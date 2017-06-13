@@ -1,7 +1,7 @@
 package com.xml;
 
 import com.exceptions.ThrowableException;
-import com.utils.vparser.VParser;
+import com.model.dao.core.VParser;
 import com.utils.text.StrWriter;
 import com.utils.Utils;
 import com.utils.Is;
