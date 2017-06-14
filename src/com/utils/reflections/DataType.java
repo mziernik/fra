@@ -9,6 +9,7 @@ import com.utils.collections.TList;
 import com.utils.date.TDate;
 import com.utils.date.time.Interval;
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -49,6 +50,14 @@ public class DataType<T> {
     public static interface Adapter<T> {
 
         T parse(Object value, Object parent) throws Exception;
+
+        default T process(Object value, Object parent) throws Exception {
+            return value != null ? parse(value, parent) : null;
+        }
+
+        default T process(Object value) throws Exception {
+            return value != null ? parse(value, null) : null;
+        }
     }
 
     public final static Map<String, DataType> ALL = new LinkedHashMap<>();
@@ -68,13 +77,16 @@ public class DataType<T> {
     public DataType(JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
 
         this.type = Objects.requireNonNull(type);
-        this.name = Objects.requireNonNull(name);
+        this.name = name;
         this.adapter = Objects.requireNonNull(adapter);
         this.clazz = Objects.requireNonNull(clazz);
-        if (ALL.containsKey(name))
-            throw new ServiceException("DataType " + name + " aleready exists");
 
-        ALL.put(name, this);
+        if (name != null) {
+            if (ALL.containsKey(name))
+                throw new ServiceException("DataType " + name + " aleready exists");
+
+            ALL.put(name, this);
+        }
     }
 
     public JObject getJson() {
@@ -94,15 +106,6 @@ public class DataType<T> {
         return result;
     }
 
-    public final static DataType<Boolean> BOOLEAN = new DataType(JsonType.BOOLEAN, "boolean", Boolean.class,
-            (value, parent) -> {
-                if (value instanceof String)
-                    return Boolean.parseBoolean((String) value);
-                if (value instanceof Number)
-                    return ((Number) value).intValue() != 0;
-                return null;
-            });
-
     public static class EnumDataType<E extends Enum<E>> extends DataType<E> {
 
         public EnumDataType(Class<E> clazz) {
@@ -114,11 +117,29 @@ public class DataType<T> {
                 return null;
             });
         }
+    }
 
+    public static class ArrayDataType<T> extends DataType<T> {
+
+        public ArrayDataType(Class<T> clazz) {
+            super(JsonType.STRING, null, clazz, (value, parent) -> {
+
+                return null;
+            });
+        }
     }
 
     public final static DataType<Object> ANY = new DataType(JsonType.STRING, "any", Object.class,
             (value, parent) -> value);
+
+    public final static DataType<Boolean> BOOLEAN = new DataType(JsonType.BOOLEAN, "boolean", Boolean.class,
+            (value, parent) -> {
+                if (value instanceof String)
+                    return Boolean.parseBoolean((String) value);
+                if (value instanceof Number)
+                    return ((Number) value).intValue() != 0;
+                return null;
+            });
 
     public final static DataType<String> STRING = new DataType(JsonType.STRING, "string", String.class,
             (value, parent) -> Utils.toString(value));

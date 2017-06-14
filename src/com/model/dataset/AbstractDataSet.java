@@ -1,6 +1,6 @@
 package com.model.dataset;
 
-import com.database.model.Repository;
+import com.database.model.Repository_old;
 import com.events.Dispatcher;
 import com.exceptions.ServiceException;
 import com.exceptions.ThrowableException;
@@ -20,6 +20,7 @@ import com.utils.text.StrWriter;
 import java.util.Map.Entry;
 import java.util.*;
 
+@Deprecated
 public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, PRIMARY_KEY>, DATA, PRIMARY_KEY>
         implements Iterable<SELF> {
 
@@ -274,17 +275,17 @@ public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, P
         return new Col<>(cls, key, type, name, setter);
     }
 
-    protected <RAW, DS extends Repository<?, ?>> ColF<RAW, DS> columnF(
+    protected <RAW, DS extends Repository_old<?, ?>> ColF<RAW, DS> columnF(
             DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
         return new ColF<>(null, type, name, setter);
     }
 
-    protected <RAW, DS extends Repository<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
+    protected <RAW, DS extends Repository_old<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
             DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
         return new ColF<>(cls, type, name, setter);
     }
 
-    protected <RAW, DS extends Repository<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
+    protected <RAW, DS extends Repository_old<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls,
             String key, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
         return new ColF<>(cls, key, type, name, setter);
     }
@@ -301,7 +302,7 @@ public abstract class AbstractDataSet<SELF extends AbstractDataSet<SELF, DATA, P
         }
     }
 
-    public class ColF<RAW, DS extends Repository<?, ?>> extends Col<RAW> {
+    public class ColF<RAW, DS extends Repository_old<?, ?>> extends Col<RAW> {
 
         ColF(Class<RAW> cls, DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
             super(cls, type, name, setter);

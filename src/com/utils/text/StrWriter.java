@@ -10,7 +10,6 @@ import java.util.*;
 //ToDo: Usunąć dziedziczenie po StringWriter (opcjonalna klasa rozszerzająca)
 // usunąć zbędne metody typu append
 // autoIntent - dodać intent nie po metodzie br() ale po każdym znaku \n
-
 public class StrWriter extends StringWriter {
 
     // dowolne właściwości
@@ -23,68 +22,68 @@ public class StrWriter extends StringWriter {
     private boolean autoIntent;
     private String lineBreak = "\n";
     private boolean _isCompact;
-
+    
     private boolean singleQuote;
     private int level;
     private int lineBreakCount = 1;
-
+    
     private boolean memoryCopy;
-
+    
     public StrWriter(Writer... mirrors) {
         this.mirrors = mirrors == null ? new Writer[0] : mirrors;
         memoryCopy = this.mirrors.length == 0;
     }
-
+    
     public int getLevel() {
         return level;
     }
-
+    
     public StrWriter setLevel(int level) {
         if (level >= 0)
             this.level = level;
         return this;
     }
-
+    
     public boolean isEmpty() {
         return length == 0;
     }
-
+    
     public int length() {
         return length;
     }
-
+    
     public StrWriter memoryCopy(boolean memoryCopy) {
         this.memoryCopy = memoryCopy;
         return this;
     }
-
+    
     public StrWriter singleQuote(boolean singleQuote) {
         this.singleQuote = singleQuote;
         return this;
     }
-
+    
     public StrWriter add(CharSequence... csqs) {
         if (csqs != null)
             for (CharSequence cs : csqs)
                 append(cs);
         return this;
     }
-
+    
     @Override
     public StrWriter append(CharSequence csq) {
         super.append(csq);
         return this;
     }
-
+    
     public StrWriter append(Object obj) {
         append(Utils.toString(obj, true));
         return this;
     }
-
+    
     public <T> StrWriter join(Iterable<T> collection, String separator, Callable1<String, T> mapper) {
         boolean first = true;
         for (T t : collection) {
-            String val = mapper.run(t);
+            String val = mapper != null ? mapper.run(t) : Utils.toString(t);
             if (val == null)
                 continue;
             if (!first)
@@ -92,15 +91,15 @@ public class StrWriter extends StringWriter {
             append(val);
             first = false;
         }
-
+        
         return this;
     }
-
+    
     public StrWriter appendFrmt(String format, Object... args) {
         append(String.format(format, args));
         return this;
     }
-
+    
     public StrWriter escape(Object object) {
         try {
             new Escape().useQuota(null).singleQuota(singleQuote).toString(object, this);
@@ -109,19 +108,19 @@ public class StrWriter extends StringWriter {
         }
         return this;
     }
-
+    
     @Override
     public StrWriter append(char c) {
         super.append(c);
         return this;
     }
-
+    
     @Override
     public StrWriter append(CharSequence csq, int start, int end) {
         super.append(csq, start, end);
         return this;
     }
-
+    
     @Override
     public void flush() {
         super.flush();
@@ -132,7 +131,7 @@ public class StrWriter extends StringWriter {
                 throw new ThrowableException(ex);
             }
     }
-
+    
     @Override
     public void close() throws IOException {
         super.close();
@@ -143,20 +142,20 @@ public class StrWriter extends StringWriter {
                 throw new ThrowableException(ex);
             }
     }
-
+    
     @Override
     public void write(String str) {
         if (autoIntent && hasBr && !str.equals(lineBreak)) {
             hasBr = false;
             intent();
         }
-
+        
         if (memoryCopy)
             super.write(str);
-
+        
         if (str != null)
             length += str.length();
-
+        
         for (Writer writer : mirrors)
             try {
                 writer.append(str);
@@ -164,16 +163,16 @@ public class StrWriter extends StringWriter {
                 throw new ThrowableException(ex);
             }
     }
-
+    
     @Override
     public void write(char[] cbuf) throws IOException {
-
+        
         if (memoryCopy)
             super.write(cbuf);
-
+        
         if (cbuf != null)
             length += cbuf.length;
-
+        
         for (Writer writer : mirrors)
             try {
                 writer.append(new String(cbuf));
@@ -181,14 +180,14 @@ public class StrWriter extends StringWriter {
                 throw new ThrowableException(ex);
             }
     }
-
+    
     @Override
     public void write(int c) {
         if (memoryCopy)
             super.write(c);
-
+        
         length += 1;
-
+        
         for (Writer writer : mirrors)
             try {
                 writer.append((char) c);
@@ -196,14 +195,14 @@ public class StrWriter extends StringWriter {
                 throw new ThrowableException(ex);
             }
     }
-
+    
     @Override
     public void write(String str, int off, int len) {
         if (memoryCopy)
             super.write(str, off, len);
-
+        
         length += len;
-
+        
         for (Writer writer : mirrors)
             try {
                 writer.append(str, off, len);
@@ -211,14 +210,14 @@ public class StrWriter extends StringWriter {
                 throw new ThrowableException(ex);
             }
     }
-
+    
     @Override
     public void write(char[] cbuf, int off, int len) {
         if (memoryCopy)
             super.write(cbuf, off, len);
-
+        
         length += len;
-
+        
         for (Writer writer : mirrors)
             try {
                 writer.append(new String(cbuf), off, len);
@@ -231,34 +230,34 @@ public class StrWriter extends StringWriter {
     public boolean isCompact() {
         return _isCompact;
     }
-
+    
     public StrWriter setIntent(String intent) {
         this.intent = intent;
         return this;
     }
-
+    
     public StrWriter setAutoIntent(boolean autoIntent) {
         this.autoIntent = autoIntent;
         return this;
     }
-
+    
     public StrWriter setLineBreak(String lineBreak) {
         this.lineBreak = lineBreak;
         _isCompact = !(lineBreak != null && (lineBreak.contains("\n") || lineBreak.contains("\r")));
         return this;
     }
-
+    
     public StrWriter intent(int level) {
         if (!isCompact() && level > 0 && intent != null && !intent.isEmpty())
             for (int i = 0; i < level; i++)
                 append(intent);
         return this;
     }
-
+    
     public StrWriter intent() {
         return intent(level);
     }
-
+    
     public StrWriter lineBreak(String compactModeLineBreak) {
         if (!isCompact() && lineBreak != null) {
             write(lineBreak);
@@ -268,12 +267,12 @@ public class StrWriter extends StringWriter {
             write(compactModeLineBreak);
         return this;
     }
-
+    
     public StrWriter text(Object value) {
         String text = Utils.toString(value);
         if (text == null || text.isEmpty())
             return this;
-
+        
         String[] lines = text.split("\\n");
         for (int i = 0; i < lines.length; i++) {
             if (i > 0)
@@ -282,7 +281,7 @@ public class StrWriter extends StringWriter {
         }
         return this;
     }
-
+    
     public StrWriter nextLevel(Runnable runnable) {
         int oryginalLevel = level;
         ++level;
@@ -290,7 +289,7 @@ public class StrWriter extends StringWriter {
         level = oryginalLevel;
         return this;
     }
-
+    
     public StrWriter br() {
         lineBreak(null);
         this.hasBr = true;
@@ -305,13 +304,13 @@ public class StrWriter extends StringWriter {
     public String getLineBreak() {
         return lineBreak;
     }
-
+    
     public String getIntent() {
         return intent;
     }
-
+    
     public int getLineBreakCount() {
         return lineBreakCount;
     }
-
+    
 }

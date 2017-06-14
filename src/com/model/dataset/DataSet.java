@@ -1,6 +1,6 @@
 package com.model.dataset;
 
-import com.database.model.Repository;
+import com.database.model.Repository_old;
 import com.intf.callable.CallableEx1;
 import com.utils.reflections.DataType;
 
@@ -22,7 +22,7 @@ public class DataSet<DATA, PRIMARY_KEY> extends AbstractDataSet<DataSet<DATA, PR
     }
 
     @Override
-    public <RAW, DS extends Repository<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls, String key,
+    public <RAW, DS extends Repository_old<?, ?>> ColF<RAW, DS> columnF(Class<RAW> cls, String key,
             DataType<? extends RAW> type, CharSequence name, CallableEx1<RAW, DATA> setter) {
         return super.columnF(cls, key, type, name, setter);
     }

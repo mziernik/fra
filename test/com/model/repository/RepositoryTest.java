@@ -1,11 +1,11 @@
 package com.model.repository;
 
 import com.model.dao.CustomDAO;
-import com.model.dao.CustomDAO.CustomDaoRows;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORows;
 import static com.model.repository.TestRepo.ID;
 import static com.model.repository.TestRepo.LOGIN;
+import com.model.repository.intf.CRUDE;
 import com.utils.Utils;
 import com.utils.collections.TList;
 import com.utils.reflections.DataType;
@@ -60,8 +60,7 @@ public class RepositoryTest {
             rows.add().cell("id", 15).cell("login", "mietek");
         });
 
-        DAOQuery qry = repo.getSelectQuery(dao);
-        DAORows rows = dao.process(qry);
+        DAORows rows = dao.process(repo.fillQuery(new DAOQuery(repo, dao, CRUDE.READ)));
         repo.load(rows);
 
         Utils.with(repo.read(5), rec -> {
@@ -84,11 +83,21 @@ public class RepositoryTest {
 
 class TestRepo extends Repository<Integer> {
 
-    public final static RepoField<Integer> ID = new RepoField<>(DataType.INT, "id");
-    public final static RepoField<String> LOGIN = new RepoField<>(DataType.STRING, "login");
+    public final static Column<Integer> ID = new Column<>(c -> {
+        c.type = DataType.INT;
+        c.key = "id";
+    });
+    public final static Column<String> LOGIN = new Column<>(c -> {
+        c.type = DataType.STRING;
+        c.key = "login";
+    });
 
     public TestRepo() throws Exception {
-        super("users", "Użytkownicy", ID);
+        super(c -> {
+            c.key = "users";
+            c.name = "Użytkownicy";
+            c.primaryKey = ID;
+        });
 
     }
 

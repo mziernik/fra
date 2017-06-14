@@ -1,6 +1,6 @@
 package com.webapi.core.client;
 
-import com.database.model.Repository;
+import com.database.model.Repository_old;
 import com.json.JObject;
 import com.model.dataset.DsColumn;
 import com.servlet.requests.HttpRequest;
@@ -36,7 +36,7 @@ public class Repositories extends WebApiClientBuilder {
 
         writer.br().br();
 
-        for (Repository<?, ?> tbl : Repository.getTables().values()) {
+        for (Repository_old<?, ?> tbl : Repository_old.getTables().values()) {
 
             String name = tbl.getClass().getSimpleName();
 

@@ -129,7 +129,7 @@ public class Dispatcher<Intf> implements Iterable<ContextRunnable<Intf>> {
         return true;
     }
 
-    public void dispatch(Object sender, RunnableEx1< Intf> callable) {
+    public void dispatch(Object sender, RunnableEx1<Intf> callable) {
         TList<ContextRunnable<Intf>> list;
         synchronized (listeners) {
             list = new TList<>(listeners);

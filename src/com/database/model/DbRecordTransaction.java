@@ -14,11 +14,11 @@ import java.util.Map.Entry;
 
 public class DbRecordTransaction {
 
-    final Map<Repository<?, ?>, Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object>> update = new LinkedHashMap<>();
+    final Map<Repository_old<?, ?>, Map<DsColumn<?, ? extends Repository_old<?, ?>, QueryRow, ?>, Object>> update = new LinkedHashMap<>();
     final Set<DsRecord<?, QueryRow, ?>> delete = new LinkedHashSet<>();
 
-    public <T> DbRecordTransaction initializeInsert(Repository<?, ?> table) {
-        Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object> map = update.get(table);
+    public <T> DbRecordTransaction initializeInsert(Repository_old<?, ?> table) {
+        Map<DsColumn<?, ? extends Repository_old<?, ?>, QueryRow, ?>, Object> map = update.get(table);
         if (map == null) {
             map = new LinkedHashMap<>();
             update.put(table, map);
@@ -26,8 +26,8 @@ public class DbRecordTransaction {
         return this;
     }
 
-    public <T> DbRecordTransaction set(DsColumn<?, ? extends Repository<?, ?>, QueryRow, T> cell, T value) {
-        Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object> map = update.get(cell.getParent());
+    public <T> DbRecordTransaction set(DsColumn<?, ? extends Repository_old<?, ?>, QueryRow, T> cell, T value) {
+        Map<DsColumn<?, ? extends Repository_old<?, ?>, QueryRow, ?>, Object> map = update.get(cell.getParent());
         if (map == null) {
             map = new LinkedHashMap<>();
             update.put(cell.getParent(), map);
@@ -37,7 +37,7 @@ public class DbRecordTransaction {
         return this;
     }
 
-    public DbRecordTransaction delete(Repository<?, ?> tbl) {
+    public DbRecordTransaction delete(Repository_old<?, ?> tbl) {
         delete.add(tbl.getRecord());
         return this;
     }
@@ -45,19 +45,19 @@ public class DbRecordTransaction {
     public void commit(Database db) throws SQLError, SQLException {
 
         db.transaction((d) -> {
-            final Set<Repository> sortTables = new HashSet<>();
+            final Set<Repository_old> sortTables = new HashSet<>();
 
             MultipleQuery mqry = d.multipleQuery();
 
-            for (Entry<Repository<?, ?>, Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object>> en : update.entrySet()) {
-                Repository<? extends Repository<?, ?>, ?> tbl = en.getKey();
+            for (Entry<Repository_old<?, ?>, Map<DsColumn<?, ? extends Repository_old<?, ?>, QueryRow, ?>, Object>> en : update.entrySet()) {
+                Repository_old<? extends Repository_old<?, ?>, ?> tbl = en.getKey();
                 mqry.add(DbUtils.addMarker(d, tbl));
                 tbl.getUpdateQuery(mqry, (Map) en.getValue());
             }
 
             for (DsRecord<?, QueryRow, ?> rec : delete) {
-                mqry.add(DbUtils.addMarker(d, ((Repository) rec.dataSet)));
-                ((Repository) rec.dataSet).getDeleteQuery(mqry, rec);
+                mqry.add(DbUtils.addMarker(d, ((Repository_old) rec.dataSet)));
+                ((Repository_old) rec.dataSet).getDeleteQuery(mqry, rec);
             }
 
             if (mqry.isEmpty())
@@ -72,16 +72,16 @@ public class DbRecordTransaction {
             });
 
             for (DsRecord<?, QueryRow, ?> rec : delete)
-                ((Repository) rec.dataSet)._removeRecord(rec);
+                ((Repository_old) rec.dataSet)._removeRecord(rec);
 
             // przepisanie danych z tabeli tymczasowej do mastera
-            for (Entry<Repository<?, ?>, Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object>> en : update.entrySet()) {
-                Repository tbl = Repository.getRepoF((Class) en.getKey().getClass());
+            for (Entry<Repository_old<?, ?>, Map<DsColumn<?, ? extends Repository_old<?, ?>, QueryRow, ?>, Object>> en : update.entrySet()) {
+                Repository_old tbl = Repository_old.getRepoF((Class) en.getKey().getClass());
                 tbl.apply(en.getKey(), en.getValue());
                 sortTables.add(tbl);
             }
 
-            for (Repository tbl : sortTables)
+            for (Repository_old tbl : sortTables)
                 tbl.sort();
         });
 

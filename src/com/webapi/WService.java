@@ -1,7 +1,7 @@
 package com.webapi;
 
 import com.model.dataset.AbstractDataSet;
-import com.database.model.WRepository;
+import com.model.repository.WRepository;
 import com.exceptions.EError;
 import com.json.JObject;
 import com.model.dataset.DataSet;
