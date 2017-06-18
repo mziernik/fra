@@ -89,6 +89,10 @@ public class JArray extends JCollection {
         return this;
     }
 
+    public JElement addE(Object object) {
+        return addElement(null, JSON.serialize(object), false);
+    }
+
     public JArray insert(Object object) {
         addElement(null, JSON.serialize(object), true);
         return this;

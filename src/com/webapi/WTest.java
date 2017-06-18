@@ -90,7 +90,7 @@ public class WTest implements WebApi {
 
         }
 
-        new WebApiBroadcast("users", "update", json).send();
+        WebApiController.broadcast("users", "update", json, null);
     }
 
     @WebApiEndpoint

@@ -5,15 +5,16 @@ import com.context.intf.ContextInitialized;
 import com.json.JArray;
 import com.json.JObject;
 import com.lang.core.LStr;
+import com.model.repository.Record;
+import com.model.repository.RepoUpdate;
+import com.model.repository.Repository;
 import com.sun.management.OperatingSystemMXBean;
 import com.thread.LoopThread;
 import com.utils.Utils;
-import com.utils.Is;
 import static com.utils.Utils.formatSize;
 import com.utils.date.time.Interval;
 import com.utils.date.time.Unit;
 import com.webapi.WNotifications;
-import com.webapi.core.WebApiBroadcast;
 import java.lang.management.*;
 
 public class ServiceMonitor extends LoopThread {
@@ -62,7 +63,7 @@ public class ServiceMonitor extends LoopThread {
     }
 
     private ServiceMonitor() {
-        super("ServiceMonitor", 1000);
+        super("ServiceMonitor", 5000);
         setPriority(Thread.MIN_PRIORITY);
     }
 
@@ -178,46 +179,72 @@ public class ServiceMonitor extends LoopThread {
         JObject jthreads = new JObject();
         JArray jth = jthreads.arrayC("list");
 
-        for (Thread th : threads)
-            if (th != null && th.getState() != null) { // tu może wystąpić null
-                ThreadGroup gr = th.getThreadGroup();
-                ThreadInfo info = thBean.getThreadInfo(th.getId());
+        RepoUpdate<Repository<Long>, Long> repo = RThreads.instance != null
+                ? RThreads.instance.beginUpdate() : null;
 
-                jth.array().addAll(
-                        th.getId(),
-                        th.getPriority(),
-                        th.getState().name().toLowerCase(),
-                        gr != null ? gr.getName() : null,
-                        th.isAlive(),
-                        th.isDaemon(),
-                        th.isInterrupted(),
-                        th.getName(),
-                        thBean.getThreadCpuTime(th.getId()) / 100000,
-                        thBean.getThreadUserTime(th.getId()) / 100000,
-                        thBean.getThreadAllocatedBytes(th.getId()),
-                        info != null ? info.getBlockedCount() : 0,
-                        info != null ? info.getWaitedCount() : 0
-                );
+        for (Thread th : threads) {
+            if (th == null || th.getState() == null) // tu może wystąpić null
+                continue;
 
-                switch (th.getState()) {
-                    case NEW:
-                        ++tnew;
-                        break;
-                    case RUNNABLE:
-                        ++trun;
-                        break;
-                    case BLOCKED:
-                        ++tblc;
-                        break;
-                    case TERMINATED:
-                        ++tterm;
-                        break;
-                    case WAITING:
-                    case TIMED_WAITING:
-                        ++twait;
-                        break;
-                }
+            ThreadGroup gr = th.getThreadGroup();
+            ThreadInfo info = thBean.getThreadInfo(th.getId());
+
+            jth.array().addAll(
+                    th.getId(),
+                    th.getPriority(),
+                    th.getState().name().toLowerCase(),
+                    gr != null ? gr.getName() : null,
+                    th.isAlive(),
+                    th.isDaemon(),
+                    th.isInterrupted(),
+                    th.getName(),
+                    thBean.getThreadCpuTime(th.getId()) / 100000,
+                    thBean.getThreadUserTime(th.getId()) / 100000,
+                    thBean.getThreadAllocatedBytes(th.getId()),
+                    info != null ? info.getBlockedCount() : 0,
+                    info != null ? info.getWaitedCount() : 0
+            );
+
+            switch (th.getState()) {
+                case NEW:
+                    ++tnew;
+                    break;
+                case RUNNABLE:
+                    ++trun;
+                    break;
+                case BLOCKED:
+                    ++tblc;
+                    break;
+                case TERMINATED:
+                    ++tterm;
+                    break;
+                case WAITING:
+                case TIMED_WAITING:
+                    ++twait;
+                    break;
             }
+
+            if (repo == null)
+                continue;
+
+            Record rec = repo.createOrUpdate(th.getId());
+            rec.set(RThreads.ID, th.getId());
+            rec.set(RThreads.PRIORITY, th.getPriority());
+            rec.set(RThreads.STATE, th.getState().name().toLowerCase());
+            rec.set(RThreads.NAME, th.getName());
+            rec.set(RThreads.GROUP, gr != null ? gr.getName() : null);
+            rec.set(RThreads.ALIVE, th.isAlive());
+            rec.set(RThreads.DAEMON, th.isDaemon());
+            rec.set(RThreads.INTERRUPTED, th.isInterrupted());
+            rec.set(RThreads.CPU_TIME, thBean.getThreadCpuTime(th.getId()) / 100000);
+            rec.set(RThreads.USER_TIME, thBean.getThreadUserTime(th.getId()) / 100000);
+            rec.set(RThreads.ALLOCATED, thBean.getThreadAllocatedBytes(th.getId()));
+            rec.set(RThreads.BLOCKED, info != null ? (int) info.getBlockedCount() : 0);
+            rec.set(RThreads.WAITED, info != null ? (int) info.getWaitedCount() : 0);
+        }
+
+        if (repo != null)
+            repo.commit(true);
 
         int act = Thread.activeCount();
         json.objectC("thr")
@@ -237,8 +264,8 @@ public class ServiceMonitor extends LoopThread {
         thrNew.value(tnew);
         thrTerminated.value(tterm);
 
-        new WebApiBroadcast("service.status", json).send();
-        new WebApiBroadcast("service.threads", jthreads).send();
+       // new WebApiBroadcast("service.status", json).send();
+       // new WebApiBroadcast("service.threads", jthreads).send();
     }
 
     static {

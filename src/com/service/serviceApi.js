@@ -4,7 +4,7 @@ function FrameworkApi(api) {
     this.api = api;
     api.httpUrl = api.httpUrl || "http://localhost/$/api";
     api.wsUrl = api.wsUrl || "ws://localhost/$api";
-    api.hash = 'tmFNag';
+    api.hash = 'vu3LhA';
 
     this.cache = {
         list: function (data) {
@@ -207,37 +207,6 @@ function FrameworkApi(api) {
     };
 
     this.service = {
-        dbModel: {
-            edit: function (data) {
-                return api.call("service/dbModel/edit", 'k5hbfQ', 'CRUD', data, {
-                    "": ["object", true],
-                    table: ["string", true],
-                    key: [null, false]
-                });
-            },
-            editMultiple: function (data) {
-                return api.call("service/dbModel/editMultiple", 'irw3RQ', 'CRUD', data, {
-                    "": ["array", true]
-                });
-            },
-            export: function (data) {
-                return api.call("service/dbModel/export", 'bVJXCg', 'CRUD', data, {});
-            },
-            getAll: function (data) { // Zwraca dane z wielu tabel
-                return api.call("service/dbModel/getAll", 'iwFzYg', 'CRUD', data, {
-                    "": ["array", true]
-                });
-            },
-            list: function (data) { // Lista wszystkich rekordów w cache
-                return api.call("service/dbModel/list", 'DVEReg', 'CRUD', data, {});
-            },
-            remove: function (data) {
-                return api.call("service/dbModel/remove", 'Bzba3A', 'CRUD', data, {
-                    table: ["string", true],
-                    key: [null, true]
-                });
-            }
-        },
         httpSession: {
             getAll: function (data) {
                 return api.call("service/httpSession/getAll", 'u4EVMA', 'CRUD', data, {});
@@ -263,9 +232,28 @@ function FrameworkApi(api) {
                 });
             },
             register: function (data) {
-                return api.call("service/notifications/register", 'SbXo2Q', 'CRUD', data, {
-                    "": ["object", true]
+                return api.call("service/notifications/register", 'SJsxbQ', 'CRUD', data, {
+                    "": ["object", true],
+                    sources: ["string[]", true]
                 });
+            }
+        },
+        repository: {
+            edit: function (data) {
+                return api.call("service/repository/edit", 'yVVCCw', 'CRUD', data, {
+                    data: ["object", true]
+                });
+            },
+            export: function (data) {
+                return api.call("service/repository/export", 'bVJXCg', 'CRUD', data, {});
+            },
+            get: function (data) { // Zwraca dane z wielu tabel
+                return api.call("service/repository/get", 'j0y8zQ', 'CRUD', data, {
+                    repositories: ["object", false]
+                });
+            },
+            list: function (data) { // Lista wszystkich rekordów w cache
+                return api.call("service/repository/list", 'DVEReg', 'CRUD', data, {});
             }
         },
         session: {

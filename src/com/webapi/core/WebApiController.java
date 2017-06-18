@@ -1,7 +1,6 @@
 package com.webapi.core;
 
 import com.model.dataset.AbstractDataSet;
-import com.webapi.WNotifications;
 import com.cache.CachedData;
 import com.config.CHttp;
 import com.thread.ThreadObject;
@@ -9,7 +8,6 @@ import com.config.CService;
 import com.context.AppContext;
 import com.exceptions.EError;
 import com.exceptions.ErrorMessage;
-import com.exceptions.ServiceException;
 import com.json.JArray;
 import com.json.JElement;
 import com.json.JObject;
@@ -19,6 +17,7 @@ import com.lang.core.Language;
 import com.lang.core.Languages;
 import com.mlogger.*;
 import com.model.dataset.DsUtils;
+import com.model.repository.Repository;
 import com.servlet.MainServlet.ControllersMap;
 import com.servlet.controller.BaseSession;
 import com.servlet.controller.Controller;
@@ -38,11 +37,12 @@ import com.webapi.WService;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
-import java.util.regex.Pattern;
 
 //ToDo: Dodać obłsugę flagi Deprecated
 public abstract class WebApiController extends WebSocketController
         implements Controller, WebApi {
+
+    public final Set<Repository> repositories = new HashSet<Repository>();
 
     protected ExecutorService getExecutor() {
         if (threadPool == null)
@@ -81,6 +81,9 @@ public abstract class WebApiController extends WebSocketController
     public final WService service = new WService();
 
     protected boolean canSendEvent(String source, String event, Object data) {
+        return true;
+        //FiMe
+        /*
         String hash = Utils.coalesce(service.notifications.currentHash.last(), "");
 
         if (!WNotifications.notifySources.containsKey(source))
@@ -90,7 +93,7 @@ public abstract class WebApiController extends WebSocketController
             if (p.matcher(hash).matches())
                 return true;
 
-        return false;
+        return false;*/
     }
 
     @Override
@@ -313,9 +316,15 @@ public abstract class WebApiController extends WebSocketController
 
         if (http != null || meta.endp.async())
             runnable.run();
-        else
-            getExecutor().submit(runnable);
+        else {
+            ExecutorService exec = getExecutor();
+            
+            exec.execute(runnable);
 
+           // Future<?> submit = exec.submit(runnable);
+
+           // System.out.println(" ExecutorService: " + submit.isCancelled() + "  " + submit.isDone());
+        }
     }
 
     static JObject buildEvent(WebApiRequest req, String source, String name, Object data) {
@@ -532,7 +541,8 @@ public abstract class WebApiController extends WebSocketController
                 log.user(ses.user.username);
         }
 
-        log.data("Params", req.params.toString());
+        if (req.params != null)
+            log.data("Params", req.params.toString());
 
         if (e != null) {
 
@@ -582,5 +592,30 @@ public abstract class WebApiController extends WebSocketController
         for (WebApiControllerMeta m : list)
             if (m.returnWebApi == null)
                 sb.append(m.hash);
+    }
+
+    public static void broadcast(String source, String event, Object data) {
+        broadcast(source, event, data, null);
+    }
+
+    public static void broadcast(String source, String event, Object data, Collection<WebApiController> recipients) {
+
+        if (recipients == null)
+            recipients = WebSocketConnection.getControllers(WebApiController.class);
+
+        if (recipients.isEmpty())
+            return;
+
+        String str = buildEvent(null, source, event, data).toString();
+
+        new Log(LogKind.TRACE)
+                .tag("WebApi|Broadcast")
+                .value(source + ", " + event)
+                .details(data)
+                .send();
+
+        for (WebSocketController ctrl : recipients)
+            ctrl.send(str);
+
     }
 }

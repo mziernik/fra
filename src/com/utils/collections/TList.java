@@ -22,6 +22,7 @@ import java.util.Objects;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -629,6 +630,11 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
             i += len;
         }
         return objects;
+    }
+
+    public T[] toArray(Class<T> clazz) {
+        Object arr = Array.newInstance(clazz, 0);
+        return Arrays.copyOf(toArray(), size, (Class<? extends T[]>) arr.getClass());
     }
 
     @SuppressWarnings("unchecked")

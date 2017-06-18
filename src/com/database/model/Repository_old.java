@@ -14,7 +14,7 @@ import com.json.JObject;
 import com.model.dataset.AbstractDataSet;
 import com.model.dataset.DsColumn;
 import com.model.dataset.DsRecord;
-import com.model.repository.CRUDE;
+import com.model.repository.intf.CRUDE;
 import com.model.dataset.intf.DataSetException;
 import com.servlet.websocket.WebSocketConnection;
 import com.servlet.websocket.WebSocketController;
@@ -32,11 +32,11 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 //ToDo: Dodać tryb lazy
-public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRIMARY_KEY>
+public abstract class Repository_old<SELF extends Repository_old<SELF, PRIMARY_KEY>, PRIMARY_KEY>
         extends AbstractDataSet<SELF, QueryRow, PRIMARY_KEY> {
 
-    final static Map<String, Repository<?, ?>> repos1 = new LinkedHashMap<>();
-    final static Map<Class<? extends Repository>, Repository<?, ?>> repos2 = new LinkedHashMap<>();
+    final static Map<String, Repository_old<?, ?>> repos1 = new LinkedHashMap<>();
+    final static Map<Class<? extends Repository_old>, Repository_old<?, ?>> repos2 = new LinkedHashMap<>();
 
     protected final Pairs<Col<?>, Boolean> orderColumns = new Pairs<Col<?>, Boolean>(); // kolumna, ASC
 
@@ -61,18 +61,18 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
         return result;
     }
 
-//    public static <PK, TBL extends Repository<?, PK>> TBL instance(Class<TBL> cls) {
+//    public static <PK, TBL extends Repository_old<?, PK>> TBL instance(Class<TBL> cls) {
 //        TBL tbl = new TClass<>(cls).newInstance(null);
 //
 //        return tbl;
 //    }
 //
-//    public static <PK, TBL extends Repository<?, PK>> TBL instance(Class<TBL> cls, PK primaryKey) {
+//    public static <PK, TBL extends Repository_old<?, PK>> TBL instance(Class<TBL> cls, PK primaryKey) {
 //        TBL tbl = new TClass<>(cls).newInstance(null);
 //
 //        return tbl;
 //    }
-    protected Repository(String key, String tableName, CharSequence title, PRIMARY_KEY pk) {
+    protected Repository_old(String key, String tableName, CharSequence title, PRIMARY_KEY pk) {
         super(key, title);
         this.tableName = tableName;
 
@@ -91,14 +91,14 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
                     name, Escape.escape(pk)));
     }
 
-//    public static <PK, TBL extends Repository<TBL, PK>> TBL getRepo(Class<TBL> cls, PK key) {
+//    public static <PK, TBL extends Repository_old<TBL, PK>> TBL getRepo(Class<TBL> cls, PK key) {
 //        TBL tbl = (TBL) repos1.get(cls);
 //        return tbl.get(key);
 //    }
-    public static void registerRecords(Class<? extends Repository<?, ?>>... classes) {
-        for (Class<? extends Repository<?, ?>> cls : classes)
+    public static void registerRecords(Class<? extends Repository_old<?, ?>>... classes) {
+        for (Class<? extends Repository_old<?, ?>> cls : classes)
             try {
-                Repository<?, ?> tbl = new TClass<>(cls).newInstance(null);
+                Repository_old<?, ?> tbl = new TClass<>(cls).newInstance(null);
                 tbl.master = true;
                 repos1.put(tbl.key, tbl);
                 repos2.put(tbl.getClass(), tbl);
@@ -108,29 +108,29 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
             }
     }
 
-    public static Repository<?, ?> getRepoF(String key) {
-        Repository<? extends Repository<?, ?>, ?> tbl = getRepo(key);
+    public static Repository_old<?, ?> getRepoF(String key) {
+        Repository_old<? extends Repository_old<?, ?>, ?> tbl = getRepo(key);
         if (tbl == null)
             throw new ServiceException("Table " + key + " not found");
         return tbl;
     }
 
-    public static Repository<?, ?> getRepoF(Class<? extends Repository<?, ?>> tableClass) {
-        Repository<? extends Repository<?, ?>, ?> tbl = Repository.getRepo(tableClass);
+    public static Repository_old<?, ?> getRepoF(Class<? extends Repository_old<?, ?>> tableClass) {
+        Repository_old<? extends Repository_old<?, ?>, ?> tbl = Repository_old.getRepo(tableClass);
         if (tbl == null)
             throw new ServiceException("Table " + tableClass.getName() + " not found");
         return tbl;
     }
 
-    public static Repository<?, ?> getRepo(Class<? extends Repository<?, ?>> clazz) {
-        return (Repository<?, ?>) repos2.get(clazz);
+    public static Repository_old<?, ?> getRepo(Class<? extends Repository_old<?, ?>> clazz) {
+        return (Repository_old<?, ?>) repos2.get(clazz);
     }
 
-    public static Repository<?, ?> getRepo(String key) {
-        return (Repository<?, ?>) repos1.get(key);
+    public static Repository_old<?, ?> getRepo(String key) {
+        return (Repository_old<?, ?>) repos1.get(key);
     }
 
-    public static Map<String, Repository<?, ?>> getTables() {
+    public static Map<String, Repository_old<?, ?>> getTables() {
         return new LinkedHashMap<>(repos1);
     }
 
@@ -145,7 +145,7 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
         MultipleQuery queries = db.multipleQuery();
 
         for (AbstractDataSet<?, ?, ?> ds : repos1.values()) {
-            Repository<?, ?> tbl = (Repository<?, ?>) ds;
+            Repository_old<?, ?> tbl = (Repository_old<?, ?>) ds;
             //DbRecord<?, ?> rec = tbl.recordClass.newInstance(null);
 
             MultipleQuery mqry = db.multipleQuery();
@@ -220,13 +220,13 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
         return col.setter(row -> (RAW) row.getObj(col.getDbColumnName(), null));
     }
 
-    protected <RAW, FK extends Repository<?, ?>> ColF<RAW, FK> columnF(Class<RAW> cls, CharSequence name) {
+    protected <RAW, FK extends Repository_old<?, ?>> ColF<RAW, FK> columnF(Class<RAW> cls, CharSequence name) {
         ColF<RAW, FK> col = super.columnF(cls, null, name, null);
         col.setter(row -> (RAW) row.getObj(col.getDbColumnName(), null));
         return col;
     }
 
-    protected <RAW, FK extends Repository<?, ?>> ColF<RAW, FK> columnF(CharSequence name) {
+    protected <RAW, FK extends Repository_old<?, ?>> ColF<RAW, FK> columnF(CharSequence name) {
         return columnF(null, name);
     }
 
@@ -240,7 +240,7 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
         return records;
     }
 
-    public Repository action(CRUDE action, Map<String, Object> values, DbRecordTransaction trans) {
+    public Repository_old action(CRUDE action, Map<String, Object> values, DbRecordTransaction trans) {
 
         Objects.requireNonNull(action);
 
@@ -250,7 +250,7 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
         if (pk != null)
             pk = (PRIMARY_KEY) new TypeAdapter<>(primaryKey.getRawClass()).process(pk);
 
-        Repository tbl = null;
+        Repository_old tbl = null;
         switch (action) {
 
             case CREATE:
@@ -281,7 +281,7 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
         return tbl;
     }
 
-    void apply(SELF tbl, Map<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object> map) {
+    void apply(SELF tbl, Map<DsColumn<?, ? extends Repository_old<?, ?>, QueryRow, ?>, Object> map) {
         assert master;
 
         PRIMARY_KEY pk = new TList<>(tbl.records.keySet()).first();
@@ -292,7 +292,7 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
             rec = addRow(pk, tmpRec.data);
 
         synchronized (records) {
-            for (Entry<DsColumn<?, ? extends Repository<?, ?>, QueryRow, ?>, Object> e : map.entrySet()) {
+            for (Entry<DsColumn<?, ? extends Repository_old<?, ?>, QueryRow, ?>, Object> e : map.entrySet()) {
                 DsColumn col = e.getKey();
                 rec.data[col.getIndex()] = e.getValue();
             }
@@ -340,7 +340,7 @@ public abstract class Repository<SELF extends Repository<SELF, PRIMARY_KEY>, PRI
 
         super.init();
         try {
-            Method m = getClass().getDeclaredMethod("compare", Repository.class);
+            Method m = getClass().getDeclaredMethod("compare", Repository_old.class);
             hasCompareMethod = m != null;
         } catch (Throwable ex) {
         }

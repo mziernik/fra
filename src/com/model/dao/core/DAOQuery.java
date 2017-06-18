@@ -1,6 +1,6 @@
 package com.model.dao.core;
 
-import com.model.repository.CRUDE;
+import com.model.repository.intf.CRUDE;
 import com.utils.collections.Pair;
 import com.utils.collections.TList;
 
@@ -8,6 +8,7 @@ public class DAOQuery {
 
     public final DAO dao;
     public final CRUDE crude;
+    public final Object context;
 
     public final TList<String> source = new TList<String>().notNull();
     public final TList<String> field = new TList<String>().notNull();
@@ -17,9 +18,10 @@ public class DAOQuery {
         return null;
     }
 
-    public DAOQuery(DAO dao, CRUDE crude) {
+    public DAOQuery(Object context, DAO dao, CRUDE crude) {
         this.dao = dao;
         this.crude = crude;
+        this.context = context;
     }
 
     /**

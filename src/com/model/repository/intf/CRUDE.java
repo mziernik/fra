@@ -1,4 +1,4 @@
-package com.model.repository;
+package com.model.repository.intf;
 
 public enum CRUDE {
 

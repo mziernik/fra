@@ -9,8 +9,11 @@ import com.utils.collections.TList;
 import com.utils.date.TDate;
 import com.utils.date.time.Interval;
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /*
@@ -49,6 +52,14 @@ public class DataType<T> {
     public static interface Adapter<T> {
 
         T parse(Object value, Object parent) throws Exception;
+
+        default T process(Object value, Object parent) throws Exception {
+            return value != null ? parse(value, parent) : null;
+        }
+
+        default T process(Object value) throws Exception {
+            return value != null ? parse(value, null) : null;
+        }
     }
 
     public final static Map<String, DataType> ALL = new LinkedHashMap<>();
@@ -60,7 +71,7 @@ public class DataType<T> {
     public final Class<?> clazz;
     public final JsonType type;
     public final String name;
-    public final Adapter<T> adapter;
+    private final Adapter<T> adapter;
 
     public final TList<DataTypeUnit> units = new TList<>();
     public final Map<String, T> enumerate = new LinkedHashMap<>();
@@ -68,13 +79,43 @@ public class DataType<T> {
     public DataType(JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
 
         this.type = Objects.requireNonNull(type);
-        this.name = Objects.requireNonNull(name);
+        this.name = name;
         this.adapter = Objects.requireNonNull(adapter);
         this.clazz = Objects.requireNonNull(clazz);
-        if (ALL.containsKey(name))
-            throw new ServiceException("DataType " + name + " aleready exists");
 
-        ALL.put(name, this);
+        if (name != null) {
+            if (ALL.containsKey(name))
+                throw new ServiceException("DataType " + name + " aleready exists");
+
+            ALL.put(name, this);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return name + ": " + clazz.getSimpleName();
+    }
+
+    public T parse(Object object) {
+        if (object == null)
+            return null;
+
+        if (clazz.isAssignableFrom(object.getClass()))
+            return (T) object;
+
+        try {
+            T result = adapter.parse(object, null);
+
+            if (result == null)
+                throw new ServiceException("Nieprawidłowa wartość " + Utils.escape(object)
+                        + " dla typu " + name);
+            return result;
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable ex) {
+            throw new ServiceException(ex)
+                    .details("DataType", this.name);
+        }
     }
 
     public JObject getJson() {
@@ -94,15 +135,6 @@ public class DataType<T> {
         return result;
     }
 
-    public final static DataType<Boolean> BOOLEAN = new DataType(JsonType.BOOLEAN, "boolean", Boolean.class,
-            (value, parent) -> {
-                if (value instanceof String)
-                    return Boolean.parseBoolean((String) value);
-                if (value instanceof Number)
-                    return ((Number) value).intValue() != 0;
-                return null;
-            });
-
     public static class EnumDataType<E extends Enum<E>> extends DataType<E> {
 
         public EnumDataType(Class<E> clazz) {
@@ -114,11 +146,50 @@ public class DataType<T> {
                 return null;
             });
         }
+    }
 
+    public static class ArrayDataType<T> extends DataType<T> {
+
+        public final DataType<?> component;
+
+        private static <T> Class<T> checkArray(Class<T> clazz) {
+            if (!clazz.isArray())
+                throw new ServiceException("Klasa " + clazz.getName() + " nie jest tablicą");
+            return clazz;
+        }
+
+        public ArrayDataType(Class<T> clazz) {
+            this(clazz, DataType.of(checkArray(clazz).getComponentType()));
+        }
+
+        public ArrayDataType(Class<T> clazz, DataType<?> component) {
+            super(JsonType.ARRAY, component.name + "[]", checkArray(clazz), (value, parent) -> {
+
+                if (!(value instanceof Iterable))
+                    return null;
+                
+                TList<T> result = new TList<>();
+
+                for (Object val : (Iterable) value)
+                    result.add((T) component.parse(val));
+
+                return (T) result.toArray((Class<T>) component.clazz);
+            });
+            this.component = component;
+        }
     }
 
     public final static DataType<Object> ANY = new DataType(JsonType.STRING, "any", Object.class,
             (value, parent) -> value);
+
+    public final static DataType<Boolean> BOOLEAN = new DataType(JsonType.BOOLEAN, "boolean", Boolean.class,
+            (value, parent) -> {
+                if (value instanceof String)
+                    return Boolean.parseBoolean((String) value);
+                if (value instanceof Number)
+                    return ((Number) value).intValue() != 0;
+                return null;
+            });
 
     public final static DataType<String> STRING = new DataType(JsonType.STRING, "string", String.class,
             (value, parent) -> Utils.toString(value));
