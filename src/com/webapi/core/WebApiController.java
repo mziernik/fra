@@ -1,6 +1,5 @@
 package com.webapi.core;
 
-import com.model.dataset.AbstractDataSet;
 import com.cache.CachedData;
 import com.config.CHttp;
 import com.thread.ThreadObject;
@@ -16,7 +15,6 @@ import com.json.JValue;
 import com.lang.core.Language;
 import com.lang.core.Languages;
 import com.mlogger.*;
-import com.model.dataset.DsUtils;
 import com.model.repository.Repository;
 import com.servlet.MainServlet.ControllersMap;
 import com.servlet.controller.BaseSession;
@@ -351,16 +349,16 @@ public abstract class WebApiController extends WebSocketController
         if (ex == null
                 && req != null
                 && req.source != null
-                && result instanceof AbstractDataSet) {
+                && result instanceof Repository) {
             JObject jExport = req.source.objectD("params").object(".export");
             if (jExport != null)
                 try {
                     jExport.remove();
-                    CachedData data = DsUtils.export((AbstractDataSet) result, req, jExport);
+                 /*   CachedData data = DsUtils.export((AbstractDataSet) result, req, jExport);
                     if (data != null) {
                         response(wsConn, http, req, requestId, data, null);
                         return;
-                    }
+                    }*/
                 } catch (Throwable e) {
                     ex = e;
                     result = null;
@@ -378,13 +376,13 @@ public abstract class WebApiController extends WebSocketController
 
             boolean compact = http == null || (!AppContext.devMode && CService.releaseMode());
 
-            if (result instanceof AbstractDataSet)
-                result = ((AbstractDataSet) result).getJson();
+            if (result instanceof Repository)
+                result = ((Repository) result).getJson(true, true);
 
-            if (result instanceof AbstractDataSet[]) {
+            if (result instanceof Repository[]) {
                 JArray arr = new JArray();
-                for (AbstractDataSet ds : (AbstractDataSet[]) result)
-                    ds.getJson(arr.object());
+//                for (Repository ds : (Repository[]) result)
+//                    ds.getJson(arr.object());
                 result = arr;
             }
 

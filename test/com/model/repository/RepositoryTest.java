@@ -9,7 +9,7 @@ import static com.model.repository.TestRepo.LOGIN;
 import com.model.repository.intf.CRUDE;
 import com.utils.Utils;
 import com.utils.collections.TList;
-import com.utils.reflections.DataType;
+import com.utils.reflections.datatype.DataType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;

@@ -3,26 +3,25 @@ package com.service.cron;
 import com.cron.Cron;
 import com.cron.CronTask;
 import com.lang.LService;
-import com.model.dataset.DataSet;
-import com.utils.reflections.DataType;
+import com.model.repository.DynamicRepo;
+import com.model.repository.Repository;
+import com.utils.reflections.datatype.DataType;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiEndpoint;
 
 public class WCron implements WebApi {
 
     @WebApiEndpoint
-    public DataSet getAll() {
-        DataSet<CronTask, String> result = new DataSet<>("cron", LService.TASK_SCHEDULER);
+    public Repository getAll() {
+        DynamicRepo<CronTask, String> result = new DynamicRepo<>("cron", LService.TASK_SCHEDULER);
 
         result.column(String.class, "id", DataType.KEY, LService.ID, task -> task.id)
-                .hidden(true)
-                .primaryKey();
+                .config(c -> c.hidden = true);
 
         result.column(String.class, "name", DataType.STRING, LService.NAME, task -> task.name);
 
         result.column(Boolean.class, "enabled", DataType.BOOLEAN, LService.ACTIVE, task -> task.enabled)
-                .hidden(true)
-                .searchable(true);
+                .config(c -> c.hidden = true);
 
         result.column(Integer.class, "schedules", DataType.INT, LService.SCHEDULER, task -> task.getSchedulesCount());
 

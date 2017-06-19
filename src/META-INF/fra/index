@@ -231,7 +231,7 @@
         "jahQkg:754C5AE4:com/service/menu.css",
         "i38bpA:563BCBFE:com/service/service.css",
         "HwuFRg:AFA2F296:com/service/service.js",
-        "0uvQ7w:0F9B00EE:com/service/serviceApi.js",
+        "0uvQ7w:1471E366:com/service/serviceApi.js",
         "KLCrlQ:CFC060F5:com/service/sessions/sessions.html",
         "Z7Hpmg:73F6DA70:com/service/sessions/sessions.js",
         "yCluFw:A506BE49:com/service/shell/shell.css",
@@ -442,6 +442,7 @@
         "Df0W8g:67690F0F:res/swal/sweetalert.js",
         "QPj4tg:7958FC38:res/utils.js",
         "s27sOw:6360E032:res/webApi.js",
-        "4OoYtg:388A821D:WEB-INF/web.xml"
+        "4OoYtg:388A821D:WEB-INF/web.xml",
+        "0uvQ7w:1471E366:com/service/serviceApi.js"
     ]
 }

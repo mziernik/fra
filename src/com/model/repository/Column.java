@@ -10,8 +10,9 @@ import com.intf.runnable.RunnableEx3;
 import com.json.JObject;
 import com.model.repository.intf.CaseConvert;
 import com.utils.Is;
+import com.utils.Utils;
 import com.utils.collections.TList;
-import com.utils.reflections.DataType;
+import com.utils.reflections.datatype.DataType;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
@@ -20,7 +21,12 @@ public class Column<RAW> {
     public final RepoFieldConfig config = new RepoFieldConfig();
 
     public Column(Runnable1<RepoFieldConfig> cfg) {
-        cfg.run(config);
+
+        try {
+            cfg.run(config);
+        } catch (Throwable e) {
+            throw new RepositoryException(null, cfg.getClass().getName(), e);
+        }
         config.validate();
     }
 
@@ -29,7 +35,11 @@ public class Column<RAW> {
     }
 
     public Column<RAW> config(Runnable1<RepoFieldConfig> cfg) {
-        cfg.run(config);
+        try {
+            cfg.run(config);
+        } catch (Throwable e) {
+            throw new RepositoryException(null, cfg.getClass().getName(), e);
+        }
         config.validate();
         return this;
     }
@@ -42,7 +52,7 @@ public class Column<RAW> {
             if (idx < 0)
                 throw new RepositoryException(repo, "Repozytorium nie posiada kolumny " + getKey());
 
-            config.beforeSet.dispatch(this, r -> r.run(rec, value));
+            config.onBeforeSet.dispatch(this, r -> r.run(rec, value));
 
             final Object value2 = value != null ? value : config.defaultValue;
 
@@ -58,13 +68,13 @@ public class Column<RAW> {
             Object src = rec.cells[idx];
             if (!Objects.equals(src, val)) {
                 rec.cells[idx] = val;
-                config.afterSet.dispatch(this, r -> r.run(rec, val, null));
+                config.onAfterSet.dispatch(this, r -> r.run(rec, val, null));
                 rec.changed.add(this);
             }
 
             return val;
         } catch (Throwable e) {
-            config.afterSet.dispatch(this, r -> r.run(rec, null, null));
+            config.onAfterSet.dispatch(this, r -> r.run(rec, null, null));
             throw new RepositoryException(repo, repo.config.key + "." + getKey(), e);
         }
     }
@@ -101,9 +111,10 @@ public class Column<RAW> {
         public Boolean required;
         public Boolean unique;
         public CharSequence name;
+        public CharSequence title;
         public String daoName;
         public String daoType;
-        public Column<?> foreign;
+        //public Column<?> foreign;
         public CharSequence description;
         public final LinkedHashMap<String, String> enumerate = new LinkedHashMap<>();
 
@@ -118,8 +129,8 @@ public class Column<RAW> {
         public String[] dateFormats;
         public Boolean searchable;
         //----------------------------------------------------------------------
-        public final Dispatcher<RunnableEx2<Record, Object>> beforeSet = new Dispatcher<>();
-        public final Dispatcher<RunnableEx3<Record, RAW, Throwable>> afterSet = new Dispatcher<>();
+        public final Dispatcher<RunnableEx2<Record, Object>> onBeforeSet = new Dispatcher<>();
+        public final Dispatcher<RunnableEx3<Record, RAW, Throwable>> onAfterSet = new Dispatcher<>();
         public CallableEx1<RAW, Object> parser;
         public final Dispatcher<RunnableEx1<RAW>> validate = new Dispatcher<>();
 

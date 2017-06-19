@@ -5,13 +5,13 @@ import com.config.engine.HConfig;
 import com.config.engine.WConfig;
 import com.database.WDatabase;
 import com.lang.core.WLanguage;
+import com.model.repository.Repository;
 import com.service.cron.WCron;
 import com.service.events.WEvents;
 import com.servlet.interfaces.Arg;
 import com.servlet.interfaces.Endpoint;
 import com.servlet.websocket.WebSocketEndpoint;
 import com.user.WUsers;
-import com.model.dataset.AbstractDataSet;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiController;
 import com.webapi.core.WebApiEndpoint;
@@ -63,7 +63,7 @@ public class WApi extends WebApiController {
 class WebSocet implements WebApi {
 
     @WebApiEndpoint()
-    public AbstractDataSet sessions() {
+    public Repository sessions() {
         return null;
     }
 
@@ -77,7 +77,7 @@ class WebSocet implements WebApi {
 class WHttp implements WebApi {
 
     @WebApiEndpoint()
-    public AbstractDataSet sessions() {
+    public Repository sessions() {
         return null;
     }
 

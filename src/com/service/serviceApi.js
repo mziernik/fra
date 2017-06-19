@@ -25,7 +25,6 @@ function FrameworkApi(api) {
         },
         getDisplayValue: function (data) {
             return api.call("config/getDisplayValue", 'WTxf1g', 'CRUD', data, {
-                "": ["object", true],
                 id: ["string", true]
             });
         },
@@ -52,13 +51,11 @@ function FrameworkApi(api) {
         },
         save: function (data) {
             return api.call("config/save", 'gP0i6g', 'CRUD', data, {
-                "": ["object", true],
                 id: ["string", true]
             });
         },
         validate: function (data) {
             return api.call("config/validate", 'YfgSeQ', 'CRUD', data, {
-                "": ["json", true],
                 id: ["string", true]
             });
         }
@@ -271,9 +268,7 @@ function FrameworkApi(api) {
             }
         },
         getData: function (data) { // Zwraca wszystko co może się przydać
-            return api.call("service/getData", 'VxzWSg', 'CRUD', data, {
-                "": ["array", true]
-            });
+            return api.call("service/getData", 'VxzWSg', 'CRUD', data, {});
         }
     };
 

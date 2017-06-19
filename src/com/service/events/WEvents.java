@@ -1,10 +1,10 @@
 package com.service.events;
 
 import com.context.EventsHandler;
-import com.model.dataset.DataSet;
 import com.json.JArray;
 import com.json.JObject;
 import com.lang.LService;
+import com.model.repository.Repository;
 import com.service.events.filter.BaseEventsFilterHandler;
 import com.servlet.Handlers;
 import com.servlet.interfaces.Arg;
@@ -18,7 +18,7 @@ public class WEvents implements WebApi {
     private BaseEventsFilterHandler filterHandler;
 
     @WebApiEndpoint
-    public DataSet filter(WebApiRequest request) throws Exception {
+    public Repository filter(WebApiRequest request) throws Exception {
         JObject json = request.getJson().asObject();
         JArray filters = json.arrayD("filters");
         JObject params = json.objectD("parameters");
@@ -26,15 +26,15 @@ public class WEvents implements WebApi {
         BaseEventsFilterHandler fh = getFilterHandler();
 
         fh.filter(filters, params);
-        DataSet data = fh.getDataPage(1, 100);
+        Repository data = fh.getDataPage(1, 100);
 
-        if (data.results != null && data.results >= fh.resultLimit)
-            request.warningHint(LService.LIMITED_RESULT.toString(fh.resultLimit));
+//        if (data.results != null && data.results >= fh.resultLimit)
+//            request.warningHint(LService.LIMITED_RESULT.toString(fh.resultLimit));
         return data;
     }
 
     @WebApiEndpoint
-    public DataSet result(@Arg(name = "offset", required = false) Integer offset) throws Exception {
+    public Repository result(@Arg(name = "offset", required = false) Integer offset) throws Exception {
         BaseEventsFilterHandler handler = getFilterHandler();
         offset = Utils.range(offset, 0, handler.resultsIds.size());
         int limit = 200;

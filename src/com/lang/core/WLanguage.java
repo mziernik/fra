@@ -4,7 +4,8 @@ import com.cache.CachedData;
 import com.config.CService;
 import com.json.*;
 import com.lang.core.Language.LangEntry;
-import com.model.dataset.DataSet;
+import com.model.repository.DynamicRepo;
+import com.model.repository.Repository;
 import com.net.http.HttpClient;
 import com.net.http.HttpRequest;
 import com.net.http.HttpResponse;
@@ -14,7 +15,7 @@ import com.servlet.interfaces.Arg;
 import com.utils.Url;
 import com.utils.Is;
 import com.utils.collections.TList;
-import com.utils.reflections.DataType;
+import com.utils.reflections.datatype.DataType;
 import com.webapi.core.*;
 import java.io.IOException;
 
@@ -116,46 +117,71 @@ public class WLanguage implements WebApi {
     }
 
     @WebApiEndpoint()
-    public DataSet<LanguageItem, String> getEntries(
+    public Repository<String> getEntries(
             @Arg(name = "langKey") String langKey,
             @Arg(name = "refKey", required = false) String refKey,
             @Arg(name = "incomplete", required = false) Boolean incomplete) {
 
         Languages.refreshExternals();
 
-        DataSet<LanguageItem, String> dataSet = new DataSet<>("langEntries", "Entries");
+        DynamicRepo<LanguageItem, String> repo = new DynamicRepo<>(c -> {
+            c.key = "langEntries";
+            c.name = "Entries";
+        });
 
         Language lang = Languages.getF(langKey);
         Language ref = Is.empty(refKey) ? null : Languages.getF(refKey);
 
-        dataSet.column(String.class, "id", DataType.KEY, new LStr("Id"), e -> e.id)
-                .primaryKey()
-                .hidden(true);
+        repo.column(String.class, c -> {
+            c.type = DataType.KEY;
+            c.key = "id";
+            c.name = new LStr("Id");
+        }, e -> e.id);
 
-        dataSet.column(String.class, "group", DataType.STRING, new LStr("Group"), e -> e.group);
+        repo.column(String.class, c -> {
+            c.key = "group";
+            c.type = DataType.STRING;
+            c.name = new LStr("Group");
+        }, e -> e.group);
 
-        dataSet.column(String.class, "key", DataType.KEY, new LStr("Key"), e -> e.key);
+        repo.column(String.class, c -> {
+            c.key = "key";
+            c.type = DataType.KEY;
+            c.name = new LStr("Key");
+        }, e -> e.key);
 
         if (ref != null)
-            dataSet.column(String.class, "ref", DataType.STRING, new LStr(ref.name), e -> {
+            repo.column(String.class, c -> {
+                c.key = "ref";
+                c.type = DataType.STRING;
+                c.name = new LStr(ref.name);
+            }, e -> {
                 LangEntry en = e.get(ref);
                 return en != null ? en.value : null;
             });
 
-        dataSet.column(String.class, "val", DataType.STRING, new LStr(lang.name), e -> {
+        repo.column(String.class, c -> {
+            c.key = "val";
+            c.type = DataType.STRING;
+            c.name = new LStr(lang.name);
+        }, e -> {
             LangEntry en = e.get(lang);
             return en != null ? en.value : null;
         });
 
-        dataSet.column(Boolean.class, "complete", DataType.BOOLEAN, new LStr("Zatwierdzone"), e -> {
+        repo.column(Boolean.class, c -> {
+            c.key = "complete";
+            c.type = DataType.BOOLEAN;
+            c.name = new LStr("Zatwierdzone");
+        }, e -> {
             LangEntry en = e.get(lang);
             return en != null ? en.complete : false;
         });
 
         //---------------------------------------------------------------------
-        dataSet.fillRows(Languages.allItems.values());
+        repo.fillRows(Languages.allItems.values());
 
-        return dataSet;
+        return repo;
     }
 
     @WebApiEndpoint

@@ -2,7 +2,7 @@ package com.mlogger.status;
 
 import com.model.repository.Column;
 import com.model.repository.Repository;
-import com.utils.reflections.DataType;
+import com.utils.reflections.datatype.DataType;
 
 public class RThreads extends Repository<Long> {
 

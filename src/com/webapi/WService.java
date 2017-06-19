@@ -1,10 +1,9 @@
 package com.webapi;
 
-import com.model.dataset.AbstractDataSet;
 import com.model.repository.WRepository;
 import com.exceptions.EError;
 import com.json.JObject;
-import com.model.dataset.DataSet;
+import com.model.repository.Repository;
 import com.utils.Is;
 import com.utils.collections.Pair;
 import com.webapi.core.*;
@@ -30,7 +29,7 @@ public class WService implements WebApi {
         return json;
     }
 
-    @WebApiEndpoint(dataType = DataType_old.ARRAY, description = "Zwraca wszystko co może się przydać")
+    @WebApiEndpoint(description = "Zwraca wszystko co może się przydać")
     public JObject getData(WebApiRequest req) throws Exception {
         JObject json = new JObject();
 
@@ -43,7 +42,7 @@ public class WService implements WebApi {
 
                 Object result = endp.first.invoke(req, endp.second);
 
-                result = Is.instanceOf(result, DataSet.class, (ds) -> ds.getJson());
+                result = Is.instanceOf(result, Repository.class, (ds) -> ds.getJson(true, true));
 
                 json.put(methodName, result);
 

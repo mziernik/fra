@@ -8,10 +8,10 @@ import com.servlet.interfaces.Arg;
 import com.utils.Utils;
 import com.webapi.core.*;
 import com.lang.LWebapi;
-import com.model.dataset.AbstractDataSet;
-import com.model.dataset.DataSet;
+import com.model.repository.DynamicRepo;
+import com.model.repository.Repository;
 import com.utils.TObject;
-import com.utils.reflections.DataType;
+import com.utils.reflections.datatype.DataType;
 import java.io.IOException;
 import java.util.*;
 
@@ -24,12 +24,12 @@ public class WTest implements WebApi {
     }
 
     @WebApiEndpoint
-    public AbstractDataSet dict(@Arg(name = "offset", required = false) Integer offset) throws IOException {
+    public Repository dict(@Arg(name = "offset", required = false) Integer offset) throws IOException {
 
         offset = Utils.range(offset, 0, 10_000);
         int limit = 300;
 
-        DataSet<ArrayList<Object>, Integer> data = new DataSet<>("dict", LWebapi.NAME_DICTIONARY);
+        DynamicRepo<ArrayList<Object>, Integer> data = new DynamicRepo<>("dict", LWebapi.NAME_DICTIONARY);
 
         data.offset = offset;
         data.limit = limit;
@@ -94,7 +94,7 @@ public class WTest implements WebApi {
     }
 
     @WebApiEndpoint
-    public AbstractDataSet numbers() throws IOException {
+    public Repository numbers() throws IOException {
         /*
         AbstractDataSet data = new AbstractDataSet("numbers", LWebapi.PREMIUM_NUMBERS);
 
@@ -112,7 +112,7 @@ public class WTest implements WebApi {
     }
 
     @WebApiEndpoint
-    public AbstractDataSet users(WebApiRequest request) throws IOException {
+    public Repository users(WebApiRequest request) throws IOException {
         /*
         AbstractDataSet data = new AbstractDataSet("users", LWebapi.USERS)
                 .updatable(true)

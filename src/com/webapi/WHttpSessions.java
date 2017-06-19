@@ -1,12 +1,13 @@
 package com.webapi;
 
 import com.lang.LWebapi;
-import com.model.dataset.DataSet;
+import com.model.repository.DynamicRepo;
+import com.model.repository.Repository;
 import com.servlet.controller.BaseSession;
 import com.utils.date.TDate;
 import com.utils.date.time.Interval;
 import com.utils.date.time.Unit;
-import com.utils.reflections.DataType;
+import com.utils.reflections.datatype.DataType;
 import com.webapi.core.*;
 
 public class WHttpSessions implements WebApi {
@@ -16,9 +17,9 @@ public class WHttpSessions implements WebApi {
     }
 
     @WebApiEndpoint()
-    public DataSet getAll() {
+    public Repository getAll() {
 
-        DataSet<BaseSession, String> ds = new DataSet<>("sessions", LWebapi.SESSIONS);
+        DynamicRepo<BaseSession, String> ds = new DynamicRepo<>("sessions", LWebapi.SESSIONS);
 
         ds.column(String.class, "id", DataType.KEY, LWebapi.ID,
                 ses -> ses.id).primaryKey();

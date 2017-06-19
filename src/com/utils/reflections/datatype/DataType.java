@@ -1,4 +1,4 @@
-package com.utils.reflections;
+package com.utils.reflections.datatype;
 
 import com.exceptions.ServiceException;
 import com.google.gson.JsonElement;
@@ -76,19 +76,30 @@ public class DataType<T> {
     public final TList<DataTypeUnit> units = new TList<>();
     public final Map<String, T> enumerate = new LinkedHashMap<>();
 
-    public DataType(JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
+    private DataType(JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
+        this(false, type, name, clazz, adapter);
+    }
+
+    public DataType(boolean dynamic, JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
+
+        if (clazz == null && this instanceof MapDataType)
+            clazz = (Class<T>) LinkedHashMap.class;
 
         this.type = Objects.requireNonNull(type);
-        this.name = name;
+        this.name = Objects.requireNonNull(name);
         this.adapter = Objects.requireNonNull(adapter);
         this.clazz = Objects.requireNonNull(clazz);
 
-        if (name != null) {
+        if (!dynamic) {
             if (ALL.containsKey(name))
                 throw new ServiceException("DataType " + name + " aleready exists");
 
             ALL.put(name, this);
         }
+    }
+
+    public ArrayDataType<T> asArray() {
+        return new ArrayDataType<>(this);
     }
 
     @Override
@@ -133,50 +144,6 @@ public class DataType<T> {
             result.put("enumerate", enumerate);
 
         return result;
-    }
-
-    public static class EnumDataType<E extends Enum<E>> extends DataType<E> {
-
-        public EnumDataType(Class<E> clazz) {
-            super(JsonType.STRING, "enum", clazz, (value, parent) -> {
-                String name = Utils.toString(value);
-                for (E e : clazz.getEnumConstants())
-                    if (e.name().equalsIgnoreCase(name))
-                        return e;
-                return null;
-            });
-        }
-    }
-
-    public static class ArrayDataType<T> extends DataType<T> {
-
-        public final DataType<?> component;
-
-        private static <T> Class<T> checkArray(Class<T> clazz) {
-            if (!clazz.isArray())
-                throw new ServiceException("Klasa " + clazz.getName() + " nie jest tablicą");
-            return clazz;
-        }
-
-        public ArrayDataType(Class<T> clazz) {
-            this(clazz, DataType.of(checkArray(clazz).getComponentType()));
-        }
-
-        public ArrayDataType(Class<T> clazz, DataType<?> component) {
-            super(JsonType.ARRAY, component.name + "[]", checkArray(clazz), (value, parent) -> {
-
-                if (!(value instanceof Iterable))
-                    return null;
-                
-                TList<T> result = new TList<>();
-
-                for (Object val : (Iterable) value)
-                    result.add((T) component.parse(val));
-
-                return (T) result.toArray((Class<T>) component.clazz);
-            });
-            this.component = component;
-        }
     }
 
     public final static DataType<Object> ANY = new DataType(JsonType.STRING, "any", Object.class,
@@ -249,8 +216,8 @@ public class DataType<T> {
     static {
         SIZE.units.add(new DataTypeUnit("b", "B", 0l));
         SIZE.units.add(new DataTypeUnit("kb", "KB", 1024l));
-        SIZE.units.add(new DataTypeUnit("mb", "MB", 1024l * 1024l));
-        SIZE.units.add(new DataTypeUnit("gb", "GB", 1024l * 1024l * 1024l));
+        SIZE.units.add(new DataTypeUnit("mb", "MB", 1024l));
+        SIZE.units.add(new DataTypeUnit("gb", "GB", 1024l));
     }
 
     public final static DataType<UUID> UUID = new DataType(JsonType.STRING, "uid", UUID.class, (value, parent) -> {

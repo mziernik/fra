@@ -48,11 +48,23 @@ public class Repository<PRIMARY_KEY> {
         public Boolean autoUpdate; //czy informaje o zmianach mają być automatycznie rozsyłane do klientów
         public DAO dao;
         public Boolean local;
+        public Integer limit;
+        public Integer offset;
+        public Boolean dynamic;
+
+        public RepoConfig() {
+            if (Repository.this instanceof DynamicRepo)
+                dynamic = true;
+        }
 
         public void validate() {
             Objects.requireNonNull(key, Repository.this.getClass() + ": key");
             Objects.requireNonNull(name, Repository.this.getClass() + ": name");
             Objects.requireNonNull(primaryKey, Repository.this.getClass() + ": primaryKey");
+        }
+
+        public void order(Column<?> column, boolean ascendant) {
+
         }
     }
 

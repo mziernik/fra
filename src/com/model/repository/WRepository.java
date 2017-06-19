@@ -20,7 +20,7 @@ public class WRepository implements WebApi {
         JObject json = new JObject();
 
         for (Repository<?> repo : Repository.ALL.values())
-            json.put(repo.getKey(), repo.getJson(false, false));
+            json.put(repo.getKey(), repo.getJson(true, false));
 
         return json;
     }

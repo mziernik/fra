@@ -2,11 +2,11 @@ package com.database;
 
 import com.database.elements.*;
 import com.json.JObject;
-import com.model.dataset.AbstractDataSet;
-import com.model.dataset.DataSet;
+import com.model.repository.DynamicRepo;
+import com.model.repository.Repository;
 import com.servlet.interfaces.Arg;
 import com.utils.hashes.Hashes;
-import com.utils.reflections.DataType;
+import com.utils.reflections.datatype.DataType;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiEndpoint;
 import java.util.LinkedHashMap;
@@ -22,7 +22,7 @@ public class WDatabase implements WebApi {
     }
 
     @WebApiEndpoint()
-    public AbstractDataSet getSessions() {
+    public Repository getSessions() {
         return null;
     }
 
@@ -105,7 +105,7 @@ public class WDatabase implements WebApi {
     }
 
     @WebApiEndpoint()
-    public DataSet execute(
+    public Repository execute(
             @Arg(name = "id") String id,
             @Arg(name = "query") String query,
             @Arg(name = "limit", required = false) Integer limit
@@ -114,16 +114,14 @@ public class WDatabase implements WebApi {
         Database db = getDb(id);
 
         QueryRows rows = db.execute(query);
-        DataSet dataSet = new DataSet("db", "Rezultat");
+        DynamicRepo<QueryRow, ?> dataSet = new DynamicRepo<>("db", "Rezultat");
 
         for (QueryColumn col : rows.columns)
             dataSet.column(String.class, col.name, DataType.STRING, col.name, null)
-                    .subtitle(col.type);
+                    .config(c -> c.title = col.type);
 
-        for (QueryRow qrow : rows)
-            dataSet.addRow(null, qrow.values);
+        dataSet.fillRows(rows);
 
-//            dataSet.addRow().addAll(qrow.values);
         return dataSet;
     }
 

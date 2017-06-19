@@ -4,11 +4,11 @@ import com.config.CService;
 import com.exceptions.ServiceError;
 import com.json.*;
 import com.lang.core.LStr;
-import com.model.dataset.DataSet;
+import com.model.repository.DynamicRepo;
+import com.model.repository.Repository;
 import com.servlet.interfaces.Arg;
-import com.utils.reflections.DataType;
+import com.utils.reflections.datatype.DataType;
 import com.webapi.core.*;
-import com.webapi.core.DataType_old;
 
 public class WConfig implements WebApi {
 
@@ -34,12 +34,12 @@ public class WConfig implements WebApi {
     }
 
     @WebApiEndpoint
-    public DataSet getList() throws Exception {
-        DataSet<ConfigField, String> dataSet = new DataSet<>("configList",
+    public Repository getList() throws Exception {
+        DynamicRepo<ConfigField, String> dataSet = new DynamicRepo<>("configList",
                 new LStr("Konfiguracja"));
 
         dataSet.column(String.class, "key", DataType.KEY, new LStr("Klucz"),
-                cf -> cf.getKey()).primaryKey();
+                cf -> cf.getKey());
 
         dataSet.column(String.class, "name", DataType.STRING, new LStr("Nazwa"),
                 cf -> cf.getName());
@@ -94,12 +94,12 @@ public class WConfig implements WebApi {
         return JSON.serialize(node.getFieldF(id).value());
     }
 
-    @WebApiEndpoint(dataType = DataType_old.JSON)
+    @WebApiEndpoint()
     public JObject validate(WebApiRequest req, @Arg(name = "id") String id) throws Exception {
         return node.getFieldF(id).store().validateRow(req.getJson());
     }
 
-    @WebApiEndpoint(dataType = DataType_old.OBJECT)
+    @WebApiEndpoint()
     public JObject save(WebApiRequest request, @Arg(name = "id") String id) throws Exception {
         ConfigField<?, ?, ?> field = node.getFieldF(id);
         field.store().set(request.getJson().asObject());
@@ -108,7 +108,7 @@ public class WConfig implements WebApi {
         return node.getStructure();
     }
 
-    @WebApiEndpoint(dataType = DataType_old.OBJECT)
+    @WebApiEndpoint()
     public JObject getDisplayValue(WebApiRequest request, @Arg(name = "id") String id) throws Exception {
         ConfigField<?, ?, ?> field = node.getFieldF(id);
         field = field.clone();

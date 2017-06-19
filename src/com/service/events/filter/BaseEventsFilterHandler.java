@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import com.database.Database;
 import com.database.QueryRow;
 import com.database.QueryRows;
-import com.model.dataset.DataSet;
 import com.events.ServiceEvent.EventType;
 import com.filter.FCondition;
 import com.filter.AbstractFilterHandler;
@@ -19,13 +18,14 @@ import com.utils.collections.Pair;
 import com.utils.collections.Strings;
 import com.service.events.filter.EventFilter.TableSearchType;
 import com.lang.LService;
-import com.model.dataset.DataSet;
-import com.utils.reflections.DataType;
+import com.model.repository.DynamicRepo;
+import com.model.repository.Repository;
+import com.utils.reflections.datatype.DataType;
 
 /**
  * @author Błażej Palmąka 2017/01/26
  */
-public abstract class BaseEventsFilterHandler<TSelf extends BaseEventsFilterHandler> extends AbstractFilterHandler<Integer, EventFilter, DataSet> {
+public abstract class BaseEventsFilterHandler<TSelf extends BaseEventsFilterHandler> extends AbstractFilterHandler<Integer, EventFilter, Repository> {
 
     public final Class<? extends Database> dbClass;
     public final Map<EventFilter, ForeignKeyMapping> fkMappings = new LinkedHashMap<>();
@@ -96,7 +96,7 @@ public abstract class BaseEventsFilterHandler<TSelf extends BaseEventsFilterHand
     }
 
     @Override
-    public DataSet getDataPage(int page, int entries) throws Exception {
+    public Repository getDataPage(int page, int entries) throws Exception {
         page = page < 1 ? 1 : page;
         entries = entries < 1 ? 1 : entries;
         int offset = (page - 1) * entries;
@@ -105,14 +105,14 @@ public abstract class BaseEventsFilterHandler<TSelf extends BaseEventsFilterHand
     }
 
     @Override
-    public DataSet getData(List<Integer> dataIds) throws Exception {
+    public Repository getData(List<Integer> dataIds) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public DataSet getData(int offset, int entries) throws Exception {
-
-        DataSet<QueryRow, Integer> data = new DataSet<>("events", LService.EVENTS);
+    public Repository getData(int offset, int entries) throws Exception {
+        /*
+        DynamicRepo<QueryRow, Integer> data = new DynamicRepo<>("events", LService.EVENTS);
 
         data.offset = offset;
         data.limit = entries;
@@ -173,6 +173,9 @@ public abstract class BaseEventsFilterHandler<TSelf extends BaseEventsFilterHand
         data.fillRows(rows);
 
         return data;
+         */
+
+        return null;
     }
 
     @Override
