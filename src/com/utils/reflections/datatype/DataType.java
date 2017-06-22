@@ -213,13 +213,6 @@ public class DataType<T> {
         return Long.parseLong(Utils.toString(value));
     });
 
-    static {
-        SIZE.units.add(new DataTypeUnit("b", "B", 0l));
-        SIZE.units.add(new DataTypeUnit("kb", "KB", 1024l));
-        SIZE.units.add(new DataTypeUnit("mb", "MB", 1024l));
-        SIZE.units.add(new DataTypeUnit("gb", "GB", 1024l));
-    }
-
     public final static DataType<UUID> UUID = new DataType(JsonType.STRING, "uid", UUID.class, (value, parent) -> {
         if (value instanceof byte[])
             return java.util.UUID.nameUUIDFromBytes((byte[]) value);
@@ -243,14 +236,6 @@ public class DataType<T> {
             return new Interval(((Number) value).doubleValue());
         return null;
     });
-
-    static {
-        DURATION.units.add(new DataTypeUnit("ms", "milisekund", 0l));
-        DURATION.units.add(new DataTypeUnit("s", "sekund", 1000l));
-        DURATION.units.add(new DataTypeUnit("m", "minut", 1000l * 60l));
-        DURATION.units.add(new DataTypeUnit("h", "godzin", 1000l * 60l * 60l));
-        DURATION.units.add(new DataTypeUnit("d", "dni", 1000l * 60l * 60l * 24l));
-    }
 
     public final static DataType<TList> LIST = new DataType(JsonType.ARRAY, "list", Collection.class, (value, parent) -> {
         return new TList<>();

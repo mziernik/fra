@@ -14,12 +14,14 @@ import com.servlet.websocket.WebSocketConnection;
 import com.utils.Utils;
 import com.utils.collections.*;
 import com.utils.date.TDate;
+import com.utils.reflections.TField;
 import com.webapi.core.WebApiController;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import javassist.Modifier;
 
 public class Repository<PRIMARY_KEY> {
 
@@ -42,15 +44,16 @@ public class Repository<PRIMARY_KEY> {
 
         public String key;
         public CharSequence name;
-        public String tableName;
+        public String daoName;
         public Column<?> primaryKey;
-        public Boolean readOnly;
+        public Column<?> displayName;
         public Boolean autoUpdate; //czy informaje o zmianach mają być automatycznie rozsyłane do klientów
         public DAO dao;
         public Boolean local;
         public Integer limit;
         public Integer offset;
         public Boolean dynamic;
+        public final Flags<CRUDE> crude = CRUDE.flags(CRUDE.CRUD);
 
         public RepoConfig() {
             if (Repository.this instanceof DynamicRepo)
@@ -66,6 +69,40 @@ public class Repository<PRIMARY_KEY> {
         public void order(Column<?> column, boolean ascendant) {
 
         }
+
+        public void view(Column<?>... columns) {
+
+        }
+
+        public Params getClinetParams() {
+            return new Params()
+                    .escape("key", key)
+                    .escape("name", name)
+                    .escape("primaryKeyColumn", primaryKey.getKey())
+                    .escape("displayNameColumn", displayName != null ? displayName.getKey() : null)
+                    .add("recordClass", Repository.this.getClass().getSimpleName())
+                    .escape("crude", crude.getChars())
+                    .add("local", local)
+                    .add("autoUpdate", autoUpdate);
+        }
+
+        public void getJson(JObject obj) {
+
+            obj.put("key", key);
+            obj.put("name", name);
+            obj.put("local", local);
+            obj.put("autoUpdate", autoUpdate);
+            obj.put("rowsCount", records.size());
+            obj.put("lastUpdated", lastUpdate != null ? lastUpdate.toString(true) : null);
+            obj.put("lastUpdatedBy", lastUpdatedBy);
+            obj.put("updates", updatesCount.get());
+            obj.put("crude", new Strings().map(crude, cr -> "" + cr.name().charAt(0)).toString(""));
+
+            JArray jcol = obj.arrayC("columns");
+            for (Column<?> column : columns.values())
+                jcol.add(column.getJson());
+        }
+
     }
 
     //ToDo: statyczna definicja pól
@@ -73,14 +110,26 @@ public class Repository<PRIMARY_KEY> {
         cfg.run(config);
         config.validate();
 
+        config.primaryKey.config.unique = true;
+        config.primaryKey.config.required = true;
+
         for (Field f : getClass().getDeclaredFields())
             if (Column.class.isAssignableFrom(f.getType()))
                 try {
                     f.setAccessible(true);
+                    TField tf = new TField(f);
+                    tf.checkModifiers(Modifier.STATIC);
                     Column<?> col = (Column<?>) f.get(this);
+
+                    if (col.repository != null)
+                        throw new RepositoryException(this, "Kolumna " + col.getKey()
+                                + " ma już przypisane repozytorium " + col.repository.getKey());
+
                     if (columns.containsKey(col.getKey()))
                         throw new RepositoryException(this, "Repozytorium zawiera już kolumnę " + col.getKey());
                     columns.put(col.getKey(), col);
+
+                    col.repository = this;
                 } catch (Throwable e) {
                     throw new RepositoryException(this, e);
                 }
@@ -89,7 +138,7 @@ public class Repository<PRIMARY_KEY> {
     protected DAOQuery fillQuery(DAOQuery qry) {
         switch (qry.crude) {
             case READ:
-                qry.source(config.tableName);
+                qry.source(config.daoName);
 
                 for (Column<?> col : columns.values())
                     qry.field(col.config.daoName);
@@ -382,22 +431,10 @@ public class Repository<PRIMARY_KEY> {
      */
     public JObject getJson(boolean includeMetaData, boolean includeContent) {
         JObject obj = new JObject(config.key);
-        if (includeMetaData) {
-            obj.put("key", config.key);
-            obj.put("name", config.name);
-            obj.put("readOnly", config.readOnly);
-            obj.put("pk", config.primaryKey.getKey());
-            obj.put("local", config.local);
-            obj.put("autoUpdate", config.autoUpdate);
-            obj.put("rowsCount", records.size());
-            obj.put("lastUpdated", lastUpdate != null ? lastUpdate.toString(true) : null);
-            obj.put("lastUpdatedBy", lastUpdatedBy);
-            obj.put("updates", updatesCount.get());
 
-            JArray jcol = obj.arrayC("columns");
-            for (Column<?> column : columns.values())
-                jcol.add(column.getJson());
-        }
+        if (includeMetaData)
+            config.getJson(obj);
+
         if (!includeContent)
             return obj;
 

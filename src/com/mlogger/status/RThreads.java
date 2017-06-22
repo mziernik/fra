@@ -2,6 +2,7 @@ package com.mlogger.status;
 
 import com.model.repository.Column;
 import com.model.repository.Repository;
+import com.model.repository.intf.CRUDE;
 import com.utils.reflections.datatype.DataType;
 
 public class RThreads extends Repository<Long> {
@@ -104,7 +105,7 @@ public class RThreads extends Repository<Long> {
             c.primaryKey = ID;
             c.key = "threads";
             c.name = "Wątki";
-            c.readOnly = true;
+            c.crude.set(CRUDE.READ); // tylko do odczytu
             c.local = true;
         });
         instance = this;

@@ -132,6 +132,11 @@ public class Params implements Iterable<Param>, Cloneable {
         return this;
     }
 
+    public Params escape(String name, Object value) {
+        add_(name, value != null ? Utils.escape(value) : null);
+        return this;
+    }
+
     public Params add(String name, Object value) {
         add_(name, value);
         return this;

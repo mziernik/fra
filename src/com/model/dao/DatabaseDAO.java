@@ -37,22 +37,62 @@ public class DatabaseDAO implements DAO<QueryRows> {
     @Override
     public TList<QueryRows> process(TList<? extends DAOQuery> queries) throws Exception {
 
+        queries = new TList<>(queries); // kopia
+        boolean markers = queries.size() > 1;
+
         TList<QueryRows> result = new TList<>();
         MultipleQuery mqry = db.multipleQuery();
         DAOQuery query = null;
-        for (DAOQuery q : queries)
-            mqry.add(getQuery(query = q));
+        for (DAOQuery q : queries) {
+            if (markers)
+                mqry.query("SELECT ? AS class_name, ? AS hash_code",
+                        q.context.getClass().getName(), q.hashCode());
 
+            mqry.add(getQuery(query = q));
+        }
         if (query == null)
             return result;
 
         QueryRows rows = mqry.execute();
-        rows.context = query.context;
-        rows.dao = query.dao;
-        rows.crude = query.crude;
-        result.add(rows);
-        return result;
 
+        if (!markers) {
+            rows.context = query.context;
+            rows.dao = query.dao;
+            rows.crude = query.crude;
+            result.add(rows);
+            return result;
+        }
+
+        while (rows != null) {
+            if (rows.size() != 1)
+                throw new SQLException("Unexpected results count (" + rows.size() + ")");
+
+            QueryRow row = rows.firstD();
+
+            if (rows.size() != 1 || rows.columns.length != 2
+                    || !"class_name".equals(rows.columns[0].name)
+                    || !"hash_code".equals(rows.columns[1].name))
+                throw new ServiceException("Unexpected data");
+
+            rows = rows.nextResults();
+
+            String cn = row.getStr("class_name");
+            int hc = row.getInt("hash_code");
+
+            DAOQuery rec = queries.removeFirst();
+
+            if (!rec.context.getClass().getName().equals(cn) || rec.hashCode() != hc)
+                throw new SQLException("Unexpected onject");
+
+            QueryRows qr = Objects.requireNonNull(rows, "No results");
+            qr.context = rec.context;
+            qr.dao = rec.dao;
+            qr.crude = rec.crude;
+            result.add(qr);
+            rows = rows.nextResults();
+
+        }
+        return result;
     }
 
     private Query getQuery(DAOQuery query) throws Exception {
@@ -80,48 +120,6 @@ public class DatabaseDAO implements DAO<QueryRows> {
                     .join(query.order, ", ", (p) -> p.first + (p.second ? " DESC" : " ASC"));
 
         return db.query(sb.toString());
-    }
-
-    public static Query addMarker(Database db, Object obj) {
-        return new Query(db, "SELECT ? AS class_name, ? AS hash_code",
-                obj.getClass().getName(), obj.hashCode());
-    }
-
-    public static <T> void processMarkers(QueryRows rows, Iterable<T> objects,
-            RunnableEx2<QueryRows, T> callback) throws SQLException {
-
-        while (rows != null) {
-            if (rows.size() != 1)
-                throw new SQLException("Unexpected results count (" + rows.size() + ")");
-            QueryRow row = rows.firstD();
-
-            if (rows.size() != 1 || rows.columns.length != 2
-                    || !"class_name".equals(rows.columns[0].name)
-                    || !"hash_code".equals(rows.columns[1].name))
-                throw new ServiceException("Unexpected data");
-
-            rows = rows.nextResults();
-
-            String cn = row.getStr("class_name");
-            int hc = row.getInt("hash_code");
-
-            for (T rec : objects)
-                try {
-                    if (!rec.getClass().getName().equals(cn) || rec.hashCode() != hc)
-                        continue;
-
-                    QueryRows qr = Objects.requireNonNull(rows, "No results");
-
-                    callback.run(qr, rec);
-                    rows = rows.nextResults();
-
-                    break;
-
-                } catch (Throwable e) {
-                    throw new ThrowableException(e)
-                            .details("Object", rec.getClass().getName());
-                }
-        }
     }
 
 }

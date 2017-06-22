@@ -2,6 +2,7 @@ package com.utils.reflections.datatype;
 
 import com.utils.reflections.datatype.DataType.JsonType;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class MapDataType<K, V> extends DataType<LinkedHashMap<K, V>> {
 
@@ -9,10 +10,10 @@ public class MapDataType<K, V> extends DataType<LinkedHashMap<K, V>> {
     public final DataType<V> valueType;
 
     public MapDataType(DataType<K> keyType, DataType<V> valueType) {
-        super(true, JsonType.OBJECT, "[" + keyType.name + ", " + valueType.name + "]", null, (value, parent) -> {
+        super(true, JsonType.OBJECT, "{" + keyType.name + ", " + valueType.name + "}", null, (value, parent) -> {
 
-            if (!(value instanceof Iterable))
-                return null;
+            if (value instanceof Map)
+                return new LinkedHashMap<>((Map) value);
 
             return null;
         });
