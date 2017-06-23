@@ -57,6 +57,10 @@ public class JObject extends JCollection {
         this.name = name;
     }
 
+    public Set<String> getNames() {
+        return items.keySet();
+    }
+
     @Override
     JElement addElement(String name, JElement el, boolean insert) {
         if ((el == null

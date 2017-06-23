@@ -5,7 +5,7 @@
  */
 package com.utils.reflections;
 
-import static com.mlogger.DataType.XML;
+import static com.mlogger.DataType_old.XML;
 import com.utils.Execute;
 import com.xml.XML;
 import java.lang.reflect.Field;

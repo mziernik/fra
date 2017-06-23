@@ -8,6 +8,8 @@ import com.intf.runnable.RunnableEx1;
 import com.intf.runnable.RunnableEx2;
 import com.intf.runnable.RunnableEx3;
 import com.json.JObject;
+import com.json.JSON;
+import com.model.repository.intf.CRUDE;
 import com.model.repository.intf.CaseConvert;
 import com.utils.Is;
 import com.utils.collections.Params;
@@ -15,6 +17,7 @@ import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
 import com.webapi.core.client.Repositories;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class Column<RAW> {
@@ -35,7 +38,7 @@ public class Column<RAW> {
 
     public String getKey() {
         return config.key;
-    } 
+    }
 
     public Column<RAW> config(Runnable1<RepoFieldConfig> cfg) {
         try {
@@ -57,6 +60,9 @@ public class Column<RAW> {
         Repository<?> repo = rec.repo;
         try {
 
+//            if (rec.crude != CRUDE.CREATE && rec.crude != CRUDE.UPDATE)
+//                throw new RepositoryException(repo, "Nie można modyfikować rekordu " + getId());
+
             int idx = new TList<>(repo.columns.values()).indexOf(this);
             if (idx < 0)
                 throw new RepositoryException(repo, "Repozytorium nie posiada kolumny " + getKey());
@@ -68,6 +74,12 @@ public class Column<RAW> {
             RAW val = config.parser != null
                     ? config.parser.run(value2)
                     : config.type.parse(value2);
+
+            if (rec.crude == CRUDE.UPDATE && this == repo.config.primaryKey) {
+                Object pk = rec.getPrimaryKeyValue();
+                if (!pk.equals(val))
+                    throw new RepositoryException(repo, "Nie można modyfikować klucza głównego");
+            }
 
             config.validate.dispatch(this, r -> r.run(val));
 
@@ -90,6 +102,12 @@ public class Column<RAW> {
 
     public JObject getJson() {
         return config.getJson();
+    }
+
+    Object _serialize(Object value) throws Exception {
+        return value == null ? null : config.serializer != null
+                ? config.serializer.run((RAW) value)
+                : ((DataType<RAW>) config.type).serialize((RAW) value);
     }
 
     public class RepoFieldConfig {
@@ -142,6 +160,7 @@ public class Column<RAW> {
         public final Dispatcher<RunnableEx2<Record, Object>> onBeforeSet = new Dispatcher<>();
         public final Dispatcher<RunnableEx3<Record, RAW, Throwable>> onAfterSet = new Dispatcher<>();
         public CallableEx1<RAW, Object> parser;
+        public CallableEx1<Object, RAW> serializer;
         public final Dispatcher<RunnableEx1<RAW>> validate = new Dispatcher<>();
 
         public void validate() {
@@ -168,6 +187,12 @@ public class Column<RAW> {
                 foreign = Repositories.formatFieldName(((ForeignColumns) Column.this).column
                         .getRepository(true).getClass().getSimpleName());
 
+            String enumerate = type.enumerate.isEmpty() ? null
+                    : JSON.serialize(type.enumerate).asCollection().options.quotaNames(false).element.toString();
+
+            if (!type.values.isEmpty())
+                enumerate = JSON.serialize(type.values).asCollection().options.quotaNames(false).element.toString();
+
             return new Params()
                     .escape("key", key)
                     .escape("name", name)
@@ -188,11 +213,8 @@ public class Column<RAW> {
                     .escape("filtered", filtered)
                     .escape("disabled", disabled)
                     .escape("sortable", sortable)
-                    .add("foreign", Column.this instanceof ForeignColumn
-                            && ((ForeignColumn) Column.this).column.repository != null
-                                    ? Repositories.formatFieldName(
-                                            ((ForeignColumn) Column.this).column.repository.getClass().getSimpleName())
-                                    : null);
+                    .add("foreign", foreign)
+                    .add("enumerate", enumerate);
         }
 
         public JObject getJson() {

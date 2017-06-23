@@ -106,7 +106,7 @@ public class LogEntry<T> {
 
             case VALUE: {
                 DataObj dobj = (DataObj) value;
-                out.write(Utils.coalesce(dobj.type, DataType.TEXT).id);
+                out.write(Utils.coalesce(dobj.type, DataType_old.TEXT).id);
                 writeStr(out, dobj.value, dict);
                 return;
             }
@@ -247,7 +247,7 @@ public class LogEntry<T> {
                 break;
 
             case VALUE:
-                DataType dt = DataType.get(data[0]);
+                DataType_old dt = DataType_old.get(data[0]);
                 value = (T) new DataObj("", new String(
                         Arrays.copyOfRange(data, 1, data.length), Utils.UTF8), dt);
                 break;
@@ -289,7 +289,7 @@ public class LogEntry<T> {
                 }
                 case DATA: {
                     while (in.available() > 0) {
-                        DataType dt = DataType.get(in.readByte());
+                        DataType_old dt = DataType_old.get(in.readByte());
                         String name = readStr(in);
                         String val = readStr(in);
                         add((T) new DataObj(name, val, dt));
@@ -317,7 +317,7 @@ public class LogEntry<T> {
 
                 case DATA:
                     for (DataObj pair : (Collection<DataObj>) value) {
-                        out.write(Utils.coalesce(pair.type, DataType.TEXT).id);
+                        out.write(Utils.coalesce(pair.type, DataType_old.TEXT).id);
                         writeStr(out, pair.name, dict);
                         writeStr(out, pair.value, dict);
                     }

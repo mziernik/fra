@@ -3,6 +3,8 @@ package com.model.dao.core;
 import com.model.repository.intf.CRUDE;
 import com.utils.collections.Pair;
 import com.utils.collections.TList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class DAOQuery {
 
@@ -10,8 +12,19 @@ public class DAOQuery {
     public final CRUDE crude;
     public final Object context;
 
-    public final TList<String> source = new TList<String>().notNull();
+    public String source;
+    public String primaryKeyName;
+    public Object primaryKeyValue;
+
+    /**
+     * nazwy plików, tabel
+     */
     public final TList<String> field = new TList<String>().notNull();
+    /**
+     * Parametry, argumenty dla insert-a, update
+     */
+    public final Map<String, Object> params = new LinkedHashMap<>();
+
     public final TList<Pair<String, Boolean>> order = new TList<Pair<String, Boolean>>().notNull();
 
     public String getQuery() {
@@ -28,7 +41,7 @@ public class DAOQuery {
      * Nazwa tabeli
      */
     public DAOQuery source(String name) {
-        source.add(name);
+        this.source = name;
         return this;
     }
 
@@ -54,4 +67,11 @@ public class DAOQuery {
         return this;
     }
 
+    /**
+     * Kolumna, po której sortujemy
+     */
+    public DAOQuery param(String name, Object value) {
+        params.put(name, value);
+        return this;
+    }
 }

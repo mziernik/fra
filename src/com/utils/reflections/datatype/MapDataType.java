@@ -16,7 +16,7 @@ public class MapDataType<K, V> extends DataType<LinkedHashMap<K, V>> {
                 return new LinkedHashMap<>((Map) value);
 
             return null;
-        });
+        }, null);
         this.keyType = keyType;
         this.valueType = valueType;
     }

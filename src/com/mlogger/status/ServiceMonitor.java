@@ -6,7 +6,7 @@ import com.json.JArray;
 import com.json.JObject;
 import com.lang.core.LStr;
 import com.model.repository.Record;
-import com.model.repository.RepoUpdate;
+import com.model.repository.RepoTransaction;
 import com.model.repository.Repository;
 import com.sun.management.OperatingSystemMXBean;
 import com.thread.LoopThread;
@@ -179,8 +179,7 @@ public class ServiceMonitor extends LoopThread {
         JObject jthreads = new JObject();
         JArray jth = jthreads.arrayC("list");
 
-        RepoUpdate<Repository<Long>, Long> repo = RThreads.instance != null
-                ? RThreads.instance.beginUpdate() : null;
+        RepoTransaction trans = new RepoTransaction();
 
         for (Thread th : threads) {
             if (th == null || th.getState() == null) // tu może wystąpić null
@@ -224,10 +223,10 @@ public class ServiceMonitor extends LoopThread {
                     break;
             }
 
-            if (repo == null)
+            if (RThreads.instance == null)
                 continue;
 
-            Record rec = repo.createOrUpdate(th.getId());
+            Record rec = trans.createOrUpdate(RThreads.instance, th.getId());
             rec.set(RThreads.ID, th.getId());
             rec.set(RThreads.PRIORITY, th.getPriority());
             rec.set(RThreads.STATE, th.getState().name().toLowerCase());
@@ -243,8 +242,7 @@ public class ServiceMonitor extends LoopThread {
             rec.set(RThreads.WAITED, info != null ? (int) info.getWaitedCount() : 0);
         }
 
-        if (repo != null)
-            repo.commit(true);
+        trans.commit(true);
 
         int act = Thread.activeCount();
         json.objectC("thr")
@@ -264,8 +262,8 @@ public class ServiceMonitor extends LoopThread {
         thrNew.value(tnew);
         thrTerminated.value(tterm);
 
-       // new WebApiBroadcast("service.status", json).send();
-       // new WebApiBroadcast("service.threads", jthreads).send();
+        // new WebApiBroadcast("service.status", json).send();
+        // new WebApiBroadcast("service.threads", jthreads).send();
     }
 
     static {

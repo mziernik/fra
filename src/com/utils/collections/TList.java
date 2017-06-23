@@ -263,6 +263,21 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
         }
     }
 
+    public <X> TList<T> addAll(X[] source, Callable1<T, X> mapper) {
+        return source != null && mapper != null && source.length > 0
+                ? addAll(Arrays.asList(source), mapper)
+                : new TList<>();
+    }
+
+    public <X> TList<T> addAll(Iterable<X> source, Callable1<T, X> mapper) {
+        if (source == null || mapper == null)
+            return this;
+
+        for (X val : source)
+            add(mapper.run(val));
+        return this;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public boolean addAll(Collection<? extends T> c) {

@@ -1,19 +1,19 @@
 package com.utils.reflections.datatype;
 
 import com.exceptions.ServiceException;
+import com.exceptions.ThrowableException;
 import com.google.gson.JsonElement;
+import com.intf.callable.CallableEx1;
 import com.json.JArray;
+import com.json.JElement;
 import com.json.JObject;
 import com.utils.Utils;
 import com.utils.collections.TList;
 import com.utils.date.TDate;
 import com.utils.date.time.Interval;
 import java.io.ByteArrayInputStream;
-import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /*
@@ -72,19 +72,31 @@ public class DataType<T> {
     public final JsonType type;
     public final String name;
     private final Adapter<T> adapter;
+    private final CallableEx1<Object, T> serializer;
 
     public final TList<DataTypeUnit> units = new TList<>();
-    public final Map<String, T> enumerate = new LinkedHashMap<>();
+    public final Map<String, String> enumerate = new LinkedHashMap<>();
+    public final List<String> values = new TList<>();
 
     private DataType(JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
-        this(false, type, name, clazz, adapter);
+        this(false, type, name, clazz, adapter, null);
     }
 
-    public DataType(boolean dynamic, JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
+    private DataType(JsonType type, String name, Class<T> clazz,
+            Adapter<T> adapter, CallableEx1<Object, T> serializer) {
+        this(false, type, name, clazz, adapter, serializer);
+    }
+
+    public DataType(boolean dynamic, JsonType type, String name, Class<T> clazz,
+            Adapter<T> adapter, CallableEx1<Object, T> serializer) {
+
+        if (adapter == null && this instanceof Adapter)
+            adapter = (Adapter<T>) this;
 
         if (clazz == null && this instanceof MapDataType)
             clazz = (Class<T>) LinkedHashMap.class;
 
+        this.serializer = serializer;
         this.type = Objects.requireNonNull(type);
         this.name = Objects.requireNonNull(name);
         this.adapter = Objects.requireNonNull(adapter);
@@ -95,6 +107,16 @@ public class DataType<T> {
                 throw new ServiceException("DataType " + name + " aleready exists");
 
             ALL.put(name, this);
+        }
+    }
+
+    public Object serialize(T value) {
+        try {
+            return value == null ? null : serializer != null ? serializer.run(value) : value;
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ThrowableException(e);
         }
     }
 
@@ -146,10 +168,12 @@ public class DataType<T> {
         return result;
     }
 
-    public final static DataType<Object> ANY = new DataType(JsonType.STRING, "any", Object.class,
+    public final static DataType<Object> ANY = new DataType<>(JsonType.STRING,
+            "any", Object.class,
             (value, parent) -> value);
 
-    public final static DataType<Boolean> BOOLEAN = new DataType(JsonType.BOOLEAN, "boolean", Boolean.class,
+    public final static DataType<Boolean> BOOLEAN = new DataType<>(JsonType.BOOLEAN,
+            "boolean", Boolean.class,
             (value, parent) -> {
                 if (value instanceof String)
                     return Boolean.parseBoolean((String) value);
@@ -158,48 +182,61 @@ public class DataType<T> {
                 return null;
             });
 
-    public final static DataType<String> STRING = new DataType(JsonType.STRING, "string", String.class,
+    public final static DataType<String> STRING = new DataType<>(JsonType.STRING,
+            "string", String.class,
             (value, parent) -> Utils.toString(value));
 
-    public final static DataType<String> KEY = new DataType(JsonType.STRING, "key", String.class, (value, parent) -> {
-        return Utils.checkId(Utils.toString(value), true);
-    });
+    public final static DataType<String> KEY = new DataType<String>(JsonType.STRING,
+            "key", String.class, (value, parent) -> {
+                String id = Utils.toString(value);
+                Utils.checkId(id, true);
+                return id;
+            });
 
-    public final static DataType<String> FILE_NAME = new DataType(JsonType.STRING, "file_name", String.class, STRING.adapter);
+    public final static DataType<String> FILE_NAME = new DataType<>(JsonType.STRING,
+            "file_name", String.class, STRING.adapter);
 
-    public final static DataType<String> PASSWORD = new DataType(JsonType.STRING, "password", String.class, STRING.adapter);
+    public final static DataType<String> PASSWORD = new DataType<>(JsonType.STRING,
+            "password", String.class, STRING.adapter);
 
-    public final static DataType<String> MEMO = new DataType(JsonType.STRING, "memo", String.class, STRING.adapter);
+    public final static DataType<String> MEMO = new DataType<>(JsonType.STRING,
+            "memo", String.class, STRING.adapter);
 
-    public final static DataType<Pattern> REGEX = new DataType(JsonType.STRING, "regex", Pattern.class,
+    public final static DataType<Pattern> REGEX = new DataType<>(JsonType.STRING,
+            "regex", Pattern.class,
             (value, parent) -> Pattern.compile(Utils.toString(value))
     );
 
-    public final static DataType<Byte> BYTE = new DataType(JsonType.NUMBER, "byte", Byte.class, (value, parent) -> {
-        if (value instanceof Number)
-            return ((Number) value).byteValue();
-        return Byte.parseByte(Utils.toString(value));
-    });
+    public final static DataType<Byte> BYTE = new DataType<>(JsonType.NUMBER,
+            "byte", Byte.class, (value, parent) -> {
+                if (value instanceof Number)
+                    return ((Number) value).byteValue();
+                return Byte.parseByte(Utils.toString(value));
+            });
 
-    public final static DataType<Short> SHORT = new DataType(JsonType.NUMBER, "short", Short.class, (value, parent) -> {
-        if (value instanceof Number)
-            return ((Number) value).shortValue();
-        return Short.parseShort(Utils.toString(value));
-    });
+    public final static DataType<Short> SHORT = new DataType<>(JsonType.NUMBER,
+            "short", Short.class, (value, parent) -> {
+                if (value instanceof Number)
+                    return ((Number) value).shortValue();
+                return Short.parseShort(Utils.toString(value));
+            });
 
-    public final static DataType<Integer> INT = new DataType(JsonType.NUMBER, "int", Integer.class, (value, parent) -> {
-        if (value instanceof Number)
-            return ((Number) value).intValue();
-        return Integer.parseInt(Utils.toString(value));
-    });
+    public final static DataType<Integer> INT = new DataType<>(JsonType.NUMBER,
+            "int", Integer.class, (value, parent) -> {
+                if (value instanceof Number)
+                    return ((Number) value).intValue();
+                return Integer.parseInt(Utils.toString(value));
+            });
 
-    public final static DataType<Long> LONG = new DataType(JsonType.NUMBER, "long", Long.class, (value, parent) -> {
-        if (value instanceof Number)
-            return ((Number) value).longValue();
-        return Long.parseLong(Utils.toString(value));
-    });
+    public final static DataType<Long> LONG = new DataType<>(JsonType.NUMBER,
+            "long", Long.class, (value, parent) -> {
+                if (value instanceof Number)
+                    return ((Number) value).longValue();
+                return Long.parseLong(Utils.toString(value));
+            });
 
-    public final static DataType<Double> FLOAT = new DataType(JsonType.NUMBER, "float", Double.class,
+    public final static DataType<Double> FLOAT = new DataType<>(JsonType.NUMBER,
+            "float", Double.class,
             (value, parent) -> {
                 if (value instanceof Number)
                     return ((Number) value).doubleValue();
@@ -207,75 +244,90 @@ public class DataType<T> {
                 return Double.parseDouble(val);
             });
 
-    public final static DataType<Long> SIZE = new DataType(JsonType.NUMBER, "size", Long.class, (value, parent) -> {
-        if (value instanceof Number)
-            return ((Number) value).longValue();
-        return Long.parseLong(Utils.toString(value));
-    });
+    public final static DataType<Long> SIZE = new DataType<>(JsonType.NUMBER,
+            "size", Long.class, (value, parent) -> {
+                if (value instanceof Number)
+                    return ((Number) value).longValue();
+                return Long.parseLong(Utils.toString(value));
+            });
 
-    public final static DataType<UUID> UUID = new DataType(JsonType.STRING, "uid", UUID.class, (value, parent) -> {
-        if (value instanceof byte[])
-            return java.util.UUID.nameUUIDFromBytes((byte[]) value);
-        return java.util.UUID.fromString(Utils.toString(value));
-    });
+    public final static DataType<UUID> UUID = new DataType<>(JsonType.STRING,
+            "uid", UUID.class, (value, parent) -> {
+                if (value instanceof byte[])
+                    return java.util.UUID.nameUUIDFromBytes((byte[]) value);
+                return java.util.UUID.fromString(Utils.toString(value));
+            });
 
-    public final static DataType<TDate> DATE = new DataType(JsonType.NUMBER, "date", TDate.class, (value, parent) -> {
-        if (value instanceof Date)
-            return new TDate((Date) value);
-        if (value instanceof Number)
-            return new TDate(((Number) value).longValue());
-        return new TDate(Utils.toString(value));
-    });
+    public final static DataType<TDate> DATE = new DataType<>(JsonType.NUMBER,
+            "date", TDate.class, (value, parent) -> {
+                if (value instanceof Date)
+                    return new TDate((Date) value);
+                if (value instanceof Number)
+                    return new TDate(((Number) value).longValue());
+                return new TDate(Utils.toString(value));
+            });
 
-    public final static DataType<TDate> TIME = new DataType(JsonType.NUMBER, "time", TDate.class, DATE.adapter);
+    public final static DataType<TDate> TIME = new DataType<>(JsonType.NUMBER,
+            "time", TDate.class, DATE.adapter);
 
-    public final static DataType<TDate> TIMESTAMP = new DataType(JsonType.NUMBER, "timestamp", TDate.class, DATE.adapter);
+    public final static DataType<TDate> TIMESTAMP = new DataType<>(JsonType.NUMBER,
+            "timestamp", TDate.class, DATE.adapter, date -> date.getTime());
 
-    public final static DataType<Interval> DURATION = new DataType(JsonType.NUMBER, "duration", Interval.class, (value, parent) -> {
-        if (value instanceof Number)
-            return new Interval(((Number) value).doubleValue());
-        return null;
-    });
+    public final static DataType<Interval> DURATION = new DataType<>(JsonType.NUMBER,
+            "duration", Interval.class, (value, parent) -> {
+                if (value instanceof Number)
+                    return new Interval(((Number) value).doubleValue());
+                return null;
+            });
 
-    public final static DataType<TList> LIST = new DataType(JsonType.ARRAY, "list", Collection.class, (value, parent) -> {
-        return new TList<>();
-    });
+    public final static DataType<TList> LIST = new DataType<>(JsonType.ARRAY,
+            "list", TList.class, (value, parent) -> {
+                return new TList<>();
+            });
 
-    public final static DataType<HashMap<?, ?>> MAP = new DataType(JsonType.OBJECT, "integer", Map.class, (value, parent) -> {
-        return new HashMap();
-    });
+    public final static DataType<HashMap> MAP = new DataType<>(JsonType.OBJECT,
+            "integer", HashMap.class, (value, parent) -> {
+                return new HashMap<>();
+            });
 
-    public final static DataType<JsonElement> JSON = new DataType(JsonType.STRING, "json", JsonElement.class, (value, parent) -> {
-        if (value instanceof byte[])
-            return com.json.JSON.parse(new ByteArrayInputStream((byte[]) value));
-        return com.json.JSON.parse(Utils.toString(value));
-    });
+    public final static DataType<JElement> JSON = new DataType<>(JsonType.STRING,
+            "json", JElement.class, (value, parent) -> {
+                if (value instanceof byte[])
+                    return com.json.JSON.parse(new ByteArrayInputStream((byte[]) value));
+                return com.json.JSON.parse(Utils.toString(value));
+            });
 
-    public final static DataType<com.xml.XML> XML = new DataType(JsonType.STRING, "xml", com.xml.XML.class, (value, parent) -> {
-        if (value instanceof byte[])
-            return new com.xml.XML(new ByteArrayInputStream((byte[]) value));
-        return new com.xml.XML(Utils.toString(value));
-    });
+    public final static DataType<com.xml.XML> XML = new DataType<>(JsonType.STRING,
+            "xml", com.xml.XML.class, (value, parent) -> {
+                if (value instanceof byte[])
+                    return new com.xml.XML(new ByteArrayInputStream((byte[]) value));
+                return new com.xml.XML(Utils.toString(value));
+            });
 
-    public final static DataType<com.utils.CSV> CSV = new DataType(JsonType.STRING, "csv", com.utils.CSV.class, (value, parent) -> {
-        return null;
-    });
+    public final static DataType<com.utils.CSV> CSV = new DataType<>(JsonType.STRING,
+            "csv", com.utils.CSV.class, (value, parent) -> {
+                return null;
+            });
 
-    public final static DataType<byte[]> HEX = new DataType(JsonType.STRING, "hex", byte[].class, (value, parent) -> {
-        return com.utils.hashes.Hex.toBytes(Utils.toString(value));
-    });
+    public final static DataType<byte[]> HEX = new DataType<>(JsonType.STRING,
+            "hex", byte[].class, (value, parent) -> {
+                return com.utils.hashes.Hex.toBytes(Utils.toString(value));
+            });
 
-    public final static DataType<byte[]> BASE64 = new DataType(JsonType.STRING, "base64", byte[].class, ((value, parent) -> {
-        return com.utils.hashes.Base64.decode(Utils.toString(value));
-    }));
+    public final static DataType<byte[]> BASE64 = new DataType<>(JsonType.STRING,
+            "base64", byte[].class, ((value, parent) -> {
+                return com.utils.hashes.Base64.decode(Utils.toString(value));
+            }));
 
-    public final static DataType<java.net.URI> URI = new DataType(JsonType.STRING, "uri", java.net.URI.class, (value, parent) -> {
-        if (value instanceof URL)
-            return ((URL) value).toURI();
-        return new java.net.URI(Utils.toString(value));
-    });
+    public final static DataType<java.net.URI> URI = new DataType<>(JsonType.STRING,
+            "uri", java.net.URI.class, (value, parent) -> {
+                if (value instanceof URL)
+                    return ((URL) value).toURI();
+                return new java.net.URI(Utils.toString(value));
+            });
 
-    public final static DataType<String> HTML = new DataType(JsonType.STRING, "html", String.class, STRING.adapter);
+    public final static DataType<String> HTML = new DataType<>(JsonType.STRING,
+            "html", String.class, STRING.adapter);
 
     public static DataType of(Class<?> clazz) {
         DataType result = Utils.findFirst(ALL.values(), dt -> dt.clazz == clazz);

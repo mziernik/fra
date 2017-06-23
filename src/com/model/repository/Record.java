@@ -2,6 +2,7 @@ package com.model.repository;
 
 import com.model.repository.intf.CRUDE;
 import com.utils.collections.TList;
+import com.utils.reflections.datatype.DataType;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -38,24 +39,21 @@ public class Record implements Iterable<Column<?>> {
         return changed.contains(field);
     }
 
-    public <T> T get(Column<T> field) {
-        int idx = indexOf(field);
+    public <T> T get(Column<T> column) {
+        int idx = indexOf(column);
         if (idx < 0)
-            throw new RepositoryException(repo, "Repozytorium nie posiada kolumny " + field.getKey());
+            throw new RepositoryException(repo, "Repozytorium nie posiada kolumny " + column.getKey());
 
         return (T) cells[idx];
     }
 
-    public <T> Record setAny(Column<T> field, Object value) {
-        if (crude != CRUDE.CREATE && crude != CRUDE.UPDATE)
-            throw new RepositoryException(repo, "Nie można modyfikować rekordu " + getId());
+    public <T> Object serialize(Column<T> column) {
+        T value = get(column);
+        DataType<T> type = (DataType<T>) column.config.type;
+        return type.serialize(value);
+    }
 
-        if (crude == CRUDE.UPDATE && field == repo.config.primaryKey) {
-            Object pk = getPrimaryKeyValue();
-            if (!pk.equals(value))
-                throw new RepositoryException(repo, "Nie można modyfikować klucza głównego");
-            return this;
-        }
+    public <T> Record setAny(Column<T> field, Object value) {
         field.set(this, value);
         return this;
     }

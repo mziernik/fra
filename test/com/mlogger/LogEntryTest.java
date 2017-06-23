@@ -64,8 +64,8 @@ public class LogEntryTest {
             log.comment("Komentarz");
             log.counter.set(10l);
             log.data("Zawartość", "?????");
-            log.data("-xml-", "<root/>", DataType.XML);
-            log.data("-hex-", "384732698476239876932", DataType.HEX);
+            log.data("-xml-", "<root/>", DataType_old.XML);
+            log.data("-hex-", "384732698476239876932", DataType_old.HEX);
             log.device("PC");
             log.hostName("user-komputer");
             log.userAgent("WebKit");
@@ -104,7 +104,7 @@ public class LogEntryTest {
             log.url("www.wp.pl");
             log.user("ROOT");
             log.version.set("1.0");
-            log.value("[\"Wartość\"]", DataType.JSON);
+            log.value("[\"Wartość\"]", DataType_old.JSON);
 
             TOutputStream out = new TOutputStream(true);
             for (LogEntry<?> en : log.entries) {

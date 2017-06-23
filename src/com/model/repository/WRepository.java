@@ -1,9 +1,12 @@
 package com.model.repository;
 
 import com.cache.CachedData;
+import com.json.JArray;
 
 import com.json.JObject;
 import com.json.JValue;
+import com.model.dao.MapDAO;
+import com.model.repository.intf.CRUDE;
 import com.servlet.interfaces.Arg;
 import com.servlet.websocket.WebSocketController;
 import com.utils.collections.TList;
@@ -29,8 +32,6 @@ public class WRepository implements WebApi {
     public JObject get(WebApiRequest req,
             @Arg(name = "repositories", required = false) JObject repositories)
             throws FileNotFoundException {
-        
-        System.out.println("get repositories");
 
         //ToDo: sparametryzować czy mają być zwracane meta dane czy tylko wiersze
         TList<Repository<?>> repos = new TList<>();
@@ -49,7 +50,7 @@ public class WRepository implements WebApi {
         JObject json = new JObject();
 
         for (Repository<?> repo : repos)
-            json.put(repo.getKey(), repo.getJson(true, true));
+            json.put(repo.getKey(), repo.getJson(false, true));
 
         //tbl.getJson().toString()
         return json;
@@ -57,26 +58,24 @@ public class WRepository implements WebApi {
 
     @WebApiEndpoint()
     public JObject edit(WebApiRequest req, @Arg(name = "data") JObject json) throws Exception {
-        /*
+
         final JObject result = new JObject();
 
-        DbRecordTransaction trans = new DbRecordTransaction();
+        RepoTransaction trans = new RepoTransaction();
 
         for (JArray arr : json.getArrays()) {
 
-            Repository_old tbl = Repository_old.getRepo(arr.getName());
-            JArray jRes = result.arrayC(arr.getName());
+            Repository repo = Repository.getF(arr.getName());
+
             for (JObject obj : arr.getObjects()) {
                 CRUDE crude = CRUDE.get(obj.getStr("action"));
-                Map<String, Object> fields = obj.objectF("fields").asMap();
-                Repository_old t = tbl.action(crude, fields, trans);
-                jRes.add(t.getJson());
+                MapDAO dao = new MapDAO(obj.objectF("fields"));
+                trans.action(repo, crude, dao);
             }
         }
 
-        trans.commit(Handlers.database.getInstance().getDatabase());
-        return result;
-         */
+        trans.commit(true);
+
         return null;
     }
 

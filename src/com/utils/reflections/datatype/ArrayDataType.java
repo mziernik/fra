@@ -21,7 +21,7 @@ public class ArrayDataType<T> extends DataType<T[]> {
                 result.add((T) component.parse(val));
 
             return (T[]) result.toArray((Class<T>) component.clazz);
-        });
+        }, null);
         this.component = component;
     }
 }

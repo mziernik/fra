@@ -4,21 +4,17 @@ import com.model.repository.intf.CRUDE;
 import com.intf.callable.Callable1;
 import com.intf.runnable.Runnable1;
 import com.json.JArray;
-import com.json.JElement;
 import com.json.JObject;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
 import com.model.dao.core.DAORows;
-import com.servlet.websocket.WebSocketConnection;
 import com.utils.Utils;
 import com.utils.collections.*;
 import com.utils.date.TDate;
 import com.utils.reflections.TField;
-import com.webapi.core.WebApiController;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import javassist.Modifier;
@@ -33,7 +29,7 @@ public class Repository<PRIMARY_KEY> {
 
     protected final Pairs<Column<?>, Boolean> orderColumns = new Pairs<>(); // kolumna, ASC
 
-    private final HashMap<PRIMARY_KEY, Object[]> records = new HashMap<>();
+    final HashMap<PRIMARY_KEY, Object[]> records = new HashMap<>();
     final Map<String, Column<?>> columns = new LinkedHashMap<>();
     // ------------ statystyki ------------
     TDate lastUpdate;
@@ -86,21 +82,23 @@ public class Repository<PRIMARY_KEY> {
                     .add("autoUpdate", autoUpdate);
         }
 
-        public void getJson(JObject obj) {
+        public void getJson(JObject obj, boolean metaData) {
 
-            obj.put("key", key);
-            obj.put("name", name);
-            obj.put("local", local);
-            obj.put("autoUpdate", autoUpdate);
+            if (metaData) {
+                obj.put("key", key);
+                obj.put("name", name);
+                obj.put("local", local);
+                obj.put("autoUpdate", autoUpdate);
+            }
             obj.put("rowsCount", records.size());
-            obj.put("lastUpdated", lastUpdate != null ? lastUpdate.toString(true) : null);
+            obj.put("lastUpdated", lastUpdate != null ? lastUpdate.getTime() : null);
             obj.put("lastUpdatedBy", lastUpdatedBy);
             obj.put("updates", updatesCount.get());
             obj.put("crude", new Strings().map(crude, cr -> "" + cr.name().charAt(0)).toString(""));
 
             JArray jcol = obj.arrayC("columns");
             for (Column<?> column : columns.values())
-                jcol.add(column.getJson());
+                jcol.add(metaData ? column.getJson() : column.getKey());
         }
 
     }
@@ -135,11 +133,12 @@ public class Repository<PRIMARY_KEY> {
                 }
     }
 
-    protected DAOQuery fillQuery(DAOQuery qry) {
-        switch (qry.crude) {
-            case READ:
-                qry.source(config.daoName);
+    protected DAOQuery fillQuery(DAOQuery qry, Record rec) {
+        qry.source(config.daoName);
 
+        switch (qry.crude) {
+
+            case READ:
                 for (Column<?> col : columns.values())
                     qry.field(col.config.daoName);
 
@@ -147,6 +146,30 @@ public class Repository<PRIMARY_KEY> {
                     qry.order(pair.first.config.daoName, pair.second);
 
                 return qry;
+
+            case CREATE:
+            case UPDATE:
+                qry.primaryKeyName = rec.repo.config.primaryKey.config.daoName;
+                qry.primaryKeyValue = rec.getPrimaryKeyValue();
+
+                for (Column<?> col : columns.values()) {
+
+                    qry.field(col.config.daoName);
+
+                    if (!rec.isChanged(col))
+                        continue;
+
+                    Object value = rec.serialize(col);
+                    qry.param(col.config.daoName, value);
+                }
+
+                return qry;
+
+            case DELETE:
+                qry.primaryKeyName = rec.repo.config.primaryKey.config.daoName;
+                qry.primaryKeyValue = rec.getPrimaryKeyValue();
+                return qry;
+
             default:
                 throw new UnsupportedOperationException(qry.crude.name());
         }
@@ -166,7 +189,7 @@ public class Repository<PRIMARY_KEY> {
         return result;
     }
 
-    private Object[] getCells(PRIMARY_KEY pk, boolean clone) {
+    Object[] getCells(PRIMARY_KEY pk, boolean clone) {
         Object[] cells;
         synchronized (records) {
             cells = records.get(pk);
@@ -176,31 +199,8 @@ public class Repository<PRIMARY_KEY> {
         return clone ? cells.clone() : cells;
     }
 
-    public Record createOrUpdate(PRIMARY_KEY pk) {
-        if (pk == null || !records.containsKey(pk))
-            return create();
-        else
-            return update(pk);
-    }
-
-    public Record create() {
-        return new Record(this, CRUDE.CREATE, new Object[columns.size()]);
-    }
-
     public Record read(PRIMARY_KEY pk) {
         return new Record(this, CRUDE.UPDATE, getCells(pk, false));
-    }
-
-    public Record update(PRIMARY_KEY pk) {
-        return new Record(this, CRUDE.UPDATE, getCells(pk, true));
-    }
-
-    public Record delete(PRIMARY_KEY pk) {
-        return new Record(this, CRUDE.DELETE, getCells(pk, false));
-    }
-
-    public RepoUpdate<Repository<PRIMARY_KEY>, PRIMARY_KEY> beginUpdate() {
-        return new RepoUpdate<>(this);
     }
 
     public void forEach(Callable1<Boolean, Record> consumer) {
@@ -215,105 +215,6 @@ public class Repository<PRIMARY_KEY> {
             if (Boolean.FALSE.equals(consumer.run(rec)))
                 return;
         }
-    }
-
-    public static void commit(Record... records) throws Exception {
-        commit(Arrays.asList(records));
-    }
-
-    public static void commit(Collection<Record> records) throws Exception {
-
-        TList<Record> local = new TList<>();
-
-        MapList<Repository<?>, Record> repos = new MapList<>();
-
-        MapList<DAO, Record> daoRecords = new MapList<>();
-
-        for (Record rec : records) {
-            if (rec.changed.isEmpty())
-                continue;
-            repos.add(rec.repo, rec);
-            if (rec.repo.config.dao != null)
-                daoRecords.add(rec.repo.config.dao, rec);
-            else
-                local.add(rec);
-        }
-
-        for (Entry<DAO, LinkedList<Record>> en : daoRecords) {
-            DAO<?> dao = en.getKey();
-
-            TList<DAOQuery> queries = new TList<>();
-            for (Record rec : en.getValue()) {
-                DAOQuery qry = new DAOQuery(rec, dao, rec.crude);
-                rec.repo.fillQuery(qry);
-                queries.add(qry);
-            }
-            TList<? extends DAORows<?>> results = dao.process(queries);
-
-            // przetwarzanie odpowiedzi
-            for (DAORows<?> rows : results) {
-                Record rec = (Record) rows.context;
-                for (DAORow row : rows) {
-                    rec.repo.fillRecord(rec, row);
-                    local.add(rec);
-                }
-            }
-        }
-
-        // zakładamy, że operacja się powiodła, aktualizujemy loklane repozytoria
-        for (Record rec : local)
-            rec.repo.updateRecord(rec);
-
-        // --------- aktualizacja statystyk ------------------
-        for (Repository<?> repo : repos.keySet()) {
-            repo.lastUpdate = new TDate();
-            repo.lastUpdatedBy = "root";
-            synchronized (repo.updatesCount) {
-                repo.updatesCount.incrementAndGet();
-            }
-        }
-
-        // roześlij zdarzenie informujące o zmianach w repozytorium do zainteresowanych klientów WebApi
-        LinkedList<WebApiController> clients = WebSocketConnection.getControllers(WebApiController.class);
-        if (clients.isEmpty())
-            return;
-
-        for (Entry<Repository<?>, LinkedList<Record>> en : repos) {
-            Repository<?> repo = en.getKey();
-            TList<WebApiController> recipients = new TList<>();
-            for (WebApiController ctrl : clients)
-                if (ctrl.repositories.contains(repo))
-                    recipients.add(ctrl);
-
-            if (recipients.isEmpty())
-                continue;
-
-            JObject json = new JObject()
-                    .objectC(repo.getKey());
-
-            json.put("lastUpdated", repo.lastUpdate != null ? repo.lastUpdate.toString(true) : null);
-            json.put("lastUpdatedBy", repo.lastUpdatedBy);
-            json.put("updates", repo.updatesCount.get());
-
-            JArray jrows = json.arrayC("rows");
-            for (Record rec : en.getValue()) {
-                JObject obj = jrows.object();
-                obj.put("#crude", rec.crude.name);
-
-                // dla operacji DELETE zwróć tylko ID obiektu
-                if (rec.crude == CRUDE.DELETE) {
-                    obj.put(repo.config.primaryKey.config.key, rec.getPrimaryKeyValue());
-                    continue;
-                }
-
-                for (Column<?> col : rec)
-                    if (repo.config.primaryKey == col || rec.isChanged(col))
-                        obj.put(col.config.key, rec.get(col));
-            }
-
-            WebApiController.broadcast("repository", "update", json.getParent(), recipients);
-        }
-
     }
 
     /**
@@ -400,7 +301,7 @@ public class Repository<PRIMARY_KEY> {
                 continue;
             repo.config.local = false;
             repo.config.dao = dao;
-            queries.add(repo.fillQuery(new DAOQuery(repo, dao, CRUDE.READ)));
+            queries.add(repo.fillQuery(new DAOQuery(repo, dao, CRUDE.READ), null));
         }
 
         TList<? extends DAORows<?>> result = dao.process(queries);
@@ -432,8 +333,7 @@ public class Repository<PRIMARY_KEY> {
     public JObject getJson(boolean includeMetaData, boolean includeContent) {
         JObject obj = new JObject(config.key);
 
-        if (includeMetaData)
-            config.getJson(obj);
+        config.getJson(obj, includeMetaData);
 
         if (!includeContent)
             return obj;
@@ -445,9 +345,23 @@ public class Repository<PRIMARY_KEY> {
             data = new TList<>(records.values());
         }
 
-        for (Object[] row : data)
-            jrows.addE(row).asCollection().options.singleLine(true);
+        Collection<Column<?>> columns = this.columns.values();
 
+        for (Object[] row : data) {
+
+            JArray jrow = jrows.array();
+            jrow.options.singleLine(true);
+
+            int idx = 0;
+            for (Column<?> col : columns)
+                try {
+                    jrow.add(col._serialize(row[idx++]));
+                } catch (RuntimeException | Error e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new RepositoryException(this, e);
+                }
+        }
         return obj;
     }
 

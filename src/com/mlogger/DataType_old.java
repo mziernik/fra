@@ -1,7 +1,7 @@
 package com.mlogger;
 
-@Deprecated // użyć com.utils.reflections.DataType
-public enum DataType {
+@Deprecated // użyć com.utils.reflections.DataType_old
+public enum DataType_old {
 
     TEXT(0),
     LIST(1),
@@ -18,14 +18,14 @@ public enum DataType {
 
     public final int id;
 
-    public static DataType get(int id) {
-        for (DataType dt : values())
+    public static DataType_old get(int id) {
+        for (DataType_old dt : values())
             if (dt.id == id)
                 return dt;
         return null;
     }
 
-    private DataType(int id) {
+    private DataType_old(int id) {
         this.id = id;
     }
 

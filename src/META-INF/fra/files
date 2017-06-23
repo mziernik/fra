@@ -1625,6 +1625,7 @@ com/utils/collections/ChangeEvent.class
 com/utils/collections/CollectionAction.class
 com/utils/collections/CollectionException$CollectionExceptionType.class
 com/utils/collections/CollectionException.class
+com/utils/collections/Flags.class
 com/utils/collections/HashList.class
 com/utils/collections/MapCollection.class
 com/utils/collections/MapList.class
