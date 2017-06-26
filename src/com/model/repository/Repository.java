@@ -200,7 +200,7 @@ public class Repository<PRIMARY_KEY> {
     }
 
     public Record read(PRIMARY_KEY pk) {
-        return new Record(this, CRUDE.UPDATE, getCells(pk, false));
+        return new Record(this, CRUDE.READ, getCells(pk, false));
     }
 
     public void forEach(Callable1<Boolean, Record> consumer) {

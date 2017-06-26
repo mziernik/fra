@@ -119,7 +119,7 @@ public class RepoTransaction {
             JArray jrows = json.arrayC("rows");
             for (Record rec : en.getValue()) {
                 JObject obj = jrows.object();
-                obj.put("#crude", rec.crude.name);
+              //  obj.put("#crude", rec.crude.name);
 
                 // dla operacji DELETE zwróć tylko ID obiektu
                 if (rec.crude == CRUDE.DELETE) {

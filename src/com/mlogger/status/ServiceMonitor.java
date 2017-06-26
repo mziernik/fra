@@ -63,7 +63,7 @@ public class ServiceMonitor extends LoopThread {
     }
 
     private ServiceMonitor() {
-        super("ServiceMonitor", 5000);
+        super("ServiceMonitor", 1000);
         setPriority(Thread.MIN_PRIORITY);
     }
 

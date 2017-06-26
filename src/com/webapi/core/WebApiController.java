@@ -330,10 +330,10 @@ public abstract class WebApiController extends WebSocketController
         JObject obj = new JObject();
         obj.options.compactMode(true);
         obj.put("type", "event");
-        obj.put("date", new TDate().toString(true));
+        obj.put("date", new TDate().getTime());
 
         if (req != null) {
-            obj.put("endpoint", req.endpointName);
+           // obj.put("endpoint", req.endpointName);
             obj.put("id", req.id);
         }
 
@@ -394,7 +394,7 @@ public abstract class WebApiController extends WebSocketController
 
             obj.put("type", ex == null ? "response" : "error");
             obj.put("mode", CService.mode.value().name().toLowerCase());
-            obj.put("date", new TDate().toString(true));
+            obj.put("date", new TDate().getTime());
             obj.put("lang", language.get().key);
             //  obj.put("mode", CService.mode.value().name().toLowerCase());
 

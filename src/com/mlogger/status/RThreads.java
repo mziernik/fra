@@ -103,6 +103,7 @@ public class RThreads extends Repository<Long> {
     public RThreads() {
         super(c -> {
             c.primaryKey = ID;
+            c.displayName = NAME;
             c.key = "threads";
             c.name = "Wątki";
             c.crude.set(CRUDE.READ); // tylko do odczytu
