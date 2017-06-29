@@ -34,59 +34,30 @@ public class Repositories extends WebApiClientBuilder {
     public void build() {
         writer.setAutoIntent(true);
 
-        writer.append("import {Field, FieldConfig, RepoConfig, Type, Repository, Record} from \"../core/core\";").br().br();
-
-        StrWriter exports = new StrWriter();
+        writer.append("import {Field, Column, RepoConfig, Type, Repository, Record} from \"../core/core\";").br().br();
 
         writer.br().br();
 
         for (Repository<?> repo : Repository.ALL.values()) {
 
-            String name = repo.getClass().getSimpleName();
-
-            String format = formatFieldName(name);
-            name += "Repo";
-
-            exports.add("export const ", format, ": ", name, " = Repository.register(new ", name, "());").br();
-
-            writer.add("export class ", name, " extends Repository {").br().br();
-
-            writer.nextLevel(() -> {
-
-                writer.br().append("constructor() {").br();
-
-                writer.nextLevel(() -> {
-                    writer.append("super((rc: RepoConfig) => {");
-
-                    writer.nextLevel(() -> {
-                        for (Param p : repo.config.getClinetParams())
-                            if (p.value != null)
-                                writer.br().add("rc.", p.name, " = ", Utils.toString(p.value), ";");
-                    });
-                    writer.br().append("});");
-                });
-                writer.br().append("}").br();
-//             
-            });
-
-            writer.br().append("}").br();
-            writer.br();
+            writer.add("//--------------------------------- ", repo.config.name,
+                    " ----------------------------------------------").br().br();
 
             writer.append("export class ")
                     .append(repo.getClass().getSimpleName())
-                    .append(" extends Record {")
+                    .append(" extends Repository {")
                     .br()
                     .br();
 
             writer.nextLevel(() -> {
 
                 for (Column<?> col : repo.getColumns().values()) {
-                    writer.add(formatFieldName(col.getKey()), ": Field = new Field((fc: FieldConfig) => {");
+                    writer.add("static ", formatFieldName(col.getKey()), ": Column = new Column((c: Column) => {");
 
                     writer.nextLevel(() -> {
                         for (Param p : col.config.getClinetParams())
                             if (p.value != null)
-                                writer.br().add("fc.", p.name, " = ", Utils.toString(p.value), ";");
+                                writer.br().add("c.", p.name, " = ", Utils.toString(p.value), ";");
                     });
 
                     writer.br().add("});").br().br(); //ID: Field = new Field(DataType.INT).primaryKey();
@@ -95,17 +66,44 @@ public class Repositories extends WebApiClientBuilder {
                 writer.br().append("constructor() {").br();
 
                 writer.nextLevel(() -> {
-                    writer.add("super(...arguments);").br().add("this.init();").br();
-                });
+                    writer.append("super((c: RepoConfig) => {");
 
-                writer.append("};").br().br();
+                    writer.nextLevel(() -> {
+                        for (Param p : repo.config.getClinetParams())
+                            if (p.value != null)
+                                writer.br().add("c.", p.name, " = ", Utils.toString(p.value), ";");
+                    });
+                    writer.br().append("});");
+
+                });
+                writer.br().append("}").br();
             });
-//          
+
             writer.br().append("}").br();
             writer.br();
+
+            //-----------------------------------------------------
+            writer.append("export class ")
+                    .append(repo.getClass().getSimpleName() + "Record")
+                    .append(" extends Record {")
+                    .br()
+                    .br();
+
+            writer.nextLevel(() -> {
+
+                for (Column<?> col : repo.getColumns().values())
+                    writer.add(formatFieldName(col.getKey()), ": Field = new Field(",
+                            repo.getClass().getSimpleName(), ".", formatFieldName(col.getKey()), ", this);").br();
+            });
+
+            writer.br().add("}").br().br(); //ID: Field = new Field(DataType.INT).primaryKey();
         }
 
-        writer.append(exports.toString());
+        for (Repository<?> repo : Repository.ALL.values()) {
+            String name = repo.getClass().getSimpleName();
+            String format = formatFieldName(name);
+            writer.add("export const ", format, ": ", name, " = Repository.register(new ", name, "());").br();
+        }
     }
 
 }

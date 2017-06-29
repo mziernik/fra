@@ -1,19 +1,20 @@
-package com.mlogger.status;
+package com.service.status;
 
 import com.context.intf.ContextInitStage;
 import com.context.intf.ContextInitialized;
 import com.json.JArray;
 import com.json.JObject;
 import com.lang.core.LStr;
+
 import com.model.repository.Record;
 import com.model.repository.RepoTransaction;
-import com.model.repository.Repository;
 import com.sun.management.OperatingSystemMXBean;
 import com.thread.LoopThread;
 import com.utils.Utils;
 import static com.utils.Utils.formatSize;
 import com.utils.date.time.Interval;
 import com.utils.date.time.Unit;
+import com.utils.reflections.datatype.DataType;
 import com.webapi.WNotifications;
 import java.lang.management.*;
 
@@ -28,23 +29,24 @@ public class ServiceMonitor extends LoopThread {
     public static String errorColor = "red";
     public static Double warningLevel = 0.75d;
     public static Double errorLevel = 0.9d;
-    //--------------------------------------
 
-    public final static StatusGroup service = StatusGroup.ROOT.group("svr", "Service");
-    private static StatusItem cpu;
-    private final static StatusItem uptime = service.item("Uptime");
-    private final static StatusGroup memory = service.group("mem", "Memory usage");
+    //------------------------------------------------------------------------
+    public final static StatusGroup SYSTEM = new StatusGroup("system", "System", "System");
 
-    private final static StatusItem memApp = memory.item("Application");
-    private final static StatusItem memSys = memory.item("System");
+    public final static StatusItem<Long> UPTIME = SYSTEM.item(DataType.DURATION, "uptime", "Czas działania");
+    public final static StatusItem<String> CPU = SYSTEM.item(DataType.STRING, "cpu", "CPU", "Użycie procesora");
 
-    private final static StatusGroup threads = service.group("ths", "Threads");
-    private final static StatusItem thrAll = threads.item("All");
-    private final static StatusItem thrRunnable = threads.item("Runnable");
-    private final static StatusItem thrBlocked = threads.item("Blocked");
-    private final static StatusItem thrWaiting = threads.item("Waiting");
-    private final static StatusItem thrNew = threads.item("New");
-    private final static StatusItem thrTerminated = threads.item("Terminated");
+    public final static StatusGroup MEMORY = SYSTEM.group("memory", "Pamięć");
+    private final static StatusItem<String> MEM_APP = MEMORY.item(DataType.STRING, "app", "Application");
+    private final static StatusItem<String> MEM_SYS = MEMORY.item(DataType.STRING, "sys", "System");
+
+    public final static StatusGroup THREADS = SYSTEM.group("thread", "Pamięć");
+    private final static StatusItem<Integer> THR_ACT = THREADS.item(DataType.INT, "active", "Aktywne");
+    private final static StatusItem<Integer> THR_RUNNABLE = THREADS.item(DataType.INT, "runnable", "Działające");
+    private final static StatusItem<Integer> THR_BLOCKED = THREADS.item(DataType.INT, "blocked", "Zablokowane");
+    private final static StatusItem<Integer> THR_WAITING = THREADS.item(DataType.INT, "waiting", "Oczekujące");
+    private final static StatusItem<Integer> THR_NEW = THREADS.item(DataType.INT, "new", "Nowe");
+    private final static StatusItem<Integer> THR_TERMINATED = THREADS.item(DataType.INT, "terminated", "Zatrzymane");
 
     private static String color(long current, long max) {
 
@@ -89,34 +91,21 @@ public class ServiceMonitor extends LoopThread {
     @Override
     protected void loop() throws Exception {
 
-        JObject json = new JObject();
+        UPTIME.value(mxBean.getUptime());
+        CPU.comment("[" + osBean.getAvailableProcessors() + "]");
 
-        uptime.value(new Interval(mxBean.getUptime(), Unit.MILLISECONDS)
-                .displayPrecision(Unit.SECONDS)
-                .toString());
-
-        json.put("uptime", uptime.value);
-
-        if (cpu == null)
-            cpu = service.item("CPU [" + osBean.getAvailableProcessors() + "]");
-
-        cpu.value(Utils.formatPercent(osBean.getProcessCpuLoad()) + " / "
+        CPU.value(Utils.formatPercent(osBean.getProcessCpuLoad()) + " / "
                 + Utils.formatPercent(osBean.getSystemCpuLoad()));
 
-        json.arrayC("cpu").add(osBean.getProcessCpuLoad() * 100d)
-                .add(osBean.getSystemCpuLoad() * 100d);
-
+//        json.arrayC("cpu").add(osBean.getProcessCpuLoad() * 100d)
+//                .add(osBean.getSystemCpuLoad() * 100d);
         {
             long total = osBean.getTotalPhysicalMemorySize();
             long used = total - osBean.getFreePhysicalMemorySize();
-
-            json.objectC("mem").arrayC("sys").add(used).add(total);
-
-            memSys.value(formatSize(used) + " / " + formatSize(total))
+            MEM_SYS.value(formatSize(used) + " / " + formatSize(total))
                     .comment("free: " + formatSize(total - used))
                     .color(color(used, total));
         }
-
         {
 
             long total = Runtime.getRuntime().totalMemory();
@@ -128,9 +117,7 @@ public class ServiceMonitor extends LoopThread {
 
             long used = total - free;
 
-            json.objectC("mem").arrayC("app").add(used).add(total).add(max);
-
-            memApp.value(formatSize(used) + " / " + formatSize(total) + " / " + formatSize(max))
+            MEM_APP.value(formatSize(used) + " / " + formatSize(total) + " / " + formatSize(max))
                     .comment("free: " + formatSize(free))
                     .color(color(used, total));
 
@@ -176,9 +163,6 @@ public class ServiceMonitor extends LoopThread {
         int tterm = 0;
         int twait = 0;
 
-        JObject jthreads = new JObject();
-        JArray jth = jthreads.arrayC("list");
-
         RepoTransaction trans = new RepoTransaction();
 
         for (Thread th : threads) {
@@ -187,22 +171,22 @@ public class ServiceMonitor extends LoopThread {
 
             ThreadGroup gr = th.getThreadGroup();
             ThreadInfo info = thBean.getThreadInfo(th.getId());
-
-            jth.array().addAll(
-                    th.getId(),
-                    th.getPriority(),
-                    th.getState().name().toLowerCase(),
-                    gr != null ? gr.getName() : null,
-                    th.isAlive(),
-                    th.isDaemon(),
-                    th.isInterrupted(),
-                    th.getName(),
-                    thBean.getThreadCpuTime(th.getId()) / 100000,
-                    thBean.getThreadUserTime(th.getId()) / 100000,
-                    thBean.getThreadAllocatedBytes(th.getId()),
-                    info != null ? info.getBlockedCount() : 0,
-                    info != null ? info.getWaitedCount() : 0
-            );
+//
+//            jth.array().addAll(
+//                    th.getId(),
+//                    th.getPriority(),
+//                    th.getState().name().toLowerCase(),
+//                    gr != null ? gr.getName() : null,
+//                    th.isAlive(),
+//                    th.isDaemon(),
+//                    th.isInterrupted(),
+//                    th.getName(),
+//                    thBean.getThreadCpuTime(th.getId()) / 100000,
+//                    thBean.getThreadUserTime(th.getId()) / 100000,
+//                    thBean.getThreadAllocatedBytes(th.getId()),
+//                    info != null ? info.getBlockedCount() : 0,
+//                    info != null ? info.getWaitedCount() : 0
+//            );
 
             switch (th.getState()) {
                 case NEW:
@@ -223,7 +207,7 @@ public class ServiceMonitor extends LoopThread {
                     break;
             }
 
-            if (RThreads.instance == null)
+            if (RThreads.instance == null/* || !RThreads.instance.isEmpty()*/)
                 continue;
 
             Record rec = trans.createOrUpdate(RThreads.instance, th.getId());
@@ -245,25 +229,14 @@ public class ServiceMonitor extends LoopThread {
         trans.commit(true);
 
         int act = Thread.activeCount();
-        json.objectC("thr")
-                .put("act", act)
-                .put("run", trun)
-                .put("blc", tblc)
-                .put("wait", twait)
-                .put("term", tterm);
 
-        jthreads.add("stats", json.object("thr"));
+        THR_WAITING.value(twait);
+        THR_TERMINATED.value(tterm);
+        THR_RUNNABLE.value(trun);
+        THR_BLOCKED.value(tblc).color(tblc > 0 ? warningColor : null);
+        THR_ACT.value(act);
+        THR_NEW.value(tnew);
 
-        thrAll.value(act);
-        thrRunnable.value(trun);
-        thrBlocked.value(tblc).color(tblc > 0 ? warningColor
-                : null);
-        thrWaiting.value(twait);
-        thrNew.value(tnew);
-        thrTerminated.value(tterm);
-
-        // new WebApiBroadcast("service.status", json).send();
-        // new WebApiBroadcast("service.threads", jthreads).send();
     }
 
     static {

@@ -22,7 +22,7 @@ public class SetDataType extends DataType<String> implements Adapter<String> {
     }
 
     public SetDataType(String... values) {
-        super(true, JsonType.STRING, "string", String.class, null, null);
+        super(true, JsonType.STRING, "string", "Zbiór wartości unikalnych", String.class, null, null);
         VALUES.addAll(Arrays.asList(values));
         for (String s : values)
             super.values.add(s);

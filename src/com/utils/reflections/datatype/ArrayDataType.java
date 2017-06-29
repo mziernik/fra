@@ -9,7 +9,7 @@ public class ArrayDataType<T> extends DataType<T[]> {
     public final DataType<?> component;
 
     public ArrayDataType(DataType<T> component) {
-        super(true, JsonType.ARRAY, component.name + "[]",
+        super(true, JsonType.ARRAY, component.name + "[]", "Tablica " + component.name,
                 (Class<T[]>) Array.newInstance(component.clazz, 0).getClass(), (value, parent) -> {
 
             if (!(value instanceof Iterable))

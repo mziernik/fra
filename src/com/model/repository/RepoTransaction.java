@@ -1,5 +1,7 @@
 package com.model.repository;
 
+import com.events.Dispatcher;
+import com.intf.runnable.RunnableEx2;
 import com.json.JArray;
 import com.json.JObject;
 import com.mlogger.Log;
@@ -60,6 +62,9 @@ public class RepoTransaction {
                 local.add(rec);
         }
 
+        for (Entry<Repository<?>, LinkedList<Record>> en : repos.entrySet())
+            en.getKey().onBeforeUpdate.dispatch(this, intf -> intf.run(en.getValue(), repos));
+
         for (Entry<DAO, LinkedList<Record>> en : daoRecords) {
             DAO<?> dao = en.getKey();
 
@@ -112,14 +117,14 @@ public class RepoTransaction {
             JObject json = new JObject()
                     .objectC(repo.getKey());
 
-            json.put("lastUpdated", repo.lastUpdate != null ? repo.lastUpdate.toString(true) : null);
+            json.put("lastUpdated", repo.lastUpdate != null ? repo.lastUpdate.getTime() : null);
             json.put("lastUpdatedBy", repo.lastUpdatedBy);
             json.put("updates", repo.updatesCount.get());
 
             JArray jrows = json.arrayC("rows");
             for (Record rec : en.getValue()) {
                 JObject obj = jrows.object();
-              //  obj.put("#crude", rec.crude.name);
+                //  obj.put("#crude", rec.crude.name);
 
                 // dla operacji DELETE zwróć tylko ID obiektu
                 if (rec.crude == CRUDE.DELETE) {
@@ -139,9 +144,8 @@ public class RepoTransaction {
 
     public <PK> Record action(Repository<PK> repo, CRUDE crude, DAO dao) throws Exception {
 
-        Record rec = new Record(repo, crude, new Object[repo.columns.size()]);
-
         DAOQuery query = new DAOQuery(this, dao, crude);
+
         query.field(repo.config.primaryKey.getKey());
 
         DAORows drows = dao.process(query);
@@ -152,12 +156,26 @@ public class RepoTransaction {
 
         DAORow row = drows.first();
 
-        if (crude != CRUDE.CREATE) {
+        String pkName = repo.config.primaryKey.getKey();
+        PK pk = null;
+        if (crude == null) {
 
-            PK pk = (PK) repo.config.primaryKey.config.type.parse(row.getValue(repo.config.primaryKey.getKey(), null));;
+            if (!row.contains(pkName))
+                crude = CRUDE.CREATE;
 
+            if (crude == null) {
+                pk = (PK) repo.config.primaryKey.config.type.parse(row.getValue(pkName, null));
+                if (row.getNames().size() == 1)
+                    crude = CRUDE.DELETE;
+                else
+                    crude = repo.records.containsKey(pk) ? CRUDE.UPDATE : CRUDE.CREATE;
+            }
+        } else if (crude != CRUDE.CREATE)
+            pk = (PK) repo.config.primaryKey.config.type.parse(row.getValue(pkName, null));
+
+        Record rec = new Record(repo, crude, new Object[repo.columns.size()]);
+        if (pk != null)
             rec.cells = repo.getCells(pk, true);
-        }
 
         for (String s : row.getNames()) {
             Column<?> col = repo.columns.get(s);

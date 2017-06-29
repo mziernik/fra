@@ -35,11 +35,9 @@ import com.mlogger.interfaces.ILogEventsHandler;
 import com.utils.Utils;
 import com.utils.Is;
 import com.context.Environment;
-import com.mlogger.status.StatusProcessor;
 import com.mlogger.utils._Internal;
 import com.utils.Is;
 import com.utils.Str;
-import com.utils.collections.Strings;
 import com.utils.date.TDate;
 import java.util.*;
 
@@ -50,8 +48,6 @@ public class MLogger extends MLoggerMethods {
     public final LogDefaults defaults = new LogDefaults(this);
     public final LogOptions options = new LogOptions(this);
     //public final static String version;
-
-    public final static StatusProcessor processor = new StatusProcessor();
 
     public static MLogger instance() {
 

@@ -19,7 +19,7 @@ import java.util.Map.Entry;
 
 import static com.context.AppContext.*;
 import static com.context.AppContextInitializer.startupInfo;
-import com.service.events.filter.BaseEventsFilterHandler;
+import com.ui.events.filter.BaseEventsFilterHandler;
 
 public class EventsHandler {
 

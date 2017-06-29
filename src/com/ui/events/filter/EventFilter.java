@@ -1,4 +1,4 @@
-package com.service.events.filter;
+package com.ui.events.filter;
 
 import com.filter.AbstractFilter;
 import com.lang.core.LStr;

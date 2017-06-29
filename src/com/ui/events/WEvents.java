@@ -1,11 +1,11 @@
-package com.service.events;
+package com.ui.events;
 
 import com.context.EventsHandler;
 import com.json.JArray;
 import com.json.JObject;
 import com.lang.LService;
 import com.model.repository.Repository;
-import com.service.events.filter.BaseEventsFilterHandler;
+import com.ui.events.filter.BaseEventsFilterHandler;
 import com.servlet.Handlers;
 import com.servlet.interfaces.Arg;
 import com.utils.Utils;

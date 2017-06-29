@@ -1,4 +1,4 @@
-package com.service.events.filter;
+package com.ui.events.filter;
 
 import static com.filter.SqlConditionBuilder.buildCondition;
 import java.util.*;
@@ -16,7 +16,7 @@ import com.json.JObject;
 import com.utils.Is;
 import com.utils.collections.Pair;
 import com.utils.collections.Strings;
-import com.service.events.filter.EventFilter.TableSearchType;
+import com.ui.events.filter.EventFilter.TableSearchType;
 import com.lang.LService;
 import com.model.repository.DynamicRepo;
 import com.model.repository.Repository;

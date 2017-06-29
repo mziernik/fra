@@ -1,4 +1,4 @@
-package com.service.cron;
+package com.ui.cron;
 
 import com.cron.Cron;
 import com.cron.CronTask;

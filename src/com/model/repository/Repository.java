@@ -1,8 +1,10 @@
 package com.model.repository;
 
+import com.events.Dispatcher;
 import com.model.repository.intf.CRUDE;
 import com.intf.callable.Callable1;
 import com.intf.runnable.Runnable1;
+import com.intf.runnable.RunnableEx2;
 import com.json.JArray;
 import com.json.JObject;
 import com.model.dao.core.DAO;
@@ -13,6 +15,7 @@ import com.utils.Utils;
 import com.utils.collections.*;
 import com.utils.date.TDate;
 import com.utils.reflections.TField;
+import com.webapi.core.client.Repositories;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,12 +25,10 @@ import javassist.Modifier;
 public class Repository<PRIMARY_KEY> {
 
     public final static SyncMap<String, Repository<?>> ALL = new SyncMap<>();
-
     public final RepoConfig config = new RepoConfig();
-
     private final AtomicInteger hash = new AtomicInteger(0); // identator zmiany
-
     protected final Pairs<Column<?>, Boolean> orderColumns = new Pairs<>(); // kolumna, ASC
+    public final Dispatcher<RunnableEx2<List<Record>, MapList<Repository<?>, Record>>> onBeforeUpdate = new Dispatcher<>();
 
     final HashMap<PRIMARY_KEY, Object[]> records = new HashMap<>();
     final Map<String, Column<?>> columns = new LinkedHashMap<>();
@@ -43,7 +44,7 @@ public class Repository<PRIMARY_KEY> {
         public String daoName;
         public Column<?> primaryKey;
         public Column<?> displayName;
-        public Boolean autoUpdate; //czy informaje o zmianach mają być automatycznie rozsyłane do klientów
+        public boolean autoUpdate = true; //czy informaje o zmianach mają być automatycznie rozsyłane do klientów
         public DAO dao;
         public Boolean local;
         public Integer limit;
@@ -74,9 +75,13 @@ public class Repository<PRIMARY_KEY> {
             return new Params()
                     .escape("key", key)
                     .escape("name", name)
-                    .escape("primaryKeyColumn", primaryKey.getKey())
-                    .escape("displayNameColumn", displayName != null ? displayName.getKey() : null)
-                    .add("recordClass", Repository.this.getClass().getSimpleName())
+                    .add("record", Repository.this.getClass().getSimpleName() + "Record")
+                    .add("primaryKeyColumn", Repository.this.getClass().getSimpleName()
+                            + "." + Repositories.formatFieldName(primaryKey.getKey()))
+                    .add("displayNameColumn", displayName != null
+                            ? Repository.this.getClass().getSimpleName()
+                            + "." + Repositories.formatFieldName(displayName.getKey())
+                            : null)
                     .escape("crude", crude.getChars())
                     .add("local", local)
                     .add("autoUpdate", autoUpdate);
@@ -110,6 +115,7 @@ public class Repository<PRIMARY_KEY> {
 
         config.primaryKey.config.unique = true;
         config.primaryKey.config.required = true;
+        Objects.requireNonNull(config.primaryKey.config.daoName);
 
         for (Field f : getClass().getDeclaredFields())
             if (Column.class.isAssignableFrom(f.getType()))
@@ -133,6 +139,22 @@ public class Repository<PRIMARY_KEY> {
                 }
     }
 
+    public boolean isEmpty() {
+        return records.isEmpty();
+    }
+
+    public int size() {
+        return records.size();
+    }
+
+    public boolean has(PRIMARY_KEY pk) {
+        return records.containsKey(pk);
+    }
+
+    public int getUpdatesCount() {
+        return updatesCount.get();
+    }
+
     protected DAOQuery fillQuery(DAOQuery qry, Record rec) {
         qry.source(config.daoName);
 
@@ -140,10 +162,12 @@ public class Repository<PRIMARY_KEY> {
 
             case READ:
                 for (Column<?> col : columns.values())
-                    qry.field(col.config.daoName);
+                    if (col.config.daoName != null)
+                        qry.field(col.config.daoName);
 
                 for (Pair<Column<?>, Boolean> pair : orderColumns)
-                    qry.order(pair.first.config.daoName, pair.second);
+                    if (pair.first.config.daoName != null)
+                        qry.order(pair.first.config.daoName, pair.second);
 
                 return qry;
 
@@ -153,6 +177,8 @@ public class Repository<PRIMARY_KEY> {
                 qry.primaryKeyValue = rec.getPrimaryKeyValue();
 
                 for (Column<?> col : columns.values()) {
+                    if (col.config.daoName == null)
+                        continue;
 
                     qry.field(col.config.daoName);
 
@@ -176,7 +202,12 @@ public class Repository<PRIMARY_KEY> {
     }
 
     protected void fillRecord(Record rec, DAORow row) {
-
+        for (Column<?> field : columns.values()) {
+            if (field.config.daoName == null)
+                continue;
+            Object value = row.getValue(field.config.daoName, null);
+            rec.setAny(field, value);
+        }
     }
 
     public TList<Record> select(Predicate<Record> predicate) {
@@ -229,7 +260,7 @@ public class Repository<PRIMARY_KEY> {
             switch (record.crude) {
                 case CREATE:
                     if (records.containsKey(pk))
-                        throw new RepositoryException(this, "Rekord " + record.getId() + " już istnieje");
+                        throw new RepositoryException(this, "Rekord " + record + " już istnieje");
                     records.put(pk, record.cells.clone());
                     return;
 
@@ -267,13 +298,8 @@ public class Repository<PRIMARY_KEY> {
         TList<Record> records = new TList<>();
 
         for (DAORow row : rows) {
-
             Record rec = new Record(this, CRUDE.CREATE, new Object[columns.size()]);
-
-            for (Column<?> field : columns.values()) {
-                Object value = row.getValue(field.config.daoName, null);
-                rec.setAny(field, value);
-            }
+            fillRecord(rec, row);
             records.add(rec);
         }
 
@@ -363,6 +389,10 @@ public class Repository<PRIMARY_KEY> {
                 }
         }
         return obj;
+    }
+
+    protected RecordUpdate localUpdate(PRIMARY_KEY pk) {
+        return new RecordUpdate(this, CRUDE.UPDATE, pk != null ? getCells(pk, true) : null);
     }
 
 }

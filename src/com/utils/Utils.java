@@ -359,12 +359,27 @@ public final class Utils {
     public static boolean equals(Object o1, Object o2) {
         if (o1 == o2)
             return true;
+        
+        if (o1 == null || o2 == null)
+            return false;
 
-        if (o1 != null && o1.equals(o2))
+        if ( o1.equals(o2))
             return true;
 
-        if (o2 != null && o2.equals(o1))
+        if (o1.getClass().isArray() && o2.getClass().isArray()) {
+
+            Object[] a1 = (Object[]) o1;
+            Object[] a2 = (Object[]) o2;
+
+            if (a1.length != a2.length)
+                return false;
+
+            for (int i = 0; i < a1.length; i++)
+                if (!equals(a1[i], a2[i]))
+                    return false;
+
             return true;
+        }
 
         if (o1 instanceof Number && o2 instanceof Number)
 
@@ -797,6 +812,10 @@ public final class Utils {
     public final static Map<String, PerformanceStamp> performaceStamps = new TreeMap<>();
 
     public static String escape(Object object) {
+
+        if (object instanceof TObject)
+            object = ((TObject) object).get();
+
         if (object == null)
             return "null";
 

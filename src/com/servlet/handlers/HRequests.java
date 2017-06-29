@@ -7,7 +7,7 @@ import com.utils.reflections.Reflections;
 import com.html.bootstrap.BsModalForm;
 import com.html.bootstrap.form.BsFormController;
 import com.html.core.tag.Tag;
-import com.service.PService;
+import com.ui.PService;
 import com.servlet.Handlers;
 import com.servlet.interfaces.Endpoint;
 import com.servlet.requests.HttpRequest;

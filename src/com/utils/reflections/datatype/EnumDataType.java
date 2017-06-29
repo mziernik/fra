@@ -29,7 +29,8 @@ public class EnumDataType<E extends Enum<E>> extends DataType<E> implements Adap
 
     public EnumDataType(Class<E> clazz, Callable1<String, E> keyProvider,
             Callable1<String, E> nameProvider) {
-        super(true, JsonType.OBJECT, "enum", clazz, null, (E item) -> item.name().toLowerCase());
+        super(true, JsonType.OBJECT, "enum", "Enumerata " + clazz.getSimpleName(),
+                clazz, null, (E item) -> item.name().toLowerCase());
 
         for (E e : clazz.getEnumConstants()) {
             String key = keyProvider.run(e);

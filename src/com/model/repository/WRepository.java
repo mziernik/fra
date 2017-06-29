@@ -6,7 +6,6 @@ import com.json.JArray;
 import com.json.JObject;
 import com.json.JValue;
 import com.model.dao.MapDAO;
-import com.model.repository.intf.CRUDE;
 import com.servlet.interfaces.Arg;
 import com.servlet.websocket.WebSocketController;
 import com.utils.collections.TList;
@@ -68,9 +67,8 @@ public class WRepository implements WebApi {
             Repository repo = Repository.getF(arr.getName());
 
             for (JObject obj : arr.getObjects()) {
-                CRUDE crude = CRUDE.get(obj.getStr("action"));
-                MapDAO dao = new MapDAO(obj.objectF("fields"));
-                trans.action(repo, crude, dao);
+                MapDAO dao = new MapDAO(obj);
+                trans.action(repo, null, dao);
             }
         }
 

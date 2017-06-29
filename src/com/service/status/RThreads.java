@@ -1,4 +1,4 @@
-package com.mlogger.status;
+package com.service.status;
 
 import com.model.repository.Column;
 import com.model.repository.Repository;
@@ -67,14 +67,14 @@ public class RThreads extends Repository<Long> {
 
     public final static Column<Long> CPU_TIME = new Column<>(c -> {
         c.repository = RThreads.class;
-        c.type = DataType.LONG;
+        c.type = DataType.DURATION;
         c.key = "cpuTime";
         c.name = "Czas procesora";
     });
 
     public final static Column<Long> USER_TIME = new Column<>(c -> {
         c.repository = RThreads.class;
-        c.type = DataType.LONG;
+        c.type = DataType.DURATION;
         c.key = "userTime";
         c.name = "Czas użytkownika";
     });

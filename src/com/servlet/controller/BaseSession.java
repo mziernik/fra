@@ -9,14 +9,12 @@ import com.utils.Utils;
 import com.utils.Is;
 import com.config.CService;
 import com.context.AppConfig;
-import com.context.AppContext;
 import com.cron.TTimer;
 import com.mlogger.Log;
 import com.database.service.Sessions;
 import com.lang.core.Language;
-import com.mlogger.status.ServiceMonitor;
-import com.mlogger.status.StatusGroup;
-import com.mlogger.status.StatusItem;
+import com.service.status.StatusGroup;
+import com.service.status.StatusItem;
 import com.servlet.Handlers;
 import com.servlet.UserAgent;
 import com.servlet.requests.HttpRequest;
@@ -35,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class BaseSession {
 
-    private final static StatusGroup status = ServiceMonitor.service.group("httpses", "HTTP Sessions");
+    private final static StatusGroup STATUS = StatusGroup.SERVICE.group("httpses", "Sesje HTTP", "Sesje HTTP");
 
     public final UserAgent userAgent;
     public final InetSocketAddress remoteAddress;
@@ -162,11 +160,10 @@ public class BaseSession {
 
         user = BaseUserData.newInstance();
         maxInactiveTime = CHttp.sessionMaxInterval.value();
-        sts = status.item(id)
-                .onUpdate((StatusItem sts) -> {
-                    sts.value(this.user.username + ", " + remoteAddress.getHostString());
-                    sts.comment(userAgent.getShortUA());
-                });
+        sts = STATUS.itemStr(id, "Sesja " + id)
+                .value(this.user.username + ", " + remoteAddress.getHostString())
+                .comment(userAgent.getShortUA());
+
     }
 
     private BaseSession(HttpRequest http) {
@@ -177,11 +174,11 @@ public class BaseSession {
 
         user = BaseUserData.newInstance();
         maxInactiveTime = CHttp.sessionMaxInterval.value();
-        sts = status.item(id)
-                .onUpdate((StatusItem sts) -> {
-                    sts.value(this.user.username + ", " + remoteAddress.getHostString());
-                    sts.comment(userAgent.getShortUA());
-                });
+
+        sts = STATUS.itemStr(id, "Sesja " + id)
+                .value(this.user.username + ", " + remoteAddress.getHostString())
+                .comment(userAgent.getShortUA());
+
     }
 
     public boolean isDestroyed() {

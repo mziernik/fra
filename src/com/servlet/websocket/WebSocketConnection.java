@@ -1,30 +1,26 @@
 package com.servlet.websocket;
 
 import com.context.AppContext;
-import com.utils.Utils;
 import com.utils.Is;
-import com.context.WebAppContext;
 import com.context.index.Index;
 import com.exceptions.http.Http404FileNotFoundException;
 import com.mlogger.Log;
 import com.mlogger.LogKind;
-import com.mlogger.status.ServiceMonitor;
-import com.mlogger.status.StatusGroup;
-import com.mlogger.status.StatusItem;
 import com.servers.WebAppServer;
+import com.service.status.ServiceMonitor;
+import com.service.status.StatusGroup;
+import com.service.status.StatusItem;
 import com.servlet.controller.BaseSession;
 import com.servlet.views.ViewControllerMeta;
 import com.servlet.views.connection.ViewWebSocketController;
 import com.thread.ThreadObject;
 import com.utils.Url;
-import com.utils.collections.MapList;
 import com.utils.collections.Params;
 import com.utils.collections.Strings;
 import com.utils.reflections.TClass;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.*;
-import java.util.Map.Entry;
 import javax.websocket.CloseReason;
 import javax.websocket.CloseReason.CloseCode;
 import javax.websocket.Endpoint;
@@ -38,7 +34,7 @@ public abstract class WebSocketConnection extends Endpoint {
     public Url requestUrl;
     public WebSocketController controller;
     private final static List<WebSocketConnection> connections = new LinkedList<>();
-    private final static StatusGroup wSockets = ServiceMonitor.service.group("ws", "WebSocket");
+    private final static StatusGroup STATUS = StatusGroup.SERVICE.group("ws", "Połączenia WebSocket");
     private StatusItem sts;
     private boolean connected;
 
@@ -113,7 +109,7 @@ public abstract class WebSocketConnection extends Endpoint {
 
         String connInfo = cInfo.toString(", ");
 
-        sts = wSockets.item(path).value(connInfo);
+        sts = STATUS.itemStr(path, path).value(connInfo);
 
         new Log(LogKind.EVENT)
                 .tag("WebSocket")
@@ -128,8 +124,6 @@ public abstract class WebSocketConnection extends Endpoint {
     public boolean isConnected() {
         return connected;
     }
-
-
 
     protected void onClose(CloseReason reason) {
         connected = false;

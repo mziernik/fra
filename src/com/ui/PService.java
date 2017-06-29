@@ -1,4 +1,4 @@
-package com.service;
+package com.ui;
 
 import com.html.HtmlPackage;
 import com.resources.Res;

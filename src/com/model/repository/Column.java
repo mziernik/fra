@@ -11,16 +11,19 @@ import com.json.JObject;
 import com.json.JSON;
 import com.model.repository.intf.CRUDE;
 import com.model.repository.intf.CaseConvert;
-import com.utils.Is;
+import com.utils.TObject;
+import com.utils.Utils;
 import com.utils.collections.Params;
 import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
 import com.webapi.core.client.Repositories;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class Column<RAW> {
+
+    private final String UNDEFINED_NAME = "UNDEFINED:d343f0fb-cfca-4fcf-a8e3-9c943d2ee89a";
 
     Repository<?> repository;
 
@@ -38,6 +41,11 @@ public class Column<RAW> {
 
     public String getKey() {
         return config.key;
+    }
+
+    @Override
+    public String toString() {
+        return (repository != null ? repository.getKey() + "." : "") + getKey();
     }
 
     public Column<RAW> config(Runnable1<RepoFieldConfig> cfg) {
@@ -68,31 +76,31 @@ public class Column<RAW> {
 
             config.onBeforeSet.dispatch(this, r -> r.run(rec, value));
 
-            final Object value2 = value != null ? value : config.defaultValue;
-
-            RAW val = config.parser != null
-                    ? config.parser.run(value2)
-                    : config.type.parse(value2);
+            final TObject<RAW> val = new TObject<RAW>(config.parser != null
+                    ? config.parser.run(Utils.coalesce(value, config.defaultValue))
+                    : config.type.parse(Utils.coalesce(value, config.defaultValue)));
 
             if (rec.crude == CRUDE.UPDATE && this == repo.config.primaryKey) {
                 Object pk = rec.getPrimaryKeyValue();
-                if (!pk.equals(val))
-                    throw new RepositoryException(repo, "Nie można modyfikować klucza głównego");
+                if (pk != null && !pk.equals(val.get()))
+                    throw new RepositoryException(repo, "Nie można modyfikować klucza głównego (" + Utils.escape(val) + ")");
             }
 
-            config.validate.dispatch(this, r -> r.run(val));
+            config.validator.dispatch(this, r -> r.run(val, rec));
 
-            if (value2 == null && Boolean.TRUE.equals(config.required))
+            if (val.isNull() && Boolean.TRUE.equals(config.required))
                 throw new RepositoryException(repo, "Wartość pola " + getKey() + " nie może być pusta");
 
             Object src = rec.cells[idx];
-            if (!Objects.equals(src, val)) {
-                rec.cells[idx] = val;
-                config.onAfterSet.dispatch(this, r -> r.run(rec, val, null));
-                rec.changed.add(this);
-            }
+            RAW v = val.get();
+            if (Utils.equals(src, v))
+                return v;
 
-            return val;
+            rec.cells[idx] = v;
+            config.onAfterSet.dispatch(this, r -> r.run(rec, v, null));
+            rec.changed.add(this);
+
+            return v;
         } catch (Throwable e) {
             config.onAfterSet.dispatch(this, r -> r.run(rec, null, null));
             throw new RepositoryException(repo, repo.config.key + "." + getKey(), e);
@@ -125,7 +133,7 @@ public class Column<RAW> {
         public CaseConvert caseConvert;
         public String allowedChars;
         public String defaultUnit;
-        public boolean onDemand; // wartość zostanie wczytana na żądanie pobrania rekordu - zalecane dla dużych danych
+        public Boolean onDemand; // wartość zostanie wczytana na żądanie pobrania rekordu - zalecane dla dużych danych
         /**
          * Wartość domyślna ustawiana, gdy pojawi się null
          */
@@ -140,7 +148,7 @@ public class Column<RAW> {
         public Boolean unique;
         public CharSequence name;
         public CharSequence title;
-        public String daoName;
+        public String daoName = UNDEFINED_NAME;
         public String daoType;
         //public Column<?> foreign;
         public CharSequence description;
@@ -161,7 +169,7 @@ public class Column<RAW> {
         public final Dispatcher<RunnableEx3<Record, RAW, Throwable>> onAfterSet = new Dispatcher<>();
         public CallableEx1<RAW, Object> parser;
         public CallableEx1<Object, RAW> serializer;
-        public final Dispatcher<RunnableEx1<RAW>> validate = new Dispatcher<>();
+        public final Dispatcher<RunnableEx2<TObject<RAW>, Record>> validator = new Dispatcher<>();
 
         public void validate() {
 
@@ -171,21 +179,19 @@ public class Column<RAW> {
             if (clazz == null)
                 clazz = (Class<? extends RAW>) type.clazz;
 
-            if (Is.empty(daoName))
+            if (UNDEFINED_NAME.equals(daoName))
                 daoName = key;
 
         }
 
         public Params getClinetParams() {
 
-            String foreign = null;
+            Column<?> foreign = null;
             if (Column.this instanceof ForeignColumn)
-                foreign = Repositories.formatFieldName(((ForeignColumn) Column.this).column
-                        .getRepository(true).getClass().getSimpleName());
+                foreign = ((ForeignColumn) Column.this).column;
 
             if (Column.this instanceof ForeignColumns)
-                foreign = Repositories.formatFieldName(((ForeignColumns) Column.this).column
-                        .getRepository(true).getClass().getSimpleName());
+                foreign = ((ForeignColumns) Column.this).column;
 
             String enumerate = type.enumerate.isEmpty() ? null
                     : JSON.serialize(type.enumerate).asCollection().options.quotaNames(false).element.toString();
@@ -214,7 +220,7 @@ public class Column<RAW> {
                     .escape("filtered", filtered)
                     .escape("disabled", disabled)
                     .escape("sortable", sortable)
-                    .add("foreign", foreign)
+                    .add("foreign", foreign != null ? "() => " + Repositories.formatFieldName(foreign.getRepository(true).getClass().getSimpleName()) : null)
                     .add("enumerate", enumerate);
         }
 

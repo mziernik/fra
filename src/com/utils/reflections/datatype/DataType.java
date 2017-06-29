@@ -7,10 +7,10 @@ import com.intf.callable.CallableEx1;
 import com.json.JArray;
 import com.json.JElement;
 import com.json.JObject;
+import com.json.JValue;
 import com.utils.Utils;
 import com.utils.collections.TList;
 import com.utils.date.TDate;
-import com.utils.date.time.Interval;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.*;
@@ -65,12 +65,13 @@ public class DataType<T> {
     public final static Map<String, DataType> ALL = new LinkedHashMap<>();
 
     public static enum JsonType {
-        BOOLEAN, NUMBER, STRING, OBJECT, ARRAY
+        ANY, BOOLEAN, NUMBER, STRING, OBJECT, ARRAY
     }
 
     public final Class<?> clazz;
     public final JsonType type;
     public final String name;
+    public final CharSequence description;
     private final Adapter<T> adapter;
     private final CallableEx1<Object, T> serializer;
 
@@ -79,15 +80,25 @@ public class DataType<T> {
     public final List<String> values = new TList<>();
 
     private DataType(JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
-        this(false, type, name, clazz, adapter, null);
+        this(false, type, name, null, clazz, adapter, null);
+    }
+
+    private DataType(JsonType type, String name, CharSequence description, Class<T> clazz, Adapter<T> adapter) {
+        this(false, type, name, description, clazz, adapter, null);
+    }
+
+    private DataType(JsonType type, String name, CharSequence description, Class<T> clazz,
+            Adapter<T> adapter, CallableEx1<Object, T> serializer) {
+        this(false, type, name, description, clazz, adapter, serializer);
     }
 
     private DataType(JsonType type, String name, Class<T> clazz,
             Adapter<T> adapter, CallableEx1<Object, T> serializer) {
-        this(false, type, name, clazz, adapter, serializer);
+        this(false, type, name, null, clazz, adapter, serializer);
     }
 
-    public DataType(boolean dynamic, JsonType type, String name, Class<T> clazz,
+    public DataType(boolean dynamic, JsonType type, String name,
+            CharSequence description, Class<T> clazz,
             Adapter<T> adapter, CallableEx1<Object, T> serializer) {
 
         if (adapter == null && this instanceof Adapter)
@@ -101,6 +112,7 @@ public class DataType<T> {
         this.name = Objects.requireNonNull(name);
         this.adapter = Objects.requireNonNull(adapter);
         this.clazz = Objects.requireNonNull(clazz);
+        this.description = description;
 
         if (!dynamic) {
             if (ALL.containsKey(name))
@@ -156,6 +168,9 @@ public class DataType<T> {
         result.put("name", name);
         result.put("raw", type.name().toLowerCase());
 
+        if (description != null)
+            result.put("desc", description.toString());
+
         if (!units.isEmpty()) {
             JArray junits = result.arrayC("units");
             for (DataTypeUnit dtu : units)
@@ -168,8 +183,8 @@ public class DataType<T> {
         return result;
     }
 
-    public final static DataType<Object> ANY = new DataType<>(JsonType.STRING,
-            "any", Object.class,
+    public final static DataType<Object> ANY = new DataType<>(JsonType.ANY,
+            "any", "Dowolny typ", Object.class,
             (value, parent) -> value);
 
     public final static DataType<Boolean> BOOLEAN = new DataType<>(JsonType.BOOLEAN,
@@ -200,29 +215,29 @@ public class DataType<T> {
             "password", String.class, STRING.adapter);
 
     public final static DataType<String> MEMO = new DataType<>(JsonType.STRING,
-            "memo", String.class, STRING.adapter);
+            "memo", "Tekst wielo liniowy", String.class, STRING.adapter);
 
     public final static DataType<Pattern> REGEX = new DataType<>(JsonType.STRING,
-            "regex", Pattern.class,
+            "regex", "Wyrażenie regularne", Pattern.class,
             (value, parent) -> Pattern.compile(Utils.toString(value))
     );
 
     public final static DataType<Byte> BYTE = new DataType<>(JsonType.NUMBER,
-            "byte", Byte.class, (value, parent) -> {
+            "byte", "Wartość -128...127", Byte.class, (value, parent) -> {
                 if (value instanceof Number)
                     return ((Number) value).byteValue();
                 return Byte.parseByte(Utils.toString(value));
             });
 
     public final static DataType<Short> SHORT = new DataType<>(JsonType.NUMBER,
-            "short", Short.class, (value, parent) -> {
+            "short", "Wartość -32768...32767", Short.class, (value, parent) -> {
                 if (value instanceof Number)
                     return ((Number) value).shortValue();
                 return Short.parseShort(Utils.toString(value));
             });
 
     public final static DataType<Integer> INT = new DataType<>(JsonType.NUMBER,
-            "int", Integer.class, (value, parent) -> {
+            "int", "Wartość 0x80000000...0x7fffffff", Integer.class, (value, parent) -> {
                 if (value instanceof Number)
                     return ((Number) value).intValue();
                 return Integer.parseInt(Utils.toString(value));
@@ -235,8 +250,17 @@ public class DataType<T> {
                 return Long.parseLong(Utils.toString(value));
             });
 
-    public final static DataType<Double> FLOAT = new DataType<>(JsonType.NUMBER,
-            "float", Double.class,
+    public final static DataType<Float> FLOAT = new DataType<>(JsonType.NUMBER,
+            "float", Float.class,
+            (value, parent) -> {
+                if (value instanceof Number)
+                    return ((Number) value).floatValue();
+                String val = Utils.toString(value).replace(",", ".");
+                return Float.parseFloat(val);
+            });
+
+    public final static DataType<Double> DOUBLE = new DataType<>(JsonType.NUMBER,
+            "double", Double.class,
             (value, parent) -> {
                 if (value instanceof Number)
                     return ((Number) value).doubleValue();
@@ -244,22 +268,31 @@ public class DataType<T> {
                 return Double.parseDouble(val);
             });
 
+    public final static DataType<Float> PERCENT = new DataType<>(JsonType.NUMBER,
+            "percent", "Wartość procentowa", Float.class,
+            (value, parent) -> {
+                if (value instanceof Number)
+                    return ((Number) value).floatValue();
+                String val = Utils.toString(value).replace(",", ".");
+                return Float.parseFloat(val);
+            });
+
     public final static DataType<Long> SIZE = new DataType<>(JsonType.NUMBER,
-            "size", Long.class, (value, parent) -> {
+            "size", "Zapis wielkości binarnej (bajty)", Long.class, (value, parent) -> {
                 if (value instanceof Number)
                     return ((Number) value).longValue();
                 return Long.parseLong(Utils.toString(value));
             });
 
     public final static DataType<UUID> UUID = new DataType<>(JsonType.STRING,
-            "uid", UUID.class, (value, parent) -> {
+            "uid", "Unikalny identyfikator (GUID)", UUID.class, (value, parent) -> {
                 if (value instanceof byte[])
                     return java.util.UUID.nameUUIDFromBytes((byte[]) value);
                 return java.util.UUID.fromString(Utils.toString(value));
             });
 
     public final static DataType<TDate> DATE = new DataType<>(JsonType.NUMBER,
-            "date", TDate.class, (value, parent) -> {
+            "date", "Data (dzień, miesiąc, rok", TDate.class, (value, parent) -> {
                 if (value instanceof Date)
                     return new TDate((Date) value);
                 if (value instanceof Number)
@@ -268,15 +301,15 @@ public class DataType<T> {
             });
 
     public final static DataType<TDate> TIME = new DataType<>(JsonType.NUMBER,
-            "time", TDate.class, DATE.adapter);
+            "time", "Godzina (godzina, minuta, sekundy, milisekundy", TDate.class, DATE.adapter);
 
     public final static DataType<TDate> TIMESTAMP = new DataType<>(JsonType.NUMBER,
-            "timestamp", TDate.class, DATE.adapter, date -> date.getTime());
+            "timestamp", "Znacznik czasu - data i godzina", TDate.class, DATE.adapter, date -> date.getTime());
 
-    public final static DataType<Interval> DURATION = new DataType<>(JsonType.NUMBER,
-            "duration", Interval.class, (value, parent) -> {
+    public final static DataType<Long> DURATION = new DataType<>(JsonType.NUMBER,
+            "duration", "Upływ czasu", Long.class, (value, parent) -> {
                 if (value instanceof Number)
-                    return new Interval(((Number) value).doubleValue());
+                    return ((Number) value).longValue();
                 return null;
             });
 
@@ -310,17 +343,17 @@ public class DataType<T> {
             });
 
     public final static DataType<byte[]> HEX = new DataType<>(JsonType.STRING,
-            "hex", byte[].class, (value, parent) -> {
+            "hex", "Wartość binarna zakodowana w postaci szesnastkowej", byte[].class, (value, parent) -> {
                 return com.utils.hashes.Hex.toBytes(Utils.toString(value));
             });
 
     public final static DataType<byte[]> BASE64 = new DataType<>(JsonType.STRING,
-            "base64", byte[].class, ((value, parent) -> {
+            "base64", "Wartość binarna zakodowana w postaci Base64", byte[].class, ((value, parent) -> {
                 return com.utils.hashes.Base64.decode(Utils.toString(value));
             }));
 
     public final static DataType<java.net.URI> URI = new DataType<>(JsonType.STRING,
-            "uri", java.net.URI.class, (value, parent) -> {
+            "uri", "Adres URI/URL", java.net.URI.class, (value, parent) -> {
                 if (value instanceof URL)
                     return ((URL) value).toURI();
                 return new java.net.URI(Utils.toString(value));

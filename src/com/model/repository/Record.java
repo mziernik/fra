@@ -1,6 +1,7 @@
 package com.model.repository;
 
 import com.model.repository.intf.CRUDE;
+import com.utils.Utils;
 import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
 import java.util.HashSet;
@@ -10,18 +11,24 @@ import java.util.Set;
 public class Record implements Iterable<Column<?>> {
 
     public final Repository<?> repo;
-    public final CRUDE crude;
+    public CRUDE crude;
     Object[] cells;
     final Set<Column<?>> changed = new HashSet<>();
 
     public Record(Repository<?> repo, CRUDE crude, Object[] cells) {
+        if (cells == null)
+            cells = new Object[repo.columns.size()];
         this.repo = repo;
         this.crude = crude;
         this.cells = cells;
     }
 
-    public String getId() {
-        return null;
+    /**
+     * Zwraca ID obiektu w postaci repozytoium[pk=wartość]
+     */
+    public String toString() {
+        return repo.config.key + "[" + repo.config.primaryKey.config.key + "="
+                + Utils.escape(getPrimaryKeyValue()) + "]";
     }
 
     public int indexOf(Column<?> column) {
@@ -35,8 +42,8 @@ public class Record implements Iterable<Column<?>> {
         return cells[idx];
     }
 
-    public boolean isChanged(Column<?> field) {
-        return changed.contains(field);
+    public boolean isChanged(Column<?> column) {
+        return changed.contains(column);
     }
 
     public <T> T get(Column<T> column) {
