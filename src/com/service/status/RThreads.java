@@ -1,9 +1,12 @@
 package com.service.status;
 
 import com.model.repository.Column;
+import com.model.repository.Record;
 import com.model.repository.Repository;
 import com.model.repository.intf.CRUDE;
+import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
+import com.webapi.core.WebApiController;
 
 public class RThreads extends Repository<Long> {
 
@@ -110,6 +113,11 @@ public class RThreads extends Repository<Long> {
             c.local = true;
         });
         instance = this;
+    }
+
+    @Override
+    protected boolean beforeBroadcast(TList<WebApiController> recipients) {
+        return false;
     }
 
 }

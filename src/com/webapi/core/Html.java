@@ -30,6 +30,7 @@ import com.utils.Url;
 import com.utils.Utils;
 import com.utils.Is;
 import com.utils.collections.Strings;
+import com.utils.collections.TList;
 import com.utils.reflections.TMethod;
 import com.utils.text.StrWriter;
 import com.webapi.core.client.Ecma5;
@@ -91,7 +92,7 @@ class Html {
                 .lineHeight("1.5em")
                 .fontSize("10pt");
 
-        LinkedList<WebApiControllerMeta> list = WebApiControllerMeta.map.get(cls);
+        TList<WebApiControllerMeta> list = WebApiControllerMeta.map.get(cls);
 
         list.sort((WebApiControllerMeta o1, WebApiControllerMeta o2) -> o1.name.compareTo(o2.name));
 

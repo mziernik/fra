@@ -8,7 +8,6 @@ import com.utils.hashes.Hex;
 import com.html.modules.WindowLayer;
 import com.resources.Res;
 import com.exceptions.http.Http400BadRequestException;
-import com.exceptions.http.Http403ForbiddenException;
 import com.html.core.styles.FontWeight;
 import com.html.core.tag.form.DataList;
 import com.html.core.tag.form.Form;
@@ -157,7 +156,7 @@ public class PUserEdit extends Page {
         }
 
         MapList<String, Pair<Field, UserDataField>> fields
-                = new MapList<>(new TreeMap<String, LinkedList<Pair<Field, UserDataField>>>());
+                = new MapList<>(new TreeMap<String, TList<Pair<Field, UserDataField>>>());
 
         for (Field f : handler.getClass().getFields()) {
             UserDataField ann = f.getAnnotation(UserDataField.class);
@@ -165,7 +164,7 @@ public class PUserEdit extends Page {
                 fields.add(ann.group(), new Pair<>(f, ann));
         }
 
-        for (Entry<String, LinkedList<Pair<Field, UserDataField>>> en : fields) {
+        for (Entry<String, TList<Pair<Field, UserDataField>>> en : fields) {
 
             Container tgroup = en.getKey().isEmpty() ? tUser
                     : tUser.fieldset(en.getKey());

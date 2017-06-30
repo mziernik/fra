@@ -1,8 +1,6 @@
 package com.html.core.tag;
 
 import com.utils.Utils;
-import com.utils.Is;
-import com.context.index.Index;
 import com.dev.Dev;
 import com.html.core.*;
 import com.html.core.HtmlAttributes.HrefAttr;
@@ -15,15 +13,13 @@ import com.html.core.tag.meta.Link;
 import com.html.core.tag.meta.Meta;
 import com.html.core.tag.programming.Script;
 import com.html.js.core.JsAction;
-import com.mlogger.Log;
 import com.resources.core.IdxRes;
-import com.resources.core.Resources;
 import com.resources.core.html.ScriptFile;
 import com.servlet.controller.Controller;
 import com.utils.Url;
 import com.utils.collections.MapList;
+import com.utils.collections.TList;
 import java.io.FileNotFoundException;
-import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -201,7 +197,7 @@ public class Head extends Element<Head> implements Parent<Head>, OneInstance {
 
         }
 
-        for (Entry<String, LinkedList<Link>> en : links)
+        for (Entry<String, TList<Link>> en : links)
             if (en.getValue().size() > 1) {
                 Iterator<Link> itr = en.getValue().iterator();
                 itr.next(); // pomin pierwszy
@@ -209,7 +205,7 @@ public class Head extends Element<Head> implements Parent<Head>, OneInstance {
                     itr.next().remove();
             }
 
-        for (Entry<String, LinkedList<Script>> en : scripts)
+        for (Entry<String, TList<Script>> en : scripts)
             if (en.getValue().size() > 1) {
                 Iterator<Script> itr = en.getValue().iterator();
                 itr.next(); // pomin pierwszy

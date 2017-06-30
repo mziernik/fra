@@ -1,14 +1,15 @@
 package com.service.status;
 
-import com.json.JValue;
 import com.model.repository.Column;
 import com.model.repository.ForeignColumn;
 import com.model.repository.RecordUpdate;
 import com.model.repository.Repository;
 import com.model.repository.intf.CRUDE;
+import com.utils.collections.TList;
 import com.utils.date.TDate;
 import com.utils.reflections.datatype.DataType;
 import com.utils.reflections.datatype.MapDataType;
+import com.webapi.core.WebApiController;
 import java.util.Map;
 
 public class RStatus extends Repository<String> {
@@ -114,6 +115,11 @@ public class RStatus extends Repository<String> {
     @Override
     protected RecordUpdate localUpdate(String pk) {
         return super.localUpdate(pk);
+    }
+
+    @Override
+    protected boolean beforeBroadcast(TList<WebApiController> recipients) {
+        return false;
     }
 
 }

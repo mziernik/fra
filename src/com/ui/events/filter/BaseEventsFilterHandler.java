@@ -20,6 +20,7 @@ import com.ui.events.filter.EventFilter.TableSearchType;
 import com.lang.LService;
 import com.model.repository.DynamicRepo;
 import com.model.repository.Repository;
+import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
 
 /**
@@ -356,7 +357,7 @@ public abstract class BaseEventsFilterHandler<TSelf extends BaseEventsFilterHand
         for (FilterData<EventFilter> data : groupData)
             for (FCondition cond : data.keySet()) {
                 EventFilter filter = data.filter;
-                LinkedList<String> values = data.get(cond);
+                TList<String> values = data.get(cond);
                 String qry = null;
 
                 switch (filter.tblSearchType) {

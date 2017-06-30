@@ -17,6 +17,7 @@ import com.thread.ThreadObject;
 import com.utils.Url;
 import com.utils.collections.Params;
 import com.utils.collections.Strings;
+import com.utils.collections.TList;
 import com.utils.reflections.TClass;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -135,8 +136,8 @@ public abstract class WebSocketConnection extends Endpoint {
         }
     }
 
-    public static <T extends WebSocketController> LinkedList<T> getControllers(Class<T> ctrl) {
-        LinkedList<T> conns = new LinkedList<>();
+    public static <T extends WebSocketController> TList<T> getControllers(Class<T> ctrl) {
+        TList<T> conns = new TList<>();
         synchronized (connections) {
             for (WebSocketConnection conn : connections)
                 if (ctrl.isAssignableFrom(conn.controller.getClass()))

@@ -1,6 +1,5 @@
 package com.thread;
 
-import com.mlogger.Log;
 import com.utils.collections.TList;
 import java.util.*;
 
@@ -12,9 +11,10 @@ import java.util.*;
 public abstract class QueueThread<T extends Object> extends TThread {
 
     private final TList<T> queue = new TList<>();
-    private int minDelay = 0; // minimalne opóżnienie (ms)
-    private int idleTime = 0;
-    private int maxIdleTime = 0;
+    /** Minimalne opóźnienie wywołania metody processItem - działa jak frame limiter*/
+    protected int minDelay = 0; // minimalne opóżnienie (ms)
+    protected int idleTime = 0;
+    protected int maxIdleTime = 0;
     private long lastPeak = System.currentTimeMillis();
     private long lastIdle = System.currentTimeMillis();
     private T currentItem;
@@ -29,7 +29,7 @@ public abstract class QueueThread<T extends Object> extends TThread {
     }
 
     /**
-     * Ustawia maksymalny czas bezczynności, po kótrym zostanie wykonana metoda
+     * Ustawia maksymalny czas bezczynności, po którym zostanie wykonana metoda
      * onIndle
      *
      * @param idleTime
@@ -134,6 +134,14 @@ public abstract class QueueThread<T extends Object> extends TThread {
     public TList<T> getQueue() {
         synchronized (this) {
             return new TList<>(queue);
+        }
+    }
+
+    public TList<T> clearQueue() {
+        synchronized (this) {
+            TList<T> result = new TList<>(queue);
+            queue.clear();
+            return result;
         }
     }
 

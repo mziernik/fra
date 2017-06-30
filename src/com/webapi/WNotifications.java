@@ -66,7 +66,7 @@ public class WNotifications implements WebApi {
     @WebApiEndpoint
     public JObject getPatterns() {
         JObject json = new JObject();
-        for (Entry<String, LinkedList<Pattern>> en : notifyPatterns) {
+        for (Entry<String, TList<Pattern>> en : notifyPatterns) {
             JArray arr = json.arrayC(en.getKey());
             for (Pattern p : en.getValue())
                 arr.add(p.toString());

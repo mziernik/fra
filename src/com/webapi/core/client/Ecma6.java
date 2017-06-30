@@ -12,10 +12,10 @@ import com.servlet.websocket.WebSocketEndpoint;
 import com.utils.Is;
 import com.utils.Url;
 import com.utils.collections.Strings;
+import com.utils.collections.TList;
 import com.utils.reflections.TMethod;
 import com.utils.text.NameFormat;
 import com.utils.text.StrWriter;
-import com.webapi.core.DataType_old;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiController;
 import com.webapi.core.WebApiControllerMeta;
@@ -125,7 +125,7 @@ public class Ecma6 extends WebApiClientBuilder {
 
         }
 
-        LinkedList<WebApiControllerMeta> list = WebApiControllerMeta.map.get(cls);
+        TList<WebApiControllerMeta> list = WebApiControllerMeta.map.get(cls);
 
         list.sort((WebApiControllerMeta o1, WebApiControllerMeta o2) -> o1.name.compareTo(o2.name));
 

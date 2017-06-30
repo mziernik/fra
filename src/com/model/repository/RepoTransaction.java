@@ -1,7 +1,5 @@
 package com.model.repository;
 
-import com.events.Dispatcher;
-import com.intf.runnable.RunnableEx2;
 import com.json.JArray;
 import com.json.JObject;
 import com.mlogger.Log;
@@ -16,7 +14,6 @@ import com.utils.collections.MapList;
 import com.utils.collections.TList;
 import com.utils.date.TDate;
 import com.webapi.core.WebApiController;
-import java.util.LinkedList;
 import java.util.Map.Entry;
 
 public class RepoTransaction {
@@ -62,10 +59,14 @@ public class RepoTransaction {
                 local.add(rec);
         }
 
-        for (Entry<Repository<?>, LinkedList<Record>> en : repos.entrySet())
+        for (Repository<?> repo : new TList<>(repos.keySet()))
+            if (!repo.beforeCommit(repos.get(repo)))
+                repos.remove(repo);
+
+        for (Entry<Repository<?>, TList<Record>> en : repos.entrySet())
             en.getKey().onBeforeUpdate.dispatch(this, intf -> intf.run(en.getValue(), repos));
 
-        for (Entry<DAO, LinkedList<Record>> en : daoRecords) {
+        for (Entry<DAO, TList<Record>> en : daoRecords) {
             DAO<?> dao = en.getKey();
 
             TList<DAOQuery> queries = new TList<>();
@@ -98,18 +99,36 @@ public class RepoTransaction {
                 repo.updatesCount.incrementAndGet();
             }
         }
+        webApiBroadcast(repos);
+    }
 
-        // roześlij zdarzenie informujące o zmianach w repozytorium do zainteresowanych klientów WebApi
-        LinkedList<WebApiController> clients = WebSocketConnection.getControllers(WebApiController.class);
-        if (clients.isEmpty())
+    private static void clearChangedFlag(Record rec) {
+        if (!(rec instanceof RecordUpdate))
             return;
 
-        for (Entry<Repository<?>, LinkedList<Record>> en : repos) {
+        for (Column<?> col : rec)
+            rec.changed.remove(col);
+    }
+
+    static void webApiBroadcast(MapList<Repository<?>, Record> repos) {
+
+        // roześlij zdarzenie informujące o zmianach w repozytorium do zainteresowanych klientów WebApi
+        TList<WebApiController> clients = WebSocketConnection.getControllers(WebApiController.class);
+        if (clients.isEmpty()) {
+            repos.allValues().forEach(RepoTransaction::clearChangedFlag);
+            return;
+        }
+
+        for (Entry<Repository<?>, TList<Record>> en : repos) {
             Repository<?> repo = en.getKey();
+
             TList<WebApiController> recipients = new TList<>();
             for (WebApiController ctrl : clients)
                 if (ctrl.repositories.contains(repo))
                     recipients.add(ctrl);
+
+            if (recipients.isEmpty() || !repo.beforeBroadcast(recipients))
+                continue;
 
             if (recipients.isEmpty())
                 continue;
@@ -135,6 +154,8 @@ public class RepoTransaction {
                 for (Column<?> col : rec)
                     if (repo.config.primaryKey == col || rec.isChanged(col))
                         obj.put(col.config.key, rec.get(col));
+
+                clearChangedFlag(rec);
             }
 
             WebApiController.broadcast("repository", "update", json.getParent(), recipients);

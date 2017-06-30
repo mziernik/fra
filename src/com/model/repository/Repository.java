@@ -15,6 +15,7 @@ import com.utils.Utils;
 import com.utils.collections.*;
 import com.utils.date.TDate;
 import com.utils.reflections.TField;
+import com.webapi.core.WebApiController;
 import com.webapi.core.client.Repositories;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -153,6 +154,14 @@ public class Repository<PRIMARY_KEY> {
 
     public int getUpdatesCount() {
         return updatesCount.get();
+    }
+
+    protected boolean beforeCommit(TList<Record> get) {
+        return true;
+    }
+
+    protected boolean beforeBroadcast(TList<WebApiController> recipients) {
+        return true;
     }
 
     protected DAOQuery fillQuery(DAOQuery qry, Record rec) {
@@ -395,4 +404,29 @@ public class Repository<PRIMARY_KEY> {
         return new RecordUpdate(this, CRUDE.UPDATE, pk != null ? getCells(pk, true) : null);
     }
 
+    JObject _buildWebApiUpdateJson(Collection<Record> records) {
+        JObject json = new JObject()
+                .objectC(getKey());
+
+        json.put("lastUpdated", lastUpdate != null ? lastUpdate.getTime() : null);
+        json.put("lastUpdatedBy", lastUpdatedBy);
+        json.put("updates", updatesCount.get());
+
+        JArray jrows = json.arrayC("rows");
+        for (Record rec : records) {
+            JObject obj = jrows.object();
+            //  obj.put("#crude", rec.crude.name);
+
+            // dla operacji DELETE zwróć tylko ID obiektu
+            if (rec.crude == CRUDE.DELETE) {
+                obj.put(config.primaryKey.config.key, rec.getPrimaryKeyValue());
+                continue;
+            }
+
+            for (Column<?> col : rec)
+                if (config.primaryKey == col || rec.isChanged(col))
+                    obj.put(col.config.key, rec.get(col));
+        }
+        return json;
+    }
 }

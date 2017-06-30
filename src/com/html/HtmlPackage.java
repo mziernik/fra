@@ -81,7 +81,7 @@ public class HtmlPackage {
                     TObject<String> currentFile = new TObject<>();
 
                     try {
-                        LinkedList<String> langs = langFiles.get("pl");
+                        TList<String> langs = langFiles.get("pl");
                         final JObject jLang = new JObject();
                         jLang.options.compactMode(true).singleLine(true);
                         for (String langFile : langs) {
