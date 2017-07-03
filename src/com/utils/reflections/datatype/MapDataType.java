@@ -11,8 +11,7 @@ public class MapDataType<K, V> extends DataType<LinkedHashMap<K, V>> {
 
     public MapDataType(DataType<K> keyType, DataType<V> valueType) {
         super(true, JsonType.OBJECT, "{" + keyType.name + ", " + valueType.name + "}",
-                "Mapa wartości",
-                null, (value, parent) -> {
+                "Mapa wartości", (Class) LinkedHashMap.class, (value, parent) -> {
 
                     if (value instanceof Map)
                         return new LinkedHashMap<>((Map) value);

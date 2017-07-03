@@ -1065,6 +1065,7 @@ com/model/repository/DynamicRepo$DynamicColumn.class
 com/model/repository/DynamicRepo.class
 com/model/repository/ForeignColumn.class
 com/model/repository/ForeignColumns.class
+com/model/repository/Queue.class
 com/model/repository/Record.class
 com/model/repository/RecordUpdate.class
 com/model/repository/RepoTransaction.class

@@ -1,12 +1,13 @@
 package com.utils.reflections.datatype;
 
+import com.json.JArray;
 import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType.JsonType;
 import java.lang.reflect.Array;
 
 public class ArrayDataType<T> extends DataType<T[]> {
 
-    public final DataType<?> component;
+    public final DataType<T> component;
 
     public ArrayDataType(DataType<T> component) {
         super(true, JsonType.ARRAY, component.name + "[]", "Tablica " + component.name,
@@ -24,4 +25,13 @@ public class ArrayDataType<T> extends DataType<T[]> {
         }, null);
         this.component = component;
     }
+
+    @Override
+    public Object serialize(T[] value) {
+        JArray arr = new JArray();
+        for (T t : value)
+            arr.add(component.serialize(t));
+        return arr;
+    }
+
 }

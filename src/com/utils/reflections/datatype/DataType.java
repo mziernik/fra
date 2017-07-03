@@ -76,8 +76,6 @@ public class DataType<T> {
     private final CallableEx1<Object, T> serializer;
 
     public final TList<DataTypeUnit> units = new TList<>();
-    public final Map<String, String> enumerate = new LinkedHashMap<>();
-    public final List<String> values = new TList<>();
 
     private DataType(JsonType type, String name, Class<T> clazz, Adapter<T> adapter) {
         this(false, type, name, null, clazz, adapter, null);
@@ -103,9 +101,6 @@ public class DataType<T> {
 
         if (adapter == null && this instanceof Adapter)
             adapter = (Adapter<T>) this;
-
-        if (clazz == null && this instanceof MapDataType)
-            clazz = (Class<T>) LinkedHashMap.class;
 
         this.serializer = serializer;
         this.type = Objects.requireNonNull(type);
@@ -176,9 +171,6 @@ public class DataType<T> {
             for (DataTypeUnit dtu : units)
                 junits.array().addAll(dtu.key, dtu.name, dtu.multipier);
         }
-
-        if (!enumerate.isEmpty())
-            result.put("enumerate", enumerate);
 
         return result;
     }

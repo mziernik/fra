@@ -180,7 +180,7 @@ public class QueryRows extends DAORows<QueryRow> implements Iterable<QueryRow> {
      */
     public QueryRow firstD() {
         QueryRow row = first();
-        return row != null ? row : QueryRow.getDummy();
+        return row != null ? row : QueryRow.getDummy(this);
     }
 
     /**
@@ -225,7 +225,7 @@ public class QueryRows extends DAORows<QueryRow> implements Iterable<QueryRow> {
     public QueryRow findFirstD(String columnName, Object value) throws SQLException {
         QueryRows rows = find(columnName, value);
         QueryRow row = rows != null ? rows.first() : null;
-        return row != null ? row : QueryRow.getDummy();
+        return row != null ? row : QueryRow.getDummy(this);
     }
 
     public int getNonEmptyCellsCount(String column) {

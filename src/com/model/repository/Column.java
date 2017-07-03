@@ -16,6 +16,8 @@ import com.utils.Utils;
 import com.utils.collections.Params;
 import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
+import com.utils.reflections.datatype.EnumDataType;
+import com.utils.reflections.datatype.EnumsDataType;
 import com.webapi.core.client.Repositories;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -193,11 +195,17 @@ public class Column<RAW> {
             if (Column.this instanceof ForeignColumns)
                 foreign = ((ForeignColumns) Column.this).column;
 
-            String enumerate = type.enumerate.isEmpty() ? null
-                    : JSON.serialize(type.enumerate).asCollection().options.quotaNames(false).element.toString();
+            Object enumerate = !this.enumerate.isEmpty()
+                    ? this.enumerate
+                    : null;
 
-            if (!type.values.isEmpty())
-                enumerate = JSON.serialize(type.values).asCollection().options.quotaNames(false).element.toString();
+            if (enumerate == null && type instanceof EnumDataType
+                    && !((EnumDataType) type).enumerate.isEmpty())
+                enumerate = ((EnumDataType) type).enumerate;
+
+            if (enumerate == null && type instanceof EnumsDataType
+                    && !((EnumsDataType) type).enumerate.isEmpty())
+                enumerate = ((EnumsDataType) type).enumerate;
 
             return new Params()
                     .escape("key", key)
@@ -221,7 +229,9 @@ public class Column<RAW> {
                     .escape("disabled", disabled)
                     .escape("sortable", sortable)
                     .add("foreign", foreign != null ? "() => " + Repositories.formatFieldName(foreign.getRepository(true).getClass().getSimpleName()) : null)
-                    .add("enumerate", enumerate);
+                    .add("enumerate", enumerate != null
+                            ? JSON.serialize(enumerate).asCollection().options.quotaNames(false).element.toString()
+                            : null);
         }
 
         public JObject getJson() {

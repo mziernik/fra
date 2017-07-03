@@ -19,8 +19,8 @@ import java.util.Map.Entry;
 
 public class QueryRow extends DAORow implements Iterable<QueryCell> {
 
-    public static QueryRow getDummy() {
-        return new QueryRow(new Object[0], null);
+    public static QueryRow getDummy(QueryRows parent) {
+        return new QueryRow(new Object[0], parent);
     }
 
     QueryRows rows;

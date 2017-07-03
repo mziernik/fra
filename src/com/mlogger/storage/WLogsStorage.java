@@ -10,6 +10,7 @@ import com.utils.collections.TList;
 import com.utils.date.TDate;
 import com.utils.reflections.datatype.DataType;
 import com.utils.reflections.datatype.EnumDataType;
+import com.utils.reflections.datatype.EnumDataType;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiEndpoint;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class WLogsStorage implements WebApi {
         dataSet.column(TDate.class, "date", DataType.TIMESTAMP, new LStr("Data"),
                 log -> log.date.value());
 
-        dataSet.column(LogKind.class, "kind", new EnumDataType<>(LogKind.class), new LStr("Rodzaj"),
+        dataSet.column(LogKind.class, "kind", EnumDataType.ofEnum(LogKind.class), new LStr("Rodzaj"),
                 log -> log.kind.value());
 
         dataSet.column(TList.class, "tags", DataType.LIST, new LStr("Tagi"),

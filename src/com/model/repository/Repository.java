@@ -165,6 +165,8 @@ public class Repository<PRIMARY_KEY> {
     }
 
     protected DAOQuery fillQuery(DAOQuery qry, Record rec) {
+        if (config.daoName == null)
+            return qry;
         qry.source(config.daoName);
 
         switch (qry.crude) {
@@ -332,10 +334,11 @@ public class Repository<PRIMARY_KEY> {
 
         TList<DAOQuery> queries = new TList<>();
         for (Repository<?> repo : ALL.values()) {
-            if (Boolean.TRUE.equals(repo.config.local))
+            if (Boolean.TRUE.equals(repo.config.local) || repo.config.daoName == null)
                 continue;
             repo.config.local = false;
             repo.config.dao = dao;
+
             queries.add(repo.fillQuery(new DAOQuery(repo, dao, CRUDE.READ), null));
         }
 
