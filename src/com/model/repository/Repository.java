@@ -44,6 +44,8 @@ public class Repository<PRIMARY_KEY> {
         public CharSequence name;
         public String daoName;
         public Column<?> primaryKey;
+        public Column<?> parentColumn;
+        public Column<?> orderColumn;
         public Column<?> displayName;
         public boolean autoUpdate = true; //czy informaje o zmianach mają być automatycznie rozsyłane do klientów
         public DAO dao;
@@ -79,6 +81,12 @@ public class Repository<PRIMARY_KEY> {
                     .add("record", Repository.this.getClass().getSimpleName() + "Record")
                     .add("primaryKeyColumn", Repository.this.getClass().getSimpleName()
                             + "." + Repositories.formatFieldName(primaryKey.getKey()))
+                    .add("parentColumn", parentColumn != null
+                            ? Repository.this.getClass().getSimpleName()
+                            + "." + Repositories.formatFieldName(parentColumn.getKey()) : null)
+                    .add("orderColumn", orderColumn != null
+                            ? Repository.this.getClass().getSimpleName()
+                            + "." + Repositories.formatFieldName(orderColumn.getKey()) : null)
                     .add("displayNameColumn", displayName != null
                             ? Repository.this.getClass().getSimpleName()
                             + "." + Repositories.formatFieldName(displayName.getKey())
