@@ -2,18 +2,18 @@ package com.model.repository;
 
 import com.model.repository.intf.CRUDE;
 import com.utils.Utils;
+import com.utils.collections.Pair;
 import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.LinkedHashMap;
 
 public class Record implements Iterable<Column<?>> {
 
     public final Repository<?> repo;
     public CRUDE crude;
     Object[] cells;
-    final Set<Column<?>> changed = new HashSet<>();
+    public final LinkedHashMap<Column<?>, Pair<Object, Object>> changed = new LinkedHashMap<>();
 
     public Record(Repository<?> repo, CRUDE crude, Object[] cells) {
         if (cells == null)
@@ -43,7 +43,7 @@ public class Record implements Iterable<Column<?>> {
     }
 
     public boolean isChanged(Column<?> column) {
-        return changed.contains(column);
+        return changed.containsKey(column);
     }
 
     public <T> T get(Column<T> column) {

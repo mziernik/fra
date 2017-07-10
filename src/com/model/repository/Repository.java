@@ -4,6 +4,7 @@ import com.events.Dispatcher;
 import com.model.repository.intf.CRUDE;
 import com.intf.callable.Callable1;
 import com.intf.runnable.Runnable1;
+import com.intf.runnable.RunnableEx;
 import com.intf.runnable.RunnableEx2;
 import com.json.JArray;
 import com.json.JObject;
@@ -11,6 +12,7 @@ import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
 import com.model.dao.core.DAORows;
+import com.resources.FontAwesome;
 import com.utils.Utils;
 import com.utils.collections.*;
 import com.utils.date.TDate;
@@ -38,6 +40,24 @@ public class Repository<PRIMARY_KEY> {
     final AtomicInteger updatesCount = new AtomicInteger();
     String lastUpdatedBy;
 
+    public class RepoAction {
+
+        public String key;
+        public String name;
+        public FontAwesome icon;
+        public String confirm;
+        public RunnableEx onExecute;
+
+        public RepoAction(String key, String name, FontAwesome icon, String confirm, RunnableEx onExecute) {
+            this.key = key;
+            this.name = name;
+            this.icon = icon;
+            this.confirm = confirm;
+            this.onExecute = onExecute;
+        }
+
+    }
+
     public class RepoConfig {
 
         public String key;
@@ -49,11 +69,14 @@ public class Repository<PRIMARY_KEY> {
         public Column<?> displayName;
         public boolean autoUpdate = true; //czy informaje o zmianach mają być automatycznie rozsyłane do klientów
         public DAO dao;
+        public Boolean onDemand;
         public Boolean local;
         public Integer limit;
         public Integer offset;
         public Boolean dynamic;
+        public FontAwesome icon;
         public final Flags<CRUDE> crude = CRUDE.flags(CRUDE.CRUD);
+        public final LinkedHashMap<String, RepoAction> actions = new LinkedHashMap<String, RepoAction>();
 
         public RepoConfig() {
             if (Repository.this instanceof DynamicRepo)
@@ -74,7 +97,21 @@ public class Repository<PRIMARY_KEY> {
 
         }
 
+        public RepoConfig action(String key, String name, FontAwesome icon, String confirm, RunnableEx onExecute) {
+            actions.put(key, new RepoAction(key, name, icon, confirm, onExecute));
+            return this;
+        }
+
         public Params getClinetParams() {
+
+            JObject jactions = new JObject();
+            jactions.options.quotaNames(false);
+            actions.forEach((String k, RepoAction a) -> jactions.objectC(k)
+                    .put("name", a.name)
+                    .put("confirm", a.confirm)
+                    .put("icon", a.icon != null ? a.icon.className : null).options.singleLine(true)
+            );
+
             return new Params()
                     .escape("key", key)
                     .escape("name", name)
@@ -93,7 +130,10 @@ public class Repository<PRIMARY_KEY> {
                             : null)
                     .escape("crude", crude.getChars())
                     .add("local", local)
-                    .add("autoUpdate", autoUpdate);
+                    .escape("icon", icon != null ? icon.className : null)
+                    .add("onDemand", onDemand)
+                    .add("autoUpdate", autoUpdate)
+                    .add("actions", actions.isEmpty() ? null : jactions.toString());
         }
 
         public void getJson(JObject obj, boolean metaData) {
@@ -342,7 +382,9 @@ public class Repository<PRIMARY_KEY> {
 
         TList<DAOQuery> queries = new TList<>();
         for (Repository<?> repo : ALL.values()) {
-            if (Boolean.TRUE.equals(repo.config.local) || repo.config.daoName == null)
+            if (Boolean.TRUE.equals(repo.config.local)
+                    || Boolean.FALSE.equals(repo.config.onDemand)
+                    || repo.config.daoName == null)
                 continue;
             repo.config.local = false;
             repo.config.dao = dao;

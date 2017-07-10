@@ -13,6 +13,7 @@ import com.model.repository.intf.CRUDE;
 import com.model.repository.intf.CaseConvert;
 import com.utils.TObject;
 import com.utils.Utils;
+import com.utils.collections.Pair;
 import com.utils.collections.Params;
 import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
@@ -98,9 +99,10 @@ public class Column<RAW> {
             if (Utils.equals(src, v))
                 return v;
 
+            Object prev = rec.cells[idx];
             rec.cells[idx] = v;
             config.onAfterSet.dispatch(this, r -> r.run(rec, v, null));
-            rec.changed.add(this);
+            rec.changed.put(this, new Pair<>(prev, v));
 
             return v;
         } catch (Throwable e) {
@@ -129,7 +131,7 @@ public class Column<RAW> {
         public Boolean list;
         public Integer min;
         public Integer max;
-        public Boolean trim;
+        public Boolean trimmed;
         public String regex;
         public Align align;
         public CaseConvert caseConvert;

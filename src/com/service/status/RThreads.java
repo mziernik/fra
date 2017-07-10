@@ -4,6 +4,7 @@ import com.model.repository.Column;
 import com.model.repository.Record;
 import com.model.repository.Repository;
 import com.model.repository.intf.CRUDE;
+import com.resources.FontAwesome;
 import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
 import com.webapi.core.WebApiController;
@@ -111,6 +112,10 @@ public class RThreads extends Repository<Long> {
             c.name = "Wątki";
             c.crude.set(CRUDE.READ); // tylko do odczytu
             c.local = true;
+            c.action("term", "Zatrzymaj", FontAwesome.TIMES,
+                    "Czy na pewno zatrzymać wątek ${id} \"${name}\"?", () -> {
+
+                    });
         });
         instance = this;
     }

@@ -3,6 +3,7 @@ package com.model.repository;
 import com.json.JArray;
 import com.json.JObject;
 import com.mlogger.Log;
+import com.model.RRepoHistory;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
@@ -40,6 +41,7 @@ public class RepoTransaction {
     }
 
     public void commit(boolean strict) throws Exception {
+
         if (records.isEmpty())
             return;
 
@@ -53,6 +55,7 @@ public class RepoTransaction {
             if (rec.changed.isEmpty())
                 continue;
             repos.add(rec.repo, rec);
+
             if (rec.repo.config.dao != null)
                 daoRecords.add(rec.repo.config.dao, rec);
             else
@@ -65,6 +68,8 @@ public class RepoTransaction {
 
         for (Entry<Repository<?>, TList<Record>> en : repos.entrySet())
             en.getKey().onBeforeUpdate.dispatch(this, intf -> intf.run(en.getValue(), repos));
+
+        RepoTransaction history = new RepoTransaction();
 
         for (Entry<DAO, TList<Record>> en : daoRecords) {
             DAO<?> dao = en.getKey();
@@ -80,12 +85,19 @@ public class RepoTransaction {
             // przetwarzanie odpowiedzi
             for (DAORows<?> rows : results) {
                 Record rec = (Record) rows.context;
+
                 for (DAORow row : rows) {
                     rec.repo.fillRecord(rec, row);
                     local.add(rec);
                 }
+                if (!(rec.repo instanceof RRepoHistory) && RRepoHistory.instance != null)
+                    RRepoHistory.instance.fill(history.create(RRepoHistory.instance), rec);
+
             }
         }
+
+        if (!history.records.isEmpty())
+            history.commit(true);
 
         // zakładamy, że operacja się powiodła, aktualizujemy loklane repozytoria
         for (Record rec : local)

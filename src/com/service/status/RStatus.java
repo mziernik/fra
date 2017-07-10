@@ -95,7 +95,7 @@ public class RStatus extends Repository<String> {
 
     public final static Column<Map<String, Object>> ATTRIBUTES = new Column<>(c -> {
         c.repository = RStatus.class;
-        c.type = new MapDataType<>(DataType.STRING, DataType.ANY);
+        c.type = new MapDataType<>(DataType.ANY);
         c.key = "attrs";
         c.name = "Atrybuty";
     });

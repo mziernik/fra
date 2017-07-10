@@ -14,6 +14,7 @@ public enum CRUDE {
     public final String name;
 
     public final static CRUDE[] CRUD = {CREATE, READ, UPDATE, DELETE};
+    public final static CRUDE[] CRU = {CREATE, READ, UPDATE};
 
     CRUDE(String name, CharSequence title) {
         this.name = name;

@@ -1,5 +1,8 @@
-package com.model.repository;
+package com.model;
 
+import com.model.repository.Column;
+import com.model.repository.Record;
+import com.model.repository.Repository;
 import com.utils.Utils;
 import com.utils.collections.Pair;
 import com.utils.collections.Quad;

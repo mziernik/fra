@@ -200,6 +200,9 @@ public class DataType<T> {
                 return id;
             });
 
+    public final static DataType<String> EMAIL = new DataType<String>(JsonType.STRING,
+            "email", String.class, (value, parent) -> Utils.toString(value));
+
     public final static DataType<String> FILE_NAME = new DataType<>(JsonType.STRING,
             "file_name", String.class, STRING.adapter);
 
@@ -311,9 +314,14 @@ public class DataType<T> {
             });
 
     public final static DataType<HashMap> MAP = new DataType<>(JsonType.OBJECT,
-            "integer", HashMap.class, (value, parent) -> {
+            "map", HashMap.class, (value, parent) -> {
                 return new HashMap<>();
             });
+
+    public final static EnumDataType<DataType> DATA_TYPE = new EnumDataType<>(
+            DataType.class, DataType.ALL.values(),
+            dt -> dt.name,
+            dt -> dt.description != null ? dt.description.toString() : dt.name);
 
     public final static DataType<JElement> JSON = new DataType<>(JsonType.STRING,
             "json", JElement.class, (value, parent) -> {

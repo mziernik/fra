@@ -537,7 +537,7 @@ public abstract class WebApiController extends WebSocketController
                 log.user(ses.user.username);
         }
 
-        if (req.params != null)
+        if (req != null && req.params != null)
             log.data("Params", req.params.toString());
 
         if (e != null) {

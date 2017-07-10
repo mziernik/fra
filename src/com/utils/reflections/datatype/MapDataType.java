@@ -6,11 +6,10 @@ import java.util.Map;
 
 public class MapDataType<K, V> extends DataType<LinkedHashMap<K, V>> {
 
-    public final DataType<K> keyType;
-    public final DataType<V> valueType;
+    public final DataType<V> type;
 
-    public MapDataType(DataType<K> keyType, DataType<V> valueType) {
-        super(true, JsonType.OBJECT, "{" + keyType.name + ", " + valueType.name + "}",
+    public MapDataType(DataType<V> type) {
+        super(true, JsonType.OBJECT, "{" + type.name + "}",
                 "Mapa wartości", (Class) LinkedHashMap.class, (value, parent) -> {
 
                     if (value instanceof Map)
@@ -18,7 +17,6 @@ public class MapDataType<K, V> extends DataType<LinkedHashMap<K, V>> {
 
                     return null;
                 }, null);
-        this.keyType = keyType;
-        this.valueType = valueType;
+        this.type = type;
     }
 }
