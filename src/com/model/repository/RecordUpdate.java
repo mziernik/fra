@@ -59,7 +59,7 @@ class Queue extends QueueThread<Record> {
 
         MapList<Repository<?>, Record> repos = new MapList<>();
         queue.forEach(rec -> repos.add(rec.repo, rec));
-        RepoTransaction.webApiBroadcast(repos);
+        ReposTransaction.webApiBroadcast(repos);
     }
 
 }

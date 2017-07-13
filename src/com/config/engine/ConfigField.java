@@ -19,6 +19,7 @@ import com.intf.runnable.Runnable1;
 import com.json.JArray;
 import com.json.JObject;
 import static com.lang.LConfig.LACK;
+import com.model.repository.Record;
 import com.utils.TObject;
 
 public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
@@ -51,6 +52,7 @@ public class ConfigField<SELF extends ConfigField<SELF, RAW, ROW>, RAW, ROW>
     final Dispatcher<BeforeChangeListener<SELF, RAW>> onBeforeChange = new Dispatcher<>();
     final Dispatcher<AfterChangeListener<SELF, RAW>> onAfterChange = new Dispatcher<>();
     final Dispatcher<ValueValidatorListener<SELF, RAW, ROW>> validators = new Dispatcher<>();
+    Record record;
 
     protected ConfigField(String key, CharSequence name, RAW defaultValue, ConfigCell<?, ?>... cells) {
         super(key, name);

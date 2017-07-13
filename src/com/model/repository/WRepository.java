@@ -60,7 +60,7 @@ public class WRepository implements WebApi {
 
         final JObject result = new JObject();
 
-        RepoTransaction trans = new RepoTransaction();
+        ReposTransaction trans = new ReposTransaction();
 
         for (JArray arr : json.getArrays()) {
 

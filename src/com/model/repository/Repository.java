@@ -102,15 +102,18 @@ public class Repository<PRIMARY_KEY> {
             return this;
         }
 
-        public Params getClinetParams() {
-
-            JObject jactions = new JObject();
-            jactions.options.quotaNames(false);
-            actions.forEach((String k, RepoAction a) -> jactions.objectC(k)
+        private JObject getActionsJson(boolean quotaNames) {
+            JObject json = new JObject();
+            json.options.quotaNames(quotaNames);
+            actions.forEach((String k, RepoAction a) -> json.objectC(k)
                     .put("name", a.name)
                     .put("confirm", a.confirm)
                     .put("icon", a.icon != null ? a.icon.className : null).options.singleLine(true)
             );
+            return json;
+        }
+
+        public Params getClinetParams() {
 
             return new Params()
                     .escape("key", key)
@@ -133,7 +136,7 @@ public class Repository<PRIMARY_KEY> {
                     .escape("icon", icon != null ? icon.className : null)
                     .add("onDemand", onDemand)
                     .add("autoUpdate", autoUpdate)
-                    .add("actions", actions.isEmpty() ? null : jactions.toString());
+                    .add("actions", actions.isEmpty() ? null : getActionsJson(false).toString());
         }
 
         public void getJson(JObject obj, boolean metaData) {
@@ -142,13 +145,21 @@ public class Repository<PRIMARY_KEY> {
                 obj.put("key", key);
                 obj.put("name", name);
                 obj.put("local", local);
+                obj.put("icon", icon != null ? icon.className : null);
+                obj.put("onDemand", onDemand);
+                obj.put("actions", actions.isEmpty() ? null : getActionsJson(true));
                 obj.put("autoUpdate", autoUpdate);
+                obj.put("primaryKeyColumn", primaryKey.getKey());
+                obj.put("orderColumn", orderColumn != null ? orderColumn.getKey() : null);
+                obj.put("parentColumn", parentColumn != null ? parentColumn.getKey() : null);
+                obj.put("displayNameColumn", displayName != null ? displayName.getKey() : null);
+                obj.put("crude", new Strings().map(crude, cr -> "" + cr.name().charAt(0)).toString(""));
             }
+
             obj.put("rowsCount", records.size());
             obj.put("lastUpdated", lastUpdate != null ? lastUpdate.getTime() : null);
             obj.put("lastUpdatedBy", lastUpdatedBy);
             obj.put("updates", updatesCount.get());
-            obj.put("crude", new Strings().map(crude, cr -> "" + cr.name().charAt(0)).toString(""));
 
             JArray jcol = obj.arrayC("columns");
             for (Column<?> column : columns.values())
@@ -281,6 +292,8 @@ public class Repository<PRIMARY_KEY> {
 
     Object[] getCells(PRIMARY_KEY pk, boolean clone) {
         Object[] cells;
+        if (pk == null)
+            throw new RepositoryException(this, "Brak klucza głównego");
         synchronized (records) {
             cells = records.get(pk);
         }
@@ -315,6 +328,8 @@ public class Repository<PRIMARY_KEY> {
             throw new RepositoryException(this, "Rekord nie należy do repozytorium");
 
         PRIMARY_KEY pk = (PRIMARY_KEY) record.getPrimaryKeyValue();
+        if (pk == null)
+            throw new RepositoryException(this, "Piusta wartpość klucza głownego");
         synchronized (records) {
             switch (record.crude) {
                 case CREATE:
@@ -455,6 +470,10 @@ public class Repository<PRIMARY_KEY> {
 
     protected RecordUpdate localUpdate(PRIMARY_KEY pk) {
         return new RecordUpdate(this, CRUDE.UPDATE, pk != null ? getCells(pk, true) : null);
+    }
+
+    public RepoTransaction<PRIMARY_KEY> beginTransaction() {
+        return new RepoTransaction<>(this);
     }
 
     JObject _buildWebApiUpdateJson(Collection<Record> records) {

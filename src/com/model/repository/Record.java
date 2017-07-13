@@ -14,6 +14,7 @@ public class Record implements Iterable<Column<?>> {
     public CRUDE crude;
     Object[] cells;
     public final LinkedHashMap<Column<?>, Pair<Object, Object>> changed = new LinkedHashMap<>();
+    private final int pkIndex;
 
     public Record(Repository<?> repo, CRUDE crude, Object[] cells) {
         if (cells == null)
@@ -21,10 +22,13 @@ public class Record implements Iterable<Column<?>> {
         this.repo = repo;
         this.crude = crude;
         this.cells = cells;
+        this.pkIndex = indexOf(repo.config.primaryKey);
+        if (pkIndex < 0)
+            throw new RepositoryException(repo, "Repozytorium nie posiada klucza głównego");
     }
 
     /**
-     * Zwraca ID obiektu w postaci repozytoium[pk=wartość]
+     * Zwraca ID obiektu w postaci repozytorium[pk=wartość]
      */
     public String toString() {
         return repo.config.key + "[" + repo.config.primaryKey.config.key + "="
@@ -36,10 +40,7 @@ public class Record implements Iterable<Column<?>> {
     }
 
     public Object getPrimaryKeyValue() {
-        int idx = indexOf(repo.config.primaryKey);
-        if (idx < 0)
-            throw new RepositoryException(repo, "Repozytorium nie posiada klucza głównego");
-        return cells[idx];
+        return cells[pkIndex];
     }
 
     public boolean isChanged(Column<?> column) {

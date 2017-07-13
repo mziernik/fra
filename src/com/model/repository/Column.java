@@ -79,9 +79,11 @@ public class Column<RAW> {
 
             config.onBeforeSet.dispatch(this, r -> r.run(rec, value));
 
-            final TObject<RAW> val = new TObject<RAW>(config.parser != null
-                    ? config.parser.run(Utils.coalesce(value, config.defaultValue))
-                    : config.type.parse(Utils.coalesce(value, config.defaultValue)));
+            final TObject<RAW> val = new TObject<RAW>(
+                    value == null ? null
+                            : config.parser != null
+                                    ? config.parser.run(Utils.coalesce(value, config.defaultValue))
+                                    : config.type.parse(Utils.coalesce(value, config.defaultValue)));
 
             if (rec.crude == CRUDE.UPDATE && this == repo.config.primaryKey) {
                 Object pk = rec.getPrimaryKeyValue();
@@ -252,9 +254,7 @@ public class Column<RAW> {
             json.put("desc", description);
             json.put("subtitle", subtitle);
             json.put("sortOrder", sortOrder);
-            JObject jtype = type.getJson();
-            jtype.options.singleLine(true);
-            json.put("type", jtype);
+            json.put("type", type.name);
             json.put("align", align != null ? align.key : null);
             json.put("searchable", searchable);
             json.put("filtered", filtered);

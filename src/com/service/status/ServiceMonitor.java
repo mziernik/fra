@@ -7,7 +7,7 @@ import com.json.JObject;
 import com.lang.core.LStr;
 
 import com.model.repository.Record;
-import com.model.repository.RepoTransaction;
+import com.model.repository.ReposTransaction;
 import com.sun.management.OperatingSystemMXBean;
 import com.thread.LoopThread;
 import com.utils.Utils;
@@ -163,7 +163,7 @@ public class ServiceMonitor extends LoopThread {
         int tterm = 0;
         int twait = 0;
 
-        RepoTransaction trans = new RepoTransaction();
+        ReposTransaction trans = new ReposTransaction();
 
         for (Thread th : threads) {
             if (th == null || th.getState() == null) // tu może wystąpić null
