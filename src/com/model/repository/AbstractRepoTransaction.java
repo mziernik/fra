@@ -1,9 +1,11 @@
 package com.model.repository;
 
+import com.context.AppContext;
 import com.json.JArray;
 import com.json.JObject;
 import com.mlogger.Log;
 import com.model.RRepoHistory;
+import com.model.RRepoUpdate;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
@@ -104,6 +106,12 @@ public class AbstractRepoTransaction {
             for (DAORows<?> rows : results) {
                 Record rec = (Record) rows.context;
 
+                if (rows.size() > 1)
+                    throw new RepositoryException(rec.repo, Utils.frmt("Zbyt dużo wyników (%1)", results.size()));
+
+                if (rows.crude == CRUDE.UPDATE && rows.isEmpty())
+                    System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
                 for (DAORow row : rows) {
                     rec.repo.fillRecord(rec, row);
                     local.add(rec);
@@ -119,16 +127,8 @@ public class AbstractRepoTransaction {
 
         // zakładamy, że operacja się powiodła, aktualizujemy loklane repozytoria
         for (Record rec : local)
-            rec.repo.updateRecord(rec);
+            rec.repo.updateRecord(rec, true);
 
-        // --------- aktualizacja statystyk ------------------
-        for (Repository<?> repo : repos.keySet()) {
-            repo.lastUpdate = new TDate();
-            repo.lastUpdatedBy = "root";
-            synchronized (repo.updatesCount) {
-                repo.updatesCount.incrementAndGet();
-            }
-        }
         webApiBroadcast(repos);
     }
 
@@ -140,8 +140,17 @@ public class AbstractRepoTransaction {
             rec.changed.remove(col);
     }
 
-    static void webApiBroadcast(MapList<Repository<?>, Record> repos) {
+    static void webApiBroadcast(Record rec) {
+        if (!AppContext.isInitialized())
+            return;
+        MapList<Repository<?>, Record> repos = new MapList<>();
+        repos.add(rec.repo, rec);
+        webApiBroadcast(repos);
+    }
 
+    static void webApiBroadcast(MapList<Repository<?>, Record> repos) {
+        if (!AppContext.isInitialized())
+            return;
         // roześlij zdarzenie informujące o zmianach w repozytorium do zainteresowanych klientów WebApi
         TList<WebApiController> clients = WebSocketConnection.getControllers(WebApiController.class);
         if (clients.isEmpty()) {
@@ -151,6 +160,9 @@ public class AbstractRepoTransaction {
 
         for (Entry<Repository<?>, TList<Record>> en : repos) {
             Repository<?> repo = en.getKey();
+
+            if (!RRepoUpdate.canUpdate(repo))
+                continue;
 
             TList<WebApiController> recipients = new TList<>();
             for (WebApiController ctrl : clients)
@@ -249,6 +261,6 @@ public class AbstractRepoTransaction {
      */
     public void loadAll() {
         for (Record rec : records)
-            rec.repo.updateRecord(rec);
+            rec.repo.updateRecord(rec, false);
     }
 }

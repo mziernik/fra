@@ -1,6 +1,7 @@
 package com.utils;
 
 import com.intf.callable.Callable;
+import com.intf.callable.Callable1;
 import com.intf.callable.CallableEx;
 import com.intf.callable.CallableEx1;
 import com.intf.runnable.Runnable1;
@@ -45,6 +46,12 @@ public class TObject<T> {
             this.provider = provider;
         }
         return result;
+    }
+
+    public boolean setIf(T value, Callable1<Boolean, T> condition) {
+        if (condition.run(value))
+            return set(value);
+        return false;
     }
 
     public boolean set(T value) {

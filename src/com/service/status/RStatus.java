@@ -117,9 +117,4 @@ public class RStatus extends Repository<String> {
         return super.localUpdate(pk);
     }
 
-    @Override
-    protected boolean beforeBroadcast(TList<WebApiController> recipients) {
-        return false;
-    }
-
 }

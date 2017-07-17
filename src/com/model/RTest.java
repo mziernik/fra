@@ -1,8 +1,10 @@
 package com.model;
 
+import com.context.intf.ContextInitialized;
 import com.model.repository.Column;
 import com.model.repository.Record;
 import com.model.repository.Repository;
+import com.resources.FontAwesome;
 import com.utils.Utils;
 import com.utils.collections.Pair;
 import com.utils.collections.Quad;
@@ -78,7 +80,7 @@ public class RTest extends Repository<Integer> {
 
     public final static Column<Quad<Boolean, String, Integer, String>[]> QUAD_LIST = new Column<>(c -> {
         c.repository = RTest.class;
-        c.type = new ArrayDataType<>(new QuadDataType<>(DataType.BOOLEAN, 
+        c.type = new ArrayDataType<>(new QuadDataType<>(DataType.BOOLEAN,
                 DataType.STRING, DataType.INT, DataType.STRING));
         c.key = "quadList";
         c.name = "Lista poczwórnych";
@@ -199,8 +201,23 @@ public class RTest extends Repository<Integer> {
             c.key = "test";
             c.daoName = null;
             c.name = "TEST";
+            c.group = "Test";
             c.primaryKey = ID;
             c.displayName = NAME;
+
+            c.repoAction("addR", "Dodaj", ActionType.PRIMARY, FontAwesome.PLUS, null, (repo, params) -> {
+
+            });
+            c.repoAction("remR", "Usuń", ActionType.WARNING, FontAwesome.TRASH, null, (repo, params) -> {
+
+            });
+
+            c.recordAction("raddR", "Dodaj", ActionType.PRIMARY, FontAwesome.PLUS, null, (repo, rec, params) -> {
+
+            });
+            c.recordAction("rremR", "Usuń", ActionType.PRIMARY, FontAwesome.TRASH, null, (repo, rec, params) -> {
+
+            });
         });
 
         onBeforeUpdate.listen(this, (records, all) -> {

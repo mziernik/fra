@@ -143,6 +143,13 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
         return sw.toString();
     }
 
+    public T random() {
+        if (isEmpty())
+            return null;
+        Random random = new Random();
+        return get(random.nextInt(size()));
+    }
+
     public <X, Y> Map<X, Y> map(Function<? super T, ? extends X> keyMapper,
             Function<? super T, ? extends Y> valueMapper) {
         return stream().collect(Collectors.toMap(keyMapper, valueMapper));

@@ -3,16 +3,16 @@ package com.model.repository;
 import com.events.Dispatcher;
 import com.model.repository.intf.CRUDE;
 import com.intf.callable.Callable1;
-import com.intf.runnable.Runnable1;
-import com.intf.runnable.RunnableEx;
-import com.intf.runnable.RunnableEx2;
+import com.intf.runnable.*;
 import com.json.JArray;
 import com.json.JObject;
+import com.model.RRepoUpdate;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
 import com.model.dao.core.DAORows;
 import com.resources.FontAwesome;
+import com.utils.TObject;
 import com.utils.Utils;
 import com.utils.collections.*;
 import com.utils.date.TDate;
@@ -40,20 +40,29 @@ public class Repository<PRIMARY_KEY> {
     final AtomicInteger updatesCount = new AtomicInteger();
     String lastUpdatedBy;
 
+    public static enum ActionType {
+        BASIC, DEFAULT, PRIMARY, SUCCESS, INFO, WARNING, DANGER
+    }
+
     public class RepoAction {
 
         public String key;
         public String name;
+        public ActionType type;
         public FontAwesome icon;
         public String confirm;
-        public RunnableEx onExecute;
+        public boolean record = false;
+        public RunnableEx2<Record, JObject> onExecute;
 
-        public RepoAction(String key, String name, FontAwesome icon, String confirm, RunnableEx onExecute) {
+        public RepoAction(boolean record, String key, String name, ActionType type,
+                FontAwesome icon, String confirm, RunnableEx2<Record, JObject> onExecute) {
             this.key = key;
             this.name = name;
+            this.type = type;
             this.icon = icon;
             this.confirm = confirm;
             this.onExecute = onExecute;
+            this.record = record;
         }
 
     }
@@ -63,11 +72,11 @@ public class Repository<PRIMARY_KEY> {
         public String key;
         public CharSequence name;
         public String daoName;
+        public CharSequence group;
         public Column<?> primaryKey;
         public Column<?> parentColumn;
         public Column<?> orderColumn;
         public Column<?> displayName;
-        public boolean autoUpdate = true; //czy informaje o zmianach mają być automatycznie rozsyłane do klientów
         public DAO dao;
         public Boolean onDemand;
         public Boolean local;
@@ -76,7 +85,7 @@ public class Repository<PRIMARY_KEY> {
         public Boolean dynamic;
         public FontAwesome icon;
         public final Flags<CRUDE> crude = CRUDE.flags(CRUDE.CRUD);
-        public final LinkedHashMap<String, RepoAction> actions = new LinkedHashMap<String, RepoAction>();
+        public final LinkedHashMap<String, RepoAction> actions = new LinkedHashMap<>();
 
         public RepoConfig() {
             if (Repository.this instanceof DynamicRepo)
@@ -97,8 +106,21 @@ public class Repository<PRIMARY_KEY> {
 
         }
 
-        public RepoConfig action(String key, String name, FontAwesome icon, String confirm, RunnableEx onExecute) {
-            actions.put(key, new RepoAction(key, name, icon, confirm, onExecute));
+        public RepoConfig repoAction(String key, String name, ActionType type, FontAwesome icon,
+                String confirm, RunnableEx2<Repository<PRIMARY_KEY>, JObject> onExecute) {
+            if (actions.containsKey(key))
+                throw new RepositoryException(Repository.this, "Akcja " + Utils.escape(key) + " już istnieje");
+            actions.put(key, new RepoAction(false, key, name, type, icon, confirm,
+                    (rec, params) -> onExecute.run(Repository.this, params)));
+            return this;
+        }
+
+        public RepoConfig recordAction(String key, String name, ActionType type, FontAwesome icon,
+                String confirm, RunnableEx3<Repository<PRIMARY_KEY>, Record, JObject> onExecute) {
+            if (actions.containsKey(key))
+                throw new RepositoryException(Repository.this, "Akcja " + Utils.escape(key) + " już istnieje");
+            actions.put(key, new RepoAction(true, key, name, type, icon, confirm,
+                    (rec, params) -> onExecute.run(Repository.this, rec, params)));
             return this;
         }
 
@@ -106,8 +128,10 @@ public class Repository<PRIMARY_KEY> {
             JObject json = new JObject();
             json.options.quotaNames(quotaNames);
             actions.forEach((String k, RepoAction a) -> json.objectC(k)
+                    .put("record", a.record)
                     .put("name", a.name)
                     .put("confirm", a.confirm)
+                    .put("type", a.type != null ? a.type.name().toLowerCase() : null)
                     .put("icon", a.icon != null ? a.icon.className : null).options.singleLine(true)
             );
             return json;
@@ -118,6 +142,7 @@ public class Repository<PRIMARY_KEY> {
             return new Params()
                     .escape("key", key)
                     .escape("name", name)
+                    .escape("group", group)
                     .add("record", Repository.this.getClass().getSimpleName() + "Record")
                     .add("primaryKeyColumn", Repository.this.getClass().getSimpleName()
                             + "." + Repositories.formatFieldName(primaryKey.getKey()))
@@ -135,7 +160,6 @@ public class Repository<PRIMARY_KEY> {
                     .add("local", local)
                     .escape("icon", icon != null ? icon.className : null)
                     .add("onDemand", onDemand)
-                    .add("autoUpdate", autoUpdate)
                     .add("actions", actions.isEmpty() ? null : getActionsJson(false).toString());
         }
 
@@ -144,11 +168,11 @@ public class Repository<PRIMARY_KEY> {
             if (metaData) {
                 obj.put("key", key);
                 obj.put("name", name);
+                obj.put("group", group);
                 obj.put("local", local);
                 obj.put("icon", icon != null ? icon.className : null);
                 obj.put("onDemand", onDemand);
                 obj.put("actions", actions.isEmpty() ? null : getActionsJson(true));
-                obj.put("autoUpdate", autoUpdate);
                 obj.put("primaryKeyColumn", primaryKey.getKey());
                 obj.put("orderColumn", orderColumn != null ? orderColumn.getKey() : null);
                 obj.put("parentColumn", parentColumn != null ? parentColumn.getKey() : null);
@@ -290,7 +314,13 @@ public class Repository<PRIMARY_KEY> {
         return result;
     }
 
+    public PRIMARY_KEY formatPrimaryKey(Object pk) {
+        return pk == null || config.primaryKey.config.type.clazz.isAssignableFrom(pk.getClass())
+                ? (PRIMARY_KEY) pk : (PRIMARY_KEY) config.primaryKey.config.type.parse(pk);
+    }
+
     Object[] getCells(PRIMARY_KEY pk, boolean clone) {
+
         Object[] cells;
         if (pk == null)
             throw new RepositoryException(this, "Brak klucza głównego");
@@ -304,6 +334,52 @@ public class Repository<PRIMARY_KEY> {
 
     public Record read(PRIMARY_KEY pk) {
         return new Record(this, CRUDE.READ, getCells(pk, false));
+    }
+
+    public <T extends Number> T min(Column<T> column) {
+        return Utils.coalesce(min(column), null);
+    }
+
+    public <T extends Number> T min(Column<T> column, T initValue) {
+        final TObject<T> min = new TObject<>(initValue);
+        forEach(column, (T val) -> {
+            if (val != null && (min.isNull() || val.longValue() < min.get().longValue()))
+                min.set(val);
+            return true;
+        });
+        return min.get();
+    }
+
+    public <T extends Number> T max(Column<T> column, T initValue) {
+        final TObject<T> max = new TObject<>(initValue);
+        forEach(column, (T val) -> {
+            if (val != null && (max.isNull() || val.longValue() > max.get().longValue()))
+                max.set(val);
+            return true;
+        });
+        return max.get();
+    }
+
+    public <T extends Number> T max(Column<T> column) {
+        return Utils.coalesce(max(column), null);
+    }
+
+    public <T> void forEach(Column<T> column, Callable1<Boolean, T> consumer) {
+        TList<Object[]> rows;
+
+        int idx = new TList(columns.values()).indexOf(column);
+
+        if (idx < 0)
+            throw new RepositoryException(this, Utils.frmt("Repozytorium %1 nie posiada kolumny %2",
+                    getKey(), column.getKey()));
+
+        synchronized (records) {
+            rows = new TList<>(this.records.values());
+        }
+
+        for (Object[] cells : rows)
+            if (Boolean.FALSE.equals(consumer.run((T) cells[idx])))
+                return;
     }
 
     public void forEach(Callable1<Boolean, Record> consumer) {
@@ -323,7 +399,7 @@ public class Repository<PRIMARY_KEY> {
     /**
      * Dodaje lub modyfikuje rekord
      */
-    protected void updateRecord(Record record) {
+    protected void updateRecord(Record record, boolean incrementCounter) {
         if (record.repo != this)
             throw new RepositoryException(this, "Rekord nie należy do repozytorium");
 
@@ -336,22 +412,30 @@ public class Repository<PRIMARY_KEY> {
                     if (records.containsKey(pk))
                         throw new RepositoryException(this, "Rekord " + record + " już istnieje");
                     records.put(pk, record.cells.clone());
-                    return;
+                    break;
 
                 case UPDATE:
                     Object[] cells = getCells(pk, false);
                     for (int i = 0; i < cells.length; i++)
                         cells[i] = record.cells[i];
-                    return;
+                    break;
 
                 case DELETE:
                     Object[] cc = records.remove(pk);
                     if (cc == null)
                         throw new RepositoryException(this, "Nie znaleziono rekordu " + Utils.escape(pk));
-                    return;
+                    break;
 
                 default:
                     throw new RepositoryException(this, new UnsupportedOperationException(record.crude.name()));
+            }
+        }
+
+        if (incrementCounter) {
+            lastUpdate = new TDate();
+            lastUpdatedBy = "root";
+            synchronized (updatesCount) {
+                updatesCount.incrementAndGet();
             }
         }
     }
@@ -390,6 +474,7 @@ public class Repository<PRIMARY_KEY> {
             throw new RepositoryException(null, "Repozytorium "
                     + Utils.escape(key) + " już istnieje");
         ALL.put(key, repo);
+        RRepoUpdate.add(repo);
         return repo;
     }
 
@@ -501,4 +586,5 @@ public class Repository<PRIMARY_KEY> {
         }
         return json;
     }
+
 }

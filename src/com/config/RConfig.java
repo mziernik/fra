@@ -97,6 +97,7 @@ public class RConfig extends Repository<String> {
         super((RepoConfig r) -> {
             r.key = "configuration";
             r.name = "Konfiguracja";
+            r.group = "System";
             r.primaryKey = KEY;
             r.displayName = NAME;
             r.parentColumn = PARENT;

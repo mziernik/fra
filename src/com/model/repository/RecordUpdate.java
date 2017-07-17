@@ -4,12 +4,11 @@ import com.model.repository.intf.CRUDE;
 import com.thread.QueueThread;
 import com.utils.collections.MapList;
 import com.utils.collections.TList;
-import com.utils.date.TDate;
 import java.util.Objects;
 
 public class RecordUpdate extends Record {
 
-    final static Queue QUEUE = new Queue();
+    private final static Queue BROADCAST_QUEUE = new Queue();
 
     public RecordUpdate(Repository<?> repo, CRUDE crude, Object[] cells) {
         super(repo, crude, cells);
@@ -17,22 +16,16 @@ public class RecordUpdate extends Record {
 
     public RecordUpdate update() {
         Object pk = Objects.requireNonNull(getPrimaryKeyValue());
-
         crude = ((Repository) repo).has(pk) ? CRUDE.UPDATE : CRUDE.CREATE;
-
-        repo.updateRecord(this);
-
-        repo.lastUpdate = new TDate();
-        repo.lastUpdatedBy = "root";
-        synchronized (repo.updatesCount) {
-            repo.updatesCount.incrementAndGet();
-        }
-        QUEUE.add(this);
+        repo.updateRecord(this, true);
+        BROADCAST_QUEUE.add(this);
         return this;
     }
 
     public RecordUpdate delete() {
-
+        crude = CRUDE.DELETE;
+        repo.updateRecord(this, true);
+        BROADCAST_QUEUE.add(this);
         return this;
     }
 
@@ -48,7 +41,7 @@ class Queue extends QueueThread<Record> {
 
     public Queue() {
         super("RecordUpdate");
-        minDelay = 1000;
+        minDelay = 500;
     }
 
     @Override

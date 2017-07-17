@@ -2,12 +2,15 @@ package com.model.repository;
 
 import com.cache.CachedData;
 import com.json.JArray;
+import com.json.JCollection;
 
 import com.json.JObject;
 import com.json.JValue;
 import com.model.dao.MapDAO;
+import com.model.repository.Repository.RepoAction;
 import com.servlet.interfaces.Arg;
 import com.servlet.websocket.WebSocketController;
+import com.utils.Utils;
 import com.utils.collections.TList;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiEndpoint;
@@ -29,17 +32,18 @@ public class WRepository implements WebApi {
 
     @WebApiEndpoint(description = "Zwraca dane z wielu tabel")
     public JObject get(WebApiRequest req,
-            @Arg(name = "repositories", required = false) JObject repositories)
+            @Arg(name = "repositories", required = false) JCollection repositories)
             throws FileNotFoundException {
 
         //ToDo: sparametryzować czy mają być zwracane meta dane czy tylko wiersze
         TList<Repository<?>> repos = new TList<>();
         if (repositories != null && !repositories.isEmpty())
             for (JValue val : repositories.getValues()) {
-                Repository<?> repo = Repository.getF(val.getName());
+                Repository<?> repo = Repository.getF(
+                        repositories.isArray() ? val.asString() : val.getName());
                 final WebSocketController ws = req.webSocket;
-                if (val.isBoolean() && val.asBoolean() && ws != null)
-                    req.controller.repositories.add(repo);
+                //    if (val.isBoolean() && val.asBoolean() && ws != null)
+                req.controller.repositories.add(repo);
 
                 repos.add(repo);
             }
@@ -53,6 +57,26 @@ public class WRepository implements WebApi {
 
         //tbl.getJson().toString()
         return json;
+    }
+
+    @WebApiEndpoint()
+    public JObject action(WebApiRequest req,
+            @Arg(name = "repo", required = true) String repoKey,
+            @Arg(name = "action", required = true) String actionKey,
+            @Arg(name = "pk") Object pk,
+            @Arg(name = "params") JObject params
+    ) throws Exception {
+        Repository<?> repo = Repository.getF(repoKey);
+        RepoAction act = repo.config.actions.get(actionKey);
+        if (act == null)
+            throw new RepositoryException(repo, Utils.frmt("Nie znaleziono akcji %1", actionKey));
+
+        Record rec = act.record ? ((Repository) repo).read(repo.formatPrimaryKey(pk)) : null;
+
+        act.onExecute.run(rec, params);
+
+        return null;
+
     }
 
     @WebApiEndpoint()

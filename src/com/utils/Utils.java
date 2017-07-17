@@ -359,11 +359,11 @@ public final class Utils {
     public static boolean equals(Object o1, Object o2) {
         if (o1 == o2)
             return true;
-        
+
         if (o1 == null || o2 == null)
             return false;
 
-        if ( o1.equals(o2))
+        if (o1.equals(o2))
             return true;
 
         if (o1.getClass().isArray() && o2.getClass().isArray()) {
@@ -868,6 +868,36 @@ public final class Utils {
         w.append("\"");
 
         return w.toString();
+    }
+
+    /**
+     * Formatuje string-a podstawiając za parametry %1, %2...%n zaescapowane
+     * wartości z args
+     *
+     * @param string
+     * @param args
+     * @return
+     */
+    public static String frmt(String string, Object... args) {
+
+        char[] chars = string.toCharArray();
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < chars.length; i++) {
+            char curr = chars[i];
+            char prev = i > 0 ? chars[i - 1] : 0;
+            char next = i < chars.length - 1 ? chars[i + 1] : 0;
+            if (curr == '%' && prev != '%' && next >= '1' && next <= '9') {
+                int idx = next - '1';
+                if (idx < args.length) {
+                    ++i;
+                    sb.append(escape(args[idx]));
+                    continue;
+                }
+            }
+            sb.append(curr);
+        }
+        return sb.toString();
     }
 
     public static class PerformanceStamp {

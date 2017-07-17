@@ -1,7 +1,6 @@
 package com.service.status;
 
 import com.model.repository.Column;
-import com.model.repository.Record;
 import com.model.repository.Repository;
 import com.model.repository.intf.CRUDE;
 import com.resources.FontAwesome;
@@ -110,19 +109,15 @@ public class RThreads extends Repository<Long> {
             c.displayName = NAME;
             c.key = "threads";
             c.name = "Wątki";
+            c.group = "System";
             c.crude.set(CRUDE.READ); // tylko do odczytu
             c.local = true;
-            c.action("term", "Zatrzymaj", FontAwesome.TIMES,
-                    "Czy na pewno zatrzymać wątek ${id} \"${name}\"?", () -> {
+            c.recordAction("term", "Zatrzymaj", ActionType.WARNING, FontAwesome.TIMES,
+                    "Czy na pewno zatrzymać wątek ${id} \"${name}\"?", (repo, rec, params) -> {
 
                     });
         });
         instance = this;
-    }
-
-    @Override
-    protected boolean beforeBroadcast(TList<WebApiController> recipients) {
-        return false;
     }
 
 }
