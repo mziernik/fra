@@ -19,7 +19,7 @@ public class EnumDataType<T> extends DataType<T> implements Adapter<T> {
 
     public static <E extends Enum<E>> EnumDataType<E> ofEnum(Class<E> clazz) {
         return new EnumDataType<>(clazz, Arrays.asList(clazz.getEnumConstants()),
-                E::name, E::name, (E item) -> item.name().toLowerCase());
+                e -> e.name().toLowerCase(), E::name, (E item) -> item.name().toLowerCase());
     }
 
     public static <E extends Enum<E>> EnumDataType<E> ofEnum(Class<E> clazz,
@@ -63,6 +63,10 @@ public class EnumDataType<T> extends DataType<T> implements Adapter<T> {
         }
     }
 
+    public boolean isEmbeddedEnum() {
+        return this == DataType.ICON;
+    }
+
     @Override
     public T parse(Object value, Object parent) throws Exception {
         String key = Utils.toString(value);
@@ -77,7 +81,8 @@ public class EnumDataType<T> extends DataType<T> implements Adapter<T> {
     @Override
     public JObject getJson() {
         JObject json = super.getJson();
-        json.put("enumerate", enumerate);
+        if (!isEmbeddedEnum())
+            json.put("enumerate", enumerate);
         return json;
     }
 

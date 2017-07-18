@@ -1,5 +1,6 @@
 package com.model.repository;
 
+import com.model.RRepoSate;
 import com.model.repository.intf.CRUDE;
 import com.thread.QueueThread;
 import com.utils.collections.MapList;
@@ -45,10 +46,15 @@ class Queue extends QueueThread<Record> {
     }
 
     @Override
-    protected void processItem(Record item) throws Exception {
-        TList<Record> queue = clearQueue();
-        if (queue.isEmpty())
+    public void add(Record rec) {
+        if (!RRepoSate.canUpdate(rec.repo))
             return;
+        super.add(rec);
+    }
+
+    @Override
+    protected void processItem(Record item) throws Exception {
+        TList<Record> queue = fetchQueue(true);
 
         MapList<Repository<?>, Record> repos = new MapList<>();
         queue.forEach(rec -> repos.add(rec.repo, rec));

@@ -4,21 +4,23 @@ import com.utils.collections.Flags;
 
 public enum CRUDE {
 
-    CREATE("create", "Tworzenie"),
-    READ("read", "Odczyt"),
-    UPDATE("update", "Modyfikacja"),
-    DELETE("delete", "Usunięcie"),
-    EXECUTE("execute", "Wykonanie");
+    CREATE('C', "create", "Tworzenie"),
+    READ('R', "read", "Odczyt"),
+    UPDATE('U', "update", "Modyfikacja"),
+    DELETE('D', "delete", "Usunięcie"),
+    EXECUTE('E', "execute", "Wykonanie");
 
     public final CharSequence title;
     public final String name;
+    public final char shortcut;
 
     public final static CRUDE[] CRUD = {CREATE, READ, UPDATE, DELETE};
     public final static CRUDE[] CRU = {CREATE, READ, UPDATE};
 
-    CRUDE(String name, CharSequence title) {
+    CRUDE(char shortcut, String name, CharSequence title) {
         this.name = name;
         this.title = title;
+        this.shortcut = shortcut;
     }
 
     public static CRUDE get(String name) {
@@ -28,6 +30,6 @@ public enum CRUDE {
     }
 
     public static Flags<CRUDE> flags(CRUDE... values) {
-        return new Flags<>(cr -> cr.name().charAt(0), values);
+        return new Flags<>(cr -> cr.shortcut, cr -> cr.title.toString(), values);
     }
 }

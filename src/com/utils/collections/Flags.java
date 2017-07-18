@@ -1,7 +1,6 @@
 package com.utils.collections;
 
 import com.intf.callable.Callable1;
-import com.utils.text.StrWriter;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -10,17 +9,23 @@ public class Flags<E extends Enum> implements Iterable<E> {
 
     private final LinkedHashSet<E> values = new LinkedHashSet<>();
     private final Callable1<Character, E> charSource;
+    private final Callable1<String, E> displayName;
 
     public Flags(E... values) {
-        this(null, values);
+        this(null, null, values);
     }
 
-    public Flags(Callable1<Character, E> charSource, E... values) {
+    public Flags(Callable1<Character, E> charSource, Callable1<String, E> displayName, E... values) {
         this.charSource = charSource;
+        this.displayName = displayName;
         if (this.values != null) {
             this.values.addAll(Arrays.asList(values));
             sort();
         }
+    }
+
+    public E[] getArray(E[] ref) {
+        return values.toArray(ref);
     }
 
     public String getChars() {

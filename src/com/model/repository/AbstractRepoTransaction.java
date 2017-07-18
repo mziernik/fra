@@ -5,7 +5,7 @@ import com.json.JArray;
 import com.json.JObject;
 import com.mlogger.Log;
 import com.model.RRepoHistory;
-import com.model.RRepoUpdate;
+import com.model.RRepoSate;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
@@ -15,7 +15,6 @@ import com.servlet.websocket.WebSocketConnection;
 import com.utils.Utils;
 import com.utils.collections.MapList;
 import com.utils.collections.TList;
-import com.utils.date.TDate;
 import com.webapi.core.WebApiController;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -109,9 +108,14 @@ public class AbstractRepoTransaction {
                 if (rows.size() > 1)
                     throw new RepositoryException(rec.repo, Utils.frmt("Zbyt dużo wyników (%1)", results.size()));
 
-                if (rows.crude == CRUDE.UPDATE && rows.isEmpty())
-                    System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                if (rows.crude == CRUDE.UPDATE && rows.isEmpty()) {
+                    Log.warning("Repository", "Zapytanie UPDATE nie zwróciło rezultatu, wymuszam INSERT");
 
+                    DAOQuery query = new DAOQuery(rows.context, dao, CRUDE.CREATE);
+                    rec.repo.fillQuery(query, rec);
+                    rows = dao.process(query);
+
+                }
                 for (DAORow row : rows) {
                     rec.repo.fillRecord(rec, row);
                     local.add(rec);
@@ -161,7 +165,7 @@ public class AbstractRepoTransaction {
         for (Entry<Repository<?>, TList<Record>> en : repos) {
             Repository<?> repo = en.getKey();
 
-            if (!RRepoUpdate.canUpdate(repo))
+            if (!RRepoSate.canUpdate(repo))
                 continue;
 
             TList<WebApiController> recipients = new TList<>();
@@ -178,9 +182,7 @@ public class AbstractRepoTransaction {
             JObject json = new JObject()
                     .objectC(repo.getKey());
 
-            json.put("lastUpdated", repo.lastUpdate != null ? repo.lastUpdate.getTime() : null);
-            json.put("lastUpdatedBy", repo.lastUpdatedBy);
-            json.put("updates", repo.updatesCount.get());
+            repo.status.fillJson(json);
 
             JArray jrows = json.arrayC("rows");
             for (Record rec : en.getValue()) {

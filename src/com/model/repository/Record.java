@@ -7,6 +7,7 @@ import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Record implements Iterable<Column<?>> {
 
@@ -73,6 +74,11 @@ public class Record implements Iterable<Column<?>> {
     @Override
     public Iterator<Column<?>> iterator() {
         return repo.columns.values().iterator();
+    }
+
+    public void validate() {
+        AtomicInteger idx = new AtomicInteger(0);
+        repo.columns.values().forEach(col -> col.validate(this, cells[idx.getAndIncrement()]));
     }
 
 }

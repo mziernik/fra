@@ -11,10 +11,14 @@ import com.database.queries.builder.QueryBuilder;
 import com.exceptions.ServiceException;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
+import com.model.dao.core.DAOQuery.DaoParam;
 import com.servlet.Handlers;
+import com.utils.Is;
 import com.utils.collections.TList;
+import com.utils.reflections.datatype.DataType;
 import com.utils.text.StrWriter;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Map.Entry;
 import java.util.Objects;
 
@@ -120,8 +124,15 @@ public class DatabaseDAO implements DAO<QueryRows> {
         for (String s : query.field)
             ins.addReturningColumn(s);
 
-        for (Entry<String, Object> en : query.params.entrySet())
-            ins.arg(en.getKey(), en.getValue());
+        for (Entry<String, DaoParam> en : query.params.entrySet()) {
+            DaoParam p = en.getValue();
+
+            Object value = p.value;
+            if (p.type == DataType.TIMESTAMP && value instanceof Number)
+                value = new Date(((Number) value).longValue());
+
+            ins.arg_(en.getKey(), value).cast(p.cast);
+        }
 
         return ins;
     }

@@ -2,12 +2,11 @@ package com.utils.reflections.datatype;
 
 import com.exceptions.ServiceException;
 import com.exceptions.ThrowableException;
-import com.google.gson.JsonElement;
 import com.intf.callable.CallableEx1;
 import com.json.JArray;
 import com.json.JElement;
 import com.json.JObject;
-import com.json.JValue;
+import com.resources.FontAwesome;
 import com.utils.Utils;
 import com.utils.collections.TList;
 import com.utils.date.TDate;
@@ -16,17 +15,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 
-/*
-  dodać listę wyboru (enumeratę, jednostki)
-
-DATE("date"),
-    TIME("time"),
-    INTERVAL("interval"),
-    TIMESTAMP("timestamp");
-
-UUID
-REGEX
- */
+//ToDo: Dodać typ FLAGS (enums zapisany jako string - np CRUDE)
 public class DataType<T> {
 
     public static class DataTypeUnit {
@@ -192,6 +181,8 @@ public class DataType<T> {
     public final static DataType<String> STRING = new DataType<>(JsonType.STRING,
             "string", String.class,
             (value, parent) -> Utils.toString(value));
+
+    public final static EnumDataType<FontAwesome> ICON = EnumDataType.ofEnum(FontAwesome.class);
 
     public final static DataType<String> KEY = new DataType<String>(JsonType.STRING,
             "key", String.class, (value, parent) -> {

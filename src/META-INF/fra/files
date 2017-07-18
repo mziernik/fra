@@ -34,6 +34,7 @@ com/config/CResources.class
 com/config/CService$CTechnicalBreak.class
 com/config/CService$ServiceMode.class
 com/config/CService.class
+com/config/RConfig.class
 com/config/engine/ConfigCell.class
 com/config/engine/ConfigElement.class
 com/config/engine/ConfigException.class
@@ -1037,6 +1038,9 @@ com/mlogger/storage_old/LogsStorage.class
 com/mlogger/storage_old/LogsVisitor.class
 com/mlogger/utils/JsonBuilder.class
 com/mlogger/utils/_Internal.class
+com/model/RRepoHistory.class
+com/model/RRepoSate.class
+com/model/RTest.class
 com/model/dao/CustomDAO$CustomDaoRow.class
 com/model/dao/CustomDAO$CustomDaoRows.class
 com/model/dao/CustomDAO.class
@@ -1059,6 +1063,7 @@ com/model/dao/core/VParser$MissingValueException.class
 com/model/dao/core/VParser$NullValueException.class
 com/model/dao/core/VParser$Option.class
 com/model/dao/core/VParser.class
+com/model/repository/AbstractRepoTransaction.class
 com/model/repository/Column$RepoFieldConfig.class
 com/model/repository/Column.class
 com/model/repository/DynamicRepo$DynamicColumn.class
@@ -1069,7 +1074,10 @@ com/model/repository/Queue.class
 com/model/repository/Record.class
 com/model/repository/RecordUpdate.class
 com/model/repository/RepoTransaction.class
+com/model/repository/ReposTransaction.class
 com/model/repository/Repository$1.class
+com/model/repository/Repository$ActionType.class
+com/model/repository/Repository$RepoAction.class
 com/model/repository/Repository$RepoConfig.class
 com/model/repository/Repository.class
 com/model/repository/RepositoryException.class
@@ -1097,6 +1105,7 @@ com/net/tcp/TcpClientSocket.class
 com/net/tcp/TcpServer$ClientThread.class
 com/net/tcp/TcpServer.class
 com/resources/BsIcon.class
+com/resources/FontAwesome.class
 com/resources/Res$Bootstrap.class
 com/resources/Res.class
 com/resources/awesome/Awesome.class
@@ -1284,6 +1293,7 @@ com/servers/websocket/util/Base64$InputStream.class
 com/servers/websocket/util/Base64$OutputStream.class
 com/servers/websocket/util/Base64.class
 com/servers/websocket/util/Charsetfunctions.class
+com/service/RUsers.class
 com/service/status/AbstractStatus.class
 com/service/status/RStatus.class
 com/service/status/RThreads.class
@@ -1718,8 +1728,11 @@ com/utils/reflections/datatype/DataType$DataTypeUnit.class
 com/utils/reflections/datatype/DataType$JsonType.class
 com/utils/reflections/datatype/DataType.class
 com/utils/reflections/datatype/EnumDataType.class
+com/utils/reflections/datatype/EnumsDataType.class
 com/utils/reflections/datatype/MapDataType.class
-com/utils/reflections/datatype/SetDataType.class
+com/utils/reflections/datatype/PairDataType.class
+com/utils/reflections/datatype/QuadDataType.class
+com/utils/reflections/datatype/TripleDataType.class
 com/utils/text/NameFormat$1.class
 com/utils/text/NameFormat$CaseConvert.class
 com/utils/text/NameFormat.class

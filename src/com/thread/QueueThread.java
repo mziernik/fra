@@ -11,7 +11,9 @@ import java.util.*;
 public abstract class QueueThread<T extends Object> extends TThread {
 
     private final TList<T> queue = new TList<>();
-    /** Minimalne opóźnienie wywołania metody processItem - działa jak frame limiter*/
+    /**
+     * Minimalne opóźnienie wywołania metody processItem - działa jak frame limiter
+     */
     protected int minDelay = 0; // minimalne opóżnienie (ms)
     protected int idleTime = 0;
     protected int maxIdleTime = 0;
@@ -137,9 +139,18 @@ public abstract class QueueThread<T extends Object> extends TThread {
         }
     }
 
-    public TList<T> clearQueue() {
+    /**
+     * Pobiera zawartość kolejki oraz ją czyści
+     *
+     * @param includeCurrent
+     * @return
+     */
+    public TList<T> fetchQueue(boolean includeCurrent) {
         synchronized (this) {
-            TList<T> result = new TList<>(queue);
+            TList<T> result = new TList<>();
+            if (includeCurrent)
+                result._add(currentItem);
+            result.addAll(queue);
             queue.clear();
             return result;
         }

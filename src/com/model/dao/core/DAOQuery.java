@@ -3,10 +3,25 @@ package com.model.dao.core;
 import com.model.repository.intf.CRUDE;
 import com.utils.collections.Pair;
 import com.utils.collections.TList;
+import com.utils.reflections.datatype.DataType;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DAOQuery {
+
+    public class DaoParam {
+
+        public DataType type;
+        public Object value;
+        public String cast;
+
+        public DaoParam(DataType type, Object value, String cast) {
+            this.type = type;
+            this.value = value;
+            this.cast = cast;
+        }
+
+    }
 
     public final DAO dao;
     public final CRUDE crude;
@@ -23,7 +38,7 @@ public class DAOQuery {
     /**
      * Parametry, argumenty dla insert-a, update
      */
-    public final Map<String, Object> params = new LinkedHashMap<>();
+    public final Map<String, DaoParam> params = new LinkedHashMap<>();
 
     public final TList<Pair<String, Boolean>> order = new TList<Pair<String, Boolean>>().notNull();
 
@@ -70,8 +85,8 @@ public class DAOQuery {
     /**
      * Kolumna, po której sortujemy
      */
-    public DAOQuery param(String name, Object value) {
-        params.put(name, value);
+    public DAOQuery param(String name, DataType type, Object value, String cast) {
+        params.put(name, new DaoParam(type, value, cast));
         return this;
     }
 }
