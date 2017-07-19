@@ -117,48 +117,81 @@ public class RUsers extends Repository<Integer> {
 
                     });
 
+            c.repoAction("editRandom", "Modyfikuj losowy", ActionType.PRIMARY,
+                    FontAwesome.USER_SECRET, null, RUsers::editRandom);
+
             c.repoAction("addRandom", "Dodaj losowy", ActionType.PRIMARY,
-                    FontAwesome.USER_PLUS, null, (repo, params) -> {
-                        RUsers r = (RUsers) repo;
-
-                        String fname = Names.randomFirstname();
-                        String sname = Names.randomSurname();
-
-                        String login = StrUtils.convertPolishChars(fname).toLowerCase()
-                        + "." + StrUtils.convertPolishChars(sname).toLowerCase();
-
-                        r.localUpdate(null)
-                                .set(ID, repo.min(ID, 0) - 1)
-                                .set(LOGIN, login)
-                                .set(EMAIL, login + "@email.com")
-                                .set(FIRST_NAME, fname)
-                                .set(LAST_NAME, sname)
-                                .set(DISPLAY_NAME, fname.charAt(0) + ". " + sname)
-                                .update();
-
-                    });
+                    FontAwesome.USER_PLUS, null, RUsers::addRandom);
 
             c.repoAction("removeRandom", "Usuń losowy", ActionType.DANGER,
-                    FontAwesome.USER_TIMES, null, (Repository<Integer> repo, JObject params) -> {
-
-                        RUsers r = (RUsers) repo;
-
-                        TList<Integer> ids = new TList<>();
-                        repo.forEach((Record rec) -> {
-                            if (rec.get(ID) < 0)
-                                ids.add(rec.get(ID));
-                            return true;
-                        });
-
-                        if (ids.isEmpty())
-                            return;
-
-                        r.localUpdate(ids.random()).delete();
-
-                    });
+                    FontAwesome.USER_TIMES, null, RUsers::removeRandom);
 
         });
         instance = this;
+    }
+
+    private static void removeRandom(Repository<Integer> repo, JObject params) {
+        RUsers r = (RUsers) repo;
+
+        TList<Integer> ids = new TList<>();
+        repo.forEach((Record rec) -> {
+            if (rec.get(ID) < 0)
+                ids.add(rec.get(ID));
+            return true;
+        });
+
+        if (ids.isEmpty())
+            return;
+
+        r.localUpdate(ids.random()).delete();
+
+    }
+
+    private static void addRandom(Repository<Integer> repo, JObject params) {
+        RUsers r = (RUsers) repo;
+
+        String fname = Names.randomFirstname();
+        String sname = Names.randomSurname();
+
+        String login = StrUtils.convertPolishChars(fname).toLowerCase()
+                + "." + StrUtils.convertPolishChars(sname).toLowerCase();
+
+        r.localUpdate(null)
+                .set(ID, repo.min(ID, 0) - 1)
+                .set(LOGIN, login)
+                .set(EMAIL, login + "@email.com")
+                .set(FIRST_NAME, fname)
+                .set(LAST_NAME, sname)
+                .set(DISPLAY_NAME, fname.charAt(0) + ". " + sname)
+                .update();
+    }
+
+    private static void editRandom(Repository<Integer> repo, JObject params) {
+
+        RUsers r = (RUsers) repo;
+
+        TList<Integer> ids = new TList<>();
+        repo.forEach((Record rec) -> {
+            if (rec.get(ID) < 0)
+                ids.add(rec.get(ID));
+            return true;
+        });
+
+        if (ids.isEmpty())
+            return;
+
+        String fname = Names.randomFirstname();
+        String sname = Names.randomSurname();
+
+        String login = StrUtils.convertPolishChars(fname).toLowerCase()
+                + "." + StrUtils.convertPolishChars(sname).toLowerCase();
+
+        r.localUpdate(ids.random())
+                .set(EMAIL, login + "@new-email.com")
+                .set(FIRST_NAME, fname)
+                .set(LAST_NAME, sname)
+                .set(DISPLAY_NAME, fname.charAt(0) + ". " + sname)
+                .update();
     }
 
 }

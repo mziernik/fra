@@ -5,6 +5,7 @@ import com.context.intf.ContextInitialized;
 import com.json.JArray;
 import com.json.JObject;
 import com.lang.core.LStr;
+import com.model.RRepoSate;
 
 import com.model.repository.Record;
 import com.model.repository.ReposTransaction;
@@ -90,6 +91,9 @@ public class ServiceMonitor extends LoopThread {
     //ToDo: Wykonywać pętlę tylko jesli konsola deweloperska jest włączona lub kotoś monitoruje stan przez WebApi
     @Override
     protected void loop() throws Exception {
+
+        if (RThreads.instance == null || !RRepoSate.canBroadcast(RThreads.instance))
+            return;
 
         UPTIME.value(mxBean.getUptime());
         CPU.comment("[" + osBean.getAvailableProcessors() + "]");
@@ -206,9 +210,6 @@ public class ServiceMonitor extends LoopThread {
                     ++twait;
                     break;
             }
-
-            if (RThreads.instance == null/* || !RThreads.instance.isEmpty()*/)
-                continue;
 
             Record rec = trans.createOrUpdate(RThreads.instance, th.getId());
             rec.set(RThreads.ID, th.getId());

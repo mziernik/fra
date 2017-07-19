@@ -47,7 +47,7 @@ class Queue extends QueueThread<Record> {
 
     @Override
     public void add(Record rec) {
-        if (!RRepoSate.canUpdate(rec.repo))
+        if (!RRepoSate.canBroadcast(rec.repo))
             return;
         super.add(rec);
     }

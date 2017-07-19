@@ -165,7 +165,7 @@ public class AbstractRepoTransaction {
         for (Entry<Repository<?>, TList<Record>> en : repos) {
             Repository<?> repo = en.getKey();
 
-            if (!RRepoSate.canUpdate(repo))
+            if (!RRepoSate.canBroadcast(repo))
                 continue;
 
             TList<WebApiController> recipients = new TList<>();

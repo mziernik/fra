@@ -136,6 +136,10 @@ public abstract class WebSocketConnection extends Endpoint {
         }
     }
 
+    public static int getCount() {
+        return connections.size();
+    }
+
     public static <T extends WebSocketController> TList<T> getControllers(Class<T> ctrl) {
         TList<T> conns = new TList<>();
         synchronized (connections) {

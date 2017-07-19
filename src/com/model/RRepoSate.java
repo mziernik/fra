@@ -9,8 +9,10 @@ import com.model.repository.Repository;
 import com.model.repository.intf.CRUDE;
 import com.resources.FontAwesome;
 import com.service.RUsers;
+import com.servlet.websocket.WebSocketConnection;
 import com.utils.date.TDate;
 import com.utils.reflections.datatype.*;
+import com.webapi.core.WebApiController;
 
 public class RRepoSate extends Repository<String> {
 
@@ -141,7 +143,7 @@ public class RRepoSate extends Repository<String> {
                     .set(KEY, repo.getKey())
                     .set(NAME, repo.getName())
                     .set(CRUDE, repo.config.crude.getArray(new CRUDE[0]))
-                    .set(AUTO_UPDATE, !Boolean.TRUE.equals(repo.config.onDemand))
+                    .set(BROADCAST, !Boolean.TRUE.equals(repo.config.onDemand))
                     .set(ON_DEMAND, Boolean.TRUE.equals(repo.config.onDemand))
                     .set(REVISION, repo.status.getRevision())
                     .set(LAST_MODIFIED, repo.status.getLastUpdate())
@@ -151,13 +153,15 @@ public class RRepoSate extends Repository<String> {
 
     }
 
-    public static boolean canUpdate(Repository<?> repo) {
+    public static boolean canBroadcast(Repository<?> repo) {
         if (instance == null)
             return false;
         if (!instance.has(repo.getKey()))
             return false;
+        if (WebSocketConnection.getCount() == 0)
+            return false;
         Record rec = instance.read(repo.getKey());
-        return Boolean.TRUE.equals(rec.get(AUTO_UPDATE));
+        return Boolean.TRUE.equals(rec.get(BROADCAST));
     }
 
 }
