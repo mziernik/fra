@@ -5,11 +5,9 @@ import com.model.repository.ForeignColumn;
 import com.model.repository.RecordUpdate;
 import com.model.repository.Repository;
 import com.model.repository.intf.CRUDE;
-import com.utils.collections.TList;
 import com.utils.date.TDate;
 import com.utils.reflections.datatype.DataType;
 import com.utils.reflections.datatype.MapDataType;
-import com.webapi.core.WebApiController;
 import java.util.Map;
 
 public class RStatus extends Repository<String> {
@@ -106,6 +104,7 @@ public class RStatus extends Repository<String> {
             c.displayName = NAME;
             c.key = "status";
             c.name = "Status";
+            c.group = "System";
             c.crude.set(CRUDE.READ); // tylko do odczytu
             c.local = true;
         });

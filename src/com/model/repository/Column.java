@@ -165,11 +165,11 @@ public class Column<RAW> {
         public Boolean required;
         public Boolean unique;
         public CharSequence name;
+        public CharSequence description;
         public CharSequence title;
         public String daoName = UNDEFINED_NAME;
         public String daoType;
         //public Column<?> foreign;
-        public CharSequence description;
         public final LinkedHashMap<String, String> enumerate = new LinkedHashMap<>();
 
         //----------------------------------------------------------------------

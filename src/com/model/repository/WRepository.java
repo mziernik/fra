@@ -3,7 +3,6 @@ package com.model.repository;
 import com.cache.CachedData;
 import com.json.JArray;
 import com.json.JCollection;
-
 import com.json.JObject;
 import com.json.JValue;
 import com.model.dao.MapDAO;
@@ -11,12 +10,14 @@ import com.model.repository.Repository.RepoAction;
 import com.servlet.interfaces.Arg;
 import com.servlet.websocket.WebSocketController;
 import com.utils.Utils;
+import com.utils.collections.MapList;
 import com.utils.collections.TList;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiEndpoint;
 import com.webapi.core.WebApiRequest;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map.Entry;
 
 public class WRepository implements WebApi {
 
@@ -73,16 +74,12 @@ public class WRepository implements WebApi {
 
         Record rec = act.record ? ((Repository) repo).read(repo.formatPrimaryKey(pk)) : null;
 
-        act.onExecute.run(rec, params);
-
-        return null;
+        return act.execute(req, rec, params);
 
     }
 
     @WebApiEndpoint()
     public JObject edit(WebApiRequest req, @Arg(name = "data") JObject json) throws Exception {
-
-        final JObject result = new JObject();
 
         ReposTransaction trans = new ReposTransaction();
 
@@ -96,9 +93,15 @@ public class WRepository implements WebApi {
             }
         }
 
-        trans.commit(true);
+        TList<Record> records = trans.commit(true);
 
-        return null;
+        MapList<Repository, Record> map = new MapList<>();
+        records.forEach(rec -> map.add(rec.repo, rec));
+
+        final JObject result = new JObject();
+        map.forEach((Entry<Repository, TList<Record>> en)
+                -> AbstractRepoTransaction.fillJson(result, en.getKey(), en.getValue()));
+        return result;
     }
 
     @WebApiEndpoint

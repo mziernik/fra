@@ -108,14 +108,10 @@ public class RUsers extends Repository<Integer> {
             c.icon = FontAwesome.USERS;
 
             c.recordAction("add", "Dodaj", ActionType.PRIMARY,
-                    FontAwesome.USER_PLUS, null, (repo, rec, params) -> {
-
-                    });
+                    FontAwesome.USER_PLUS, null, (ActionData data) -> null);
 
             c.recordAction("rem", "Usuń", ActionType.DANGER,
-                    FontAwesome.USER_TIMES, "Czy na pewno usunąć?", (repo, rec, params) -> {
-
-                    });
+                    FontAwesome.USER_TIMES, "Czy na pewno usunąć?", data -> null);
 
             c.repoAction("editRandom", "Modyfikuj losowy", ActionType.PRIMARY,
                     FontAwesome.USER_SECRET, null, RUsers::editRandom);
@@ -128,10 +124,11 @@ public class RUsers extends Repository<Integer> {
 
         });
         instance = this;
+
     }
 
-    private static void removeRandom(Repository<Integer> repo, JObject params) {
-        RUsers r = (RUsers) repo;
+    private static Object removeRandom(ActionData data) {
+        RUsers repo = (RUsers) data.repository;
 
         TList<Integer> ids = new TList<>();
         repo.forEach((Record rec) -> {
@@ -141,14 +138,14 @@ public class RUsers extends Repository<Integer> {
         });
 
         if (ids.isEmpty())
-            return;
+            return null;
 
-        r.localUpdate(ids.random()).delete();
+        return repo.localUpdate(ids.random()).delete();
 
     }
 
-    private static void addRandom(Repository<Integer> repo, JObject params) {
-        RUsers r = (RUsers) repo;
+    private static Object addRandom(ActionData data) {
+        RUsers repo = (RUsers) data.repository;
 
         String fname = Names.randomFirstname();
         String sname = Names.randomSurname();
@@ -156,7 +153,7 @@ public class RUsers extends Repository<Integer> {
         String login = StrUtils.convertPolishChars(fname).toLowerCase()
                 + "." + StrUtils.convertPolishChars(sname).toLowerCase();
 
-        r.localUpdate(null)
+        return repo.localUpdate(null)
                 .set(ID, repo.min(ID, 0) - 1)
                 .set(LOGIN, login)
                 .set(EMAIL, login + "@email.com")
@@ -164,11 +161,12 @@ public class RUsers extends Repository<Integer> {
                 .set(LAST_NAME, sname)
                 .set(DISPLAY_NAME, fname.charAt(0) + ". " + sname)
                 .update();
+
     }
 
-    private static void editRandom(Repository<Integer> repo, JObject params) {
+    private static Object editRandom(ActionData data) {
 
-        RUsers r = (RUsers) repo;
+        RUsers repo = (RUsers) data.repository;
 
         TList<Integer> ids = new TList<>();
         repo.forEach((Record rec) -> {
@@ -178,7 +176,7 @@ public class RUsers extends Repository<Integer> {
         });
 
         if (ids.isEmpty())
-            return;
+            return null;
 
         String fname = Names.randomFirstname();
         String sname = Names.randomSurname();
@@ -186,12 +184,13 @@ public class RUsers extends Repository<Integer> {
         String login = StrUtils.convertPolishChars(fname).toLowerCase()
                 + "." + StrUtils.convertPolishChars(sname).toLowerCase();
 
-        r.localUpdate(ids.random())
+        return repo.localUpdate(ids.random())
                 .set(EMAIL, login + "@new-email.com")
                 .set(FIRST_NAME, fname)
                 .set(LAST_NAME, sname)
                 .set(DISPLAY_NAME, fname.charAt(0) + ". " + sname)
                 .update();
+
     }
 
 }

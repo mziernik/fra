@@ -27,6 +27,15 @@ public class RTest extends Repository<Integer> {
         c.unique = true;
     });
 
+    public final static Column<String> ON_DEMAND = new Column<>(c -> {
+        c.repository = RTest.class;
+        c.type = EnumDataType.ofArray(FORMATS);
+        c.key = "onDemand";
+        c.name = "Na żądanie";
+
+        c.serializer = (arg) -> "Duuuuuuuuuuża ilość tekstu " + Utils.random();
+    });
+
     public final static Column<String> ONE_OF = new Column<>(c -> {
         c.repository = RTest.class;
         c.type = EnumDataType.ofArray(FORMATS);
@@ -205,19 +214,11 @@ public class RTest extends Repository<Integer> {
             c.primaryKey = ID;
             c.displayName = NAME;
 
-            c.repoAction("addR", "Dodaj", ActionType.PRIMARY, FontAwesome.PLUS, null, (repo, params) -> {
+            c.repoAction("addR", "Dodaj", ActionType.PRIMARY, FontAwesome.PLUS, null, data -> null);
+            c.repoAction("remR", "Usuń", ActionType.WARNING, FontAwesome.TRASH, null, data -> null);
 
-            });
-            c.repoAction("remR", "Usuń", ActionType.WARNING, FontAwesome.TRASH, null, (repo, params) -> {
-
-            });
-
-            c.recordAction("raddR", "Dodaj", ActionType.PRIMARY, FontAwesome.PLUS, null, (repo, rec, params) -> {
-
-            });
-            c.recordAction("rremR", "Usuń", ActionType.PRIMARY, FontAwesome.TRASH, null, (repo, rec, params) -> {
-
-            });
+            c.recordAction("raddR", "Dodaj", ActionType.PRIMARY, FontAwesome.PLUS, null, data -> null);
+            c.recordAction("rremR", "Usuń", ActionType.PRIMARY, FontAwesome.TRASH, null, data -> null);
         });
 
         onBeforeUpdate.listen(this, (records, all) -> {

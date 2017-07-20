@@ -7,6 +7,7 @@ import com.intf.callable.CallableEx1;
 import com.intf.runnable.*;
 import com.json.JArray;
 import com.json.JObject;
+import com.json.JSON;
 import com.model.RRepoSate;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
@@ -20,9 +21,11 @@ import com.utils.collections.*;
 import com.utils.date.TDate;
 import com.utils.reflections.TField;
 import com.webapi.core.WebApiController;
+import com.webapi.core.WebApiRequest;
 import com.webapi.core.client.Repositories;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import javassist.Modifier;
@@ -77,6 +80,24 @@ public class Repository<PRIMARY_KEY> {
         }
     }
 
+    public class ActionData {
+
+        public final RepoAction action;
+        public final WebApiRequest request;
+        public final Repository<?> repository = Repository.this;
+        public final Record record;
+        public final JObject params;
+        public final LinkedHashSet<Record> records = new LinkedHashSet<>();
+
+        private ActionData(RepoAction action, WebApiRequest request, Record record, JObject params) {
+            this.action = action;
+            this.request = request;
+            this.record = record;
+            this.params = params;
+        }
+
+    }
+
     public class RepoAction {
 
         public String key;
@@ -85,10 +106,10 @@ public class Repository<PRIMARY_KEY> {
         public FontAwesome icon;
         public String confirm;
         public boolean record = false;
-        public RunnableEx2<Record, JObject> onExecute;
+        public CallableEx1<Object, ActionData> onExecute;
 
         public RepoAction(boolean record, String key, String name, ActionType type,
-                FontAwesome icon, String confirm, RunnableEx2<Record, JObject> onExecute) {
+                FontAwesome icon, String confirm, CallableEx1<Object, ActionData> onExecute) {
             this.key = key;
             this.name = name;
             this.type = type;
@@ -98,6 +119,31 @@ public class Repository<PRIMARY_KEY> {
             this.record = record;
         }
 
+        public JObject execute(WebApiRequest request, Record record, JObject params) throws Exception {
+            ActionData data = new ActionData(this, request, record, params);
+            Object result = onExecute.run(data);
+
+            if (data.records.isEmpty() && record != null)
+                data.records.add(record);
+
+            if (result instanceof Record) {
+                data.records.add((Record) result);
+                result = null;
+            }
+
+            MapList<Repository, Record> map = new MapList<>();
+
+            data.records.forEach((Record r) -> map.add(r.repo, r));
+            final JObject jresult = new JObject();
+            jresult.put("result", result);
+            JObject jrecs = jresult.objectC("repositories");
+
+            map.forEach((Entry<Repository, TList<Record>> en)
+                    -> AbstractRepoTransaction.fillJson(jrecs, en.getKey(), en.getValue()));
+
+            return jresult;
+        }
+
     }
 
     public class RepoConfig {
@@ -105,12 +151,13 @@ public class Repository<PRIMARY_KEY> {
         public String key;
         public CharSequence name;
         public String daoName;
-        public String description;
         public CharSequence group;
         public Column<?> primaryKey;
         public Column<?> parentColumn;
         public Column<?> orderColumn;
         public Column<?> displayName;
+        public CharSequence description;
+        public final LinkedHashMap<String, String> info = new LinkedHashMap<>();
         public DAO dao;
         public Boolean onDemand;
         public Boolean local;
@@ -141,20 +188,18 @@ public class Repository<PRIMARY_KEY> {
         }
 
         public RepoConfig repoAction(String key, String name, ActionType type, FontAwesome icon,
-                String confirm, RunnableEx2<Repository<PRIMARY_KEY>, JObject> onExecute) {
+                String confirm, CallableEx1<Object, ActionData> onExecute) {
             if (actions.containsKey(key))
                 throw new RepositoryException(Repository.this, "Akcja " + Utils.escape(key) + " już istnieje");
-            actions.put(key, new RepoAction(false, key, name, type, icon, confirm,
-                    (rec, params) -> onExecute.run(Repository.this, params)));
+            actions.put(key, new RepoAction(false, key, name, type, icon, confirm, onExecute));
             return this;
         }
 
         public RepoConfig recordAction(String key, String name, ActionType type, FontAwesome icon,
-                String confirm, RunnableEx3<Repository<PRIMARY_KEY>, Record, JObject> onExecute) {
+                String confirm, CallableEx1<Object, ActionData> onExecute) {
             if (actions.containsKey(key))
                 throw new RepositoryException(Repository.this, "Akcja " + Utils.escape(key) + " już istnieje");
-            actions.put(key, new RepoAction(true, key, name, type, icon, confirm,
-                    (rec, params) -> onExecute.run(Repository.this, rec, params)));
+            actions.put(key, new RepoAction(true, key, name, type, icon, confirm, onExecute));
             return this;
         }
 
@@ -177,6 +222,7 @@ public class Repository<PRIMARY_KEY> {
                     .escape("key", key)
                     .escape("name", name)
                     .escape("group", group)
+                    .escape("description", description)
                     .add("record", Repository.this.getClass().getSimpleName() + "Record")
                     .add("primaryKeyColumn", Repository.this.getClass().getSimpleName()
                             + "." + Repositories.formatFieldName(primaryKey.getKey()))
@@ -194,6 +240,7 @@ public class Repository<PRIMARY_KEY> {
                     .add("local", local)
                     .escape("icon", icon != null ? icon.className : null)
                     .add("onDemand", onDemand)
+                    .add("info", info.isEmpty() ? null : JSON.serialize(info))
                     .add("actions", actions.isEmpty() ? null : getActionsJson(false).toString());
         }
 
@@ -203,6 +250,11 @@ public class Repository<PRIMARY_KEY> {
                 obj.put("key", key);
                 obj.put("name", name);
                 obj.put("group", group);
+                obj.put("description", description);
+
+                if (!info.isEmpty())
+                    obj._put("info", info).asObject().options.quotaNames(true);
+
                 obj.put("local", local);
                 obj.put("icon", icon != null ? icon.className : null);
                 obj.put("onDemand", onDemand);

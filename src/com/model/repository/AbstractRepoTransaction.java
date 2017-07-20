@@ -59,10 +59,10 @@ public class AbstractRepoTransaction {
         return records.addR(new Record(repo, CRUDE.DELETE, repo.getCells(pk, false)));
     }
 
-    public void commit(boolean strict) throws Exception {
+    public TList<Record> commit(boolean strict) throws Exception {
 
         if (records.isEmpty())
-            return;
+            return new TList<>();
 
         TList<Record> local = new TList<>();
 
@@ -134,6 +134,7 @@ public class AbstractRepoTransaction {
             rec.repo.updateRecord(rec, true);
 
         webApiBroadcast(repos);
+        return local;
     }
 
     private static void clearChangedFlag(Record rec) {
@@ -150,6 +151,31 @@ public class AbstractRepoTransaction {
         MapList<Repository<?>, Record> repos = new MapList<>();
         repos.add(rec.repo, rec);
         webApiBroadcast(repos);
+    }
+
+    public static void fillJson(JObject _json, Repository<?> repo, TList<Record> records) {
+
+        JObject json = _json.objectC(repo.getKey());
+
+        repo.status.fillJson(json);
+
+        JArray jrows = json.arrayC("rows");
+        for (Record rec : records) {
+            JObject obj = jrows.object();
+            //  obj.put("#crude", rec.crude.name);
+
+            // dla operacji DELETE zwróć tylko ID obiektu
+            if (rec.crude == CRUDE.DELETE) {
+                obj.put(repo.config.primaryKey.config.key, rec.getPrimaryKeyValue());
+                continue;
+            }
+
+            for (Column<?> col : rec)
+                if (repo.config.primaryKey == col || rec.isChanged(col))
+                    obj.put(col.config.key, rec.get(col));
+
+            clearChangedFlag(rec);
+        }
     }
 
     static void webApiBroadcast(MapList<Repository<?>, Record> repos) {
@@ -179,28 +205,8 @@ public class AbstractRepoTransaction {
             if (recipients.isEmpty())
                 continue;
 
-            JObject json = new JObject()
-                    .objectC(repo.getKey());
-
-            repo.status.fillJson(json);
-
-            JArray jrows = json.arrayC("rows");
-            for (Record rec : en.getValue()) {
-                JObject obj = jrows.object();
-                //  obj.put("#crude", rec.crude.name);
-
-                // dla operacji DELETE zwróć tylko ID obiektu
-                if (rec.crude == CRUDE.DELETE) {
-                    obj.put(repo.config.primaryKey.config.key, rec.getPrimaryKeyValue());
-                    continue;
-                }
-
-                for (Column<?> col : rec)
-                    if (repo.config.primaryKey == col || rec.isChanged(col))
-                        obj.put(col.config.key, rec.get(col));
-
-                clearChangedFlag(rec);
-            }
+            JObject json = new JObject();
+            fillJson(json, repo, en.getValue());
 
             WebApiController.broadcast("repository", "update", json.getParent(), recipients);
         }
