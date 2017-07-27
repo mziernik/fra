@@ -1,5 +1,6 @@
 package com.utils.collections;
 
+import com.intf.runnable.Runnable2;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -29,6 +30,11 @@ public abstract class MapCollection<Key, Item, Coll extends Collection<Item>>
         for (Coll coll : new LinkedList<>(map.values()))
             result.addAll(coll);
         return result;
+    }
+
+    public MapCollection<Key, Item, Coll> each(Runnable2<Key, Coll> consumer) {
+        forEach(t -> consumer.run(t.getKey(), t.getValue()));
+        return this;
     }
 
     @Override

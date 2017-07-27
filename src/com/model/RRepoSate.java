@@ -10,9 +10,9 @@ import com.model.repository.intf.CRUDE;
 import com.resources.FontAwesome;
 import com.service.RUsers;
 import com.servlet.websocket.WebSocketConnection;
+import com.utils.collections.Pair;
 import com.utils.date.TDate;
 import com.utils.reflections.datatype.*;
-import com.webapi.core.WebApiController;
 
 public class RRepoSate extends Repository<String> {
 
@@ -115,6 +115,20 @@ public class RRepoSate extends Repository<String> {
         c.name = "Wersja";
         c.readOnly = true;
         c.required = true;
+    });
+
+    public final static Column<Pair<String, String>[]> PAIR_LIST = new Column<>(c -> {
+        c.repository = RTest.class;
+        c.type = new ArrayDataType<>(new PairDataType<>(DataType.STRING, DataType.STRING));
+        c.key = "info";
+        c.name = "Zaawanoswane informacje";
+    });
+
+    public final static Column<Integer> LIMIT = new Column<>(c -> {
+        c.repository = RRepoSate.class;
+        c.type = DataType.INT;
+        c.key = "limit";
+        c.name = "Limit danych";
     });
 
     private RRepoSate() {

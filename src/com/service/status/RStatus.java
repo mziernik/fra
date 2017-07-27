@@ -97,6 +97,8 @@ public class RStatus extends Repository<String> {
         c.key = "attrs";
         c.name = "Atrybuty";
     });
+    
+    
 
     public RStatus() {
         super(c -> {

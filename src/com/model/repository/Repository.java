@@ -8,7 +8,6 @@ import com.intf.runnable.*;
 import com.json.JArray;
 import com.json.JObject;
 import com.json.JSON;
-import com.model.RRepoSate;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
@@ -146,6 +145,18 @@ public class Repository<PRIMARY_KEY> {
 
     }
 
+    public class RepoReference {
+
+        public final CharSequence name;
+        public final Column<PRIMARY_KEY> column;
+
+        public RepoReference(CharSequence name, Column<PRIMARY_KEY> column) {
+            this.name = name;
+            this.column = column;
+        }
+
+    }
+
     public class RepoConfig {
 
         public String key;
@@ -167,6 +178,7 @@ public class Repository<PRIMARY_KEY> {
         public FontAwesome icon;
         public final Flags<CRUDE> crude = CRUDE.flags(CRUDE.CRUD);
         public final LinkedHashMap<String, RepoAction> actions = new LinkedHashMap<>();
+        public final MapList<Class<? extends Repository<?>>, RepoReference> references = new MapList<>();
 
         public RepoConfig() {
             if (Repository.this instanceof DynamicRepo)
@@ -181,6 +193,12 @@ public class Repository<PRIMARY_KEY> {
 
         public void order(Column<?> column, boolean ascendant) {
 
+        }
+
+        public RepoReference reference(CharSequence name, Column<PRIMARY_KEY> column) {
+            RepoReference ref = new RepoReference(name, column);
+            references.add(column.config.repository, ref);
+            return ref;
         }
 
         public void view(Column<?>... columns) {
@@ -203,67 +221,77 @@ public class Repository<PRIMARY_KEY> {
             return this;
         }
 
-        private JObject getActionsJson(boolean quotaNames) {
-            JObject json = new JObject();
-            json.options.quotaNames(quotaNames);
-            actions.forEach((String k, RepoAction a) -> json.objectC(k)
-                    .put("record", a.record)
-                    .put("name", a.name)
-                    .put("confirm", a.confirm)
-                    .put("type", a.type != null ? a.type.name().toLowerCase() : null)
-                    .put("icon", a.icon != null ? a.icon.className : null).options.singleLine(true)
-            );
-            return json;
-        }
+        private Params buildParams() {
+            JObject jActions = new JObject();
 
-        public Params getClinetParams() {
+            getActions().forEach(act -> jActions.objectC(act.key)
+                    .put("record", act.record)
+                    .put("name", act.name)
+                    .put("confirm", act.confirm)
+                    .put("type", act.type != null ? act.type.name().toLowerCase() : null)
+                    .put("icon", act.icon != null ? act.icon.className : null).options.singleLine(true)
+            );
+
+            JObject jRefs = new JObject();
+            references.each((Class< ? extends Repository<?>> repoCls, TList<RepoReference> refs) -> {
+                JObject jRef = jRefs.objectC(Repository.getF(repoCls).getKey());
+                refs.forEach((RepoReference ref) -> jRef.put("name", ref.name)
+                        .put("repo", ref.column.repository.getKey())
+                        .put("column", ref.column.getKey()));
+            });
 
             return new Params()
+                    .extra("actions", jActions.isEmpty() ? null : jActions)
+                    .extra("references", jRefs.isEmpty() ? null : jRefs)
                     .escape("key", key)
                     .escape("name", name)
                     .escape("group", group)
                     .escape("description", description)
                     .add("record", Repository.this.getClass().getSimpleName() + "Record")
-                    .add("primaryKeyColumn", Repository.this.getClass().getSimpleName()
-                            + "." + Repositories.formatFieldName(primaryKey.getKey()))
-                    .add("parentColumn", parentColumn != null
-                            ? Repository.this.getClass().getSimpleName()
-                            + "." + Repositories.formatFieldName(parentColumn.getKey()) : null)
-                    .add("orderColumn", orderColumn != null
-                            ? Repository.this.getClass().getSimpleName()
-                            + "." + Repositories.formatFieldName(orderColumn.getKey()) : null)
-                    .add("displayNameColumn", displayName != null
-                            ? Repository.this.getClass().getSimpleName()
-                            + "." + Repositories.formatFieldName(displayName.getKey())
-                            : null)
+                    .escape("primaryKeyColumn", primaryKey.getKey())
+                    .escape("parentColumn", parentColumn != null ? parentColumn.getKey() : null)
+                    .escape("orderColumn", orderColumn != null ? orderColumn.getKey() : null)
+                    .escape("displayNameColumn", displayName != null ? displayName.getKey() : null)
                     .escape("crude", crude.getChars())
                     .add("local", local)
                     .escape("icon", icon != null ? icon.className : null)
                     .add("onDemand", onDemand)
-                    .add("info", info.isEmpty() ? null : JSON.serialize(info))
-                    .add("actions", actions.isEmpty() ? null : getActionsJson(false).toString());
+                    .add("info", info.isEmpty() ? null : JSON.serialize(info));
+        }
+
+        public Params getParams() {
+            Params params = buildParams();
+            Is.notNullV(params.extra.get("actions"), obj -> {
+                JObject json = (JObject) obj;
+                json.options.quotaNames(false);
+                params.add("actions", json.toString());
+            });
+
+            Is.notNullV(params.extra.get("references"), obj -> {
+                JObject json = (JObject) obj;
+                json.options.quotaNames(false);
+                params.add("references", json.toString());
+            });
+
+            return params;
         }
 
         public void getJson(JObject obj, boolean metaData) {
 
             if (metaData) {
-                obj.put("key", key);
-                obj.put("name", name);
-                obj.put("group", group);
-                obj.put("description", description);
+                Params params = buildParams();
+                params.forEach(p -> obj.put(p.name, p.raw));
+                Is.notNullV(params.extra.get("actions"), a -> obj.put("actions", a));
+                Is.notNullV(params.extra.get("references"), a -> obj.put("references", a));
+
+                Map<String, String> info = new LinkedHashMap<>(this.info);
+                info.put("ClassName", getClass().getCanonicalName());
 
                 if (!info.isEmpty())
                     obj._put("info", info).asObject().options.quotaNames(true);
 
-                obj.put("local", local);
-                obj.put("icon", icon != null ? icon.className : null);
-                obj.put("onDemand", onDemand);
-                obj.put("actions", actions.isEmpty() ? null : getActionsJson(true));
-                obj.put("primaryKeyColumn", primaryKey.getKey());
-                obj.put("orderColumn", orderColumn != null ? orderColumn.getKey() : null);
-                obj.put("parentColumn", parentColumn != null ? parentColumn.getKey() : null);
-                obj.put("displayNameColumn", displayName != null ? displayName.getKey() : null);
-                obj.put("crude", new Strings().map(crude, cr -> "" + cr.name().charAt(0)).toString(""));
+                obj.put("crude", new Strings().map(getCRUDE(), cr -> "" + cr.name().charAt(0)).toString(""));
+
             }
 
             obj.put("rowsCount", records.size());
@@ -310,6 +338,19 @@ public class Repository<PRIMARY_KEY> {
 
     public boolean isEmpty() {
         return records.isEmpty();
+    }
+
+    /**
+     * Zwraca listę uprawnień. Metoda do przeciążenia
+     *
+     * @return
+     */
+    protected Flags<CRUDE> getCRUDE() {
+        return this.config.crude;
+    }
+
+    protected Collection<RepoAction> getActions() {
+        return this.config.actions.values();
     }
 
     public int size() {
@@ -540,6 +581,13 @@ public class Repository<PRIMARY_KEY> {
         Repository<?> repo = ALL.get(name);
         if (repo == null)
             throw new RepositoryException(null, "Nie znaleziono repozytorium " + Utils.escape(name));
+        return repo;
+    }
+
+    static Repository<?> getF(Class<? extends Repository<?>> repoClass) {
+        Repository<?> repo = ALL.values().findFirst(r -> r.getClass() == repoClass);
+        if (repo == null)
+            throw new RepositoryException(null, "Nie znaleziono repozytorium " + repoClass.getName());
         return repo;
     }
 

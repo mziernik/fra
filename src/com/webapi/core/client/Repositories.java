@@ -34,7 +34,7 @@ public class Repositories extends WebApiClientBuilder {
     public void build() {
         writer.setAutoIntent(true);
 
-        writer.append("import {Field, Column, RepoConfig, Type, Repository, Record} from \"../core/core\";").br().br();
+        writer.append("import {Field, Column, RepoConfig, Repository, Record} from \"../core/core\";").br().br();
 
         writer.br().br();
 
@@ -55,7 +55,7 @@ public class Repositories extends WebApiClientBuilder {
                     writer.add("static ", formatFieldName(col.getKey()), ": Column = new Column((c: Column) => {");
 
                     writer.nextLevel(() -> {
-                        for (Param p : col.config.getClinetParams())
+                        for (Param p : col.config.getParams())
                             if (p.value != null)
                                 writer.br().add("c.", p.name, " = ", Utils.toString(p.value), ";");
                     });
@@ -69,7 +69,7 @@ public class Repositories extends WebApiClientBuilder {
                     writer.append("super((c: RepoConfig) => {");
 
                     writer.nextLevel(() -> {
-                        for (Param p : repo.config.getClinetParams())
+                        for (Param p : repo.config.getParams())
                             if (p.value != null)
                                 writer.br().add("c.", p.name, " = ", Utils.toString(p.value), ";");
                     });
