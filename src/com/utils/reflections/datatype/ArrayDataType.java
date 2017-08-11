@@ -28,6 +28,8 @@ public class ArrayDataType<T> extends DataType<T[]> {
 
     @Override
     public Object serialize(T[] value) {
+        if (value == null)
+            return null;
         JArray arr = new JArray();
         for (T t : value)
             arr.add(component.serialize(t));

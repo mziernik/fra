@@ -195,7 +195,11 @@ public class DataType<T> {
             "email", String.class, (value, parent) -> Utils.toString(value));
 
     public final static DataType<String> FILE_NAME = new DataType<>(JsonType.STRING,
-            "file_name", String.class, STRING.adapter);
+            "fileName", String.class, STRING.adapter);
+    
+        public final static DataType<String> FILE_PATH = new DataType<>(JsonType.STRING,
+            "filePath", String.class, STRING.adapter);
+
 
     public final static DataType<String> PASSWORD = new DataType<>(JsonType.STRING,
             "password", String.class, STRING.adapter);

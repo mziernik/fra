@@ -25,9 +25,9 @@ public abstract class MapCollection<Key, Item, Coll extends Collection<Item>>
         return new LinkedList<>(map.entrySet()).peek();
     }
 
-    public LinkedList<Item> allValues() {
-        LinkedList<Item> result = new LinkedList<>();
-        for (Coll coll : new LinkedList<>(map.values()))
+    public TList<Item> allValues() {
+        TList<Item> result = new TList<>();
+        for (Coll coll : new TList<>(map.values()))
             result.addAll(coll);
         return result;
     }

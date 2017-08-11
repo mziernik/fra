@@ -64,7 +64,7 @@ public class EnumDataType<T> extends DataType<T> implements Adapter<T> {
     }
 
     public boolean isEmbeddedEnum() {
-        return this == DataType.ICON;
+        return this == ICON || this == DATA_TYPE;
     }
 
     @Override

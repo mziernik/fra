@@ -2,7 +2,6 @@ package com.model.repository;
 
 import com.database.Database;
 import com.events.Dispatcher;
-import com.intf.callable.Callable;
 import com.intf.callable.CallableEx1;
 import com.model.repository.intf.Align;
 import com.intf.runnable.Runnable1;
@@ -12,12 +11,12 @@ import com.json.JObject;
 import com.json.JSON;
 import com.model.repository.intf.CRUDE;
 import com.model.repository.intf.CaseConvert;
+import com.model.repository.intf.IForeignColumn;
 import com.utils.Is;
 import com.utils.TObject;
 import com.utils.Utils;
 import com.utils.collections.Pair;
 import com.utils.collections.Params;
-import com.utils.collections.Params.Param;
 import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
 import com.utils.reflections.datatype.EnumDataType;
@@ -210,11 +209,8 @@ public class Column<RAW> {
         private Params buildParams() {
 
             Column<?> foreign = null;
-            if (Column.this instanceof ForeignColumn)
-                foreign = ((ForeignColumn) Column.this).column;
-
-            if (Column.this instanceof ForeignColumns)
-                foreign = ((ForeignColumns) Column.this).column;
+            if (Column.this instanceof IForeignColumn)
+                foreign = ((IForeignColumn) Column.this).getForeignColumn();
 
             Object enumerate = !this.enumerate.isEmpty() ? this.enumerate : null;
 

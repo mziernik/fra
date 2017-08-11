@@ -1052,6 +1052,7 @@ com/model/dao/MapDAO$MapDaoRows.class
 com/model/dao/MapDAO.class
 com/model/dao/core/DAO.class
 com/model/dao/core/DAOName.class
+com/model/dao/core/DAOQuery$DaoParam.class
 com/model/dao/core/DAOQuery.class
 com/model/dao/core/DAORow.class
 com/model/dao/core/DAORows.class
@@ -1076,9 +1077,12 @@ com/model/repository/RecordUpdate.class
 com/model/repository/RepoTransaction.class
 com/model/repository/ReposTransaction.class
 com/model/repository/Repository$1.class
+com/model/repository/Repository$ActionData.class
 com/model/repository/Repository$ActionType.class
 com/model/repository/Repository$RepoAction.class
 com/model/repository/Repository$RepoConfig.class
+com/model/repository/Repository$RepoReference.class
+com/model/repository/Repository$RepoStatus.class
 com/model/repository/Repository.class
 com/model/repository/RepositoryException.class
 com/model/repository/WRepository.class

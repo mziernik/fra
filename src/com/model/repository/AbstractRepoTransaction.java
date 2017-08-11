@@ -208,7 +208,7 @@ public class AbstractRepoTransaction {
             JObject json = new JObject();
             fillJson(json, repo, en.getValue());
 
-            WebApiController.broadcast("repository", "update", json.getParent(), recipients);
+            WebApiController.broadcast("repository", "update", json, recipients);
         }
 
     }

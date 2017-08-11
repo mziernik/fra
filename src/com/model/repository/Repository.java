@@ -1,5 +1,6 @@
 package com.model.repository;
 
+import com.context.intf.ContextInitialized;
 import com.events.Dispatcher;
 import com.model.repository.intf.CRUDE;
 import com.intf.callable.Callable1;
@@ -12,8 +13,10 @@ import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
 import com.model.dao.core.DAORows;
+import com.model.repository.intf.IForeignColumn;
 import com.resources.FontAwesome;
 import com.utils.Is;
+import com.utils.Ready;
 import com.utils.TObject;
 import com.utils.Utils;
 import com.utils.collections.*;
@@ -21,7 +24,6 @@ import com.utils.date.TDate;
 import com.utils.reflections.TField;
 import com.webapi.core.WebApiController;
 import com.webapi.core.WebApiRequest;
-import com.webapi.core.client.Repositories;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
@@ -147,10 +149,12 @@ public class Repository<PRIMARY_KEY> {
 
     public class RepoReference {
 
+        public final String key;
         public final CharSequence name;
         public final Column<PRIMARY_KEY> column;
 
-        public RepoReference(CharSequence name, Column<PRIMARY_KEY> column) {
+        public RepoReference(String key, CharSequence name, Column<PRIMARY_KEY> column) {
+            this.key = key;
             this.name = name;
             this.column = column;
         }
@@ -178,7 +182,10 @@ public class Repository<PRIMARY_KEY> {
         public FontAwesome icon;
         public final Flags<CRUDE> crude = CRUDE.flags(CRUDE.CRUD);
         public final LinkedHashMap<String, RepoAction> actions = new LinkedHashMap<>();
-        public final MapList<Class<? extends Repository<?>>, RepoReference> references = new MapList<>();
+        public final Map<String, RepoReference> references = new LinkedHashMap<>();
+
+        public String clientRepoClassName = Repository.this.getClass().getSimpleName();
+        public String clientRecordClassName = "E" + clientRepoClassName.substring(1);
 
         public RepoConfig() {
             if (Repository.this instanceof DynamicRepo)
@@ -196,8 +203,9 @@ public class Repository<PRIMARY_KEY> {
         }
 
         public RepoReference reference(CharSequence name, Column<PRIMARY_KEY> column) {
-            RepoReference ref = new RepoReference(name, column);
-            references.add(column.config.repository, ref);
+            String key = column.getRepository(true).getKey() + "_" + column.getKey();
+            RepoReference ref = new RepoReference(key, name, column);
+            references.put(key, ref);
             return ref;
         }
 
@@ -233,12 +241,11 @@ public class Repository<PRIMARY_KEY> {
             );
 
             JObject jRefs = new JObject();
-            references.each((Class< ? extends Repository<?>> repoCls, TList<RepoReference> refs) -> {
-                JObject jRef = jRefs.objectC(Repository.getF(repoCls).getKey());
-                refs.forEach((RepoReference ref) -> jRef.put("name", ref.name)
-                        .put("repo", ref.column.repository.getKey())
-                        .put("column", ref.column.getKey()));
-            });
+
+            references.forEach((String key, RepoReference ref) -> jRefs.objectC(key)
+                    .put("name", ref.name)
+                    .put("repo", ref.column.repository.getKey())
+                    .put("column", ref.column.getKey()));
 
             return new Params()
                     .extra("actions", jActions.isEmpty() ? null : jActions)
@@ -247,7 +254,7 @@ public class Repository<PRIMARY_KEY> {
                     .escape("name", name)
                     .escape("group", group)
                     .escape("description", description)
-                    .add("record", Repository.this.getClass().getSimpleName() + "Record")
+                    .add("record", clientRecordClassName)
                     .escape("primaryKeyColumn", primaryKey.getKey())
                     .escape("parentColumn", parentColumn != null ? parentColumn.getKey() : null)
                     .escape("orderColumn", orderColumn != null ? orderColumn.getKey() : null)
@@ -642,6 +649,8 @@ public class Repository<PRIMARY_KEY> {
             repo.load(rows);
         }
 
+        Ready.confirm(Repository.class);
+
     }
 
     public String getKey() {
@@ -726,6 +735,23 @@ public class Repository<PRIMARY_KEY> {
                     obj.put(col.config.key, rec.get(col));
         }
         return json;
+    }
+
+    @ContextInitialized(async = false)
+    private static void synchronize() throws Exception {
+        // dopisz do repozytoriów referencje na podstawie kluczy obcych
+        ALL.values().forEach((Repository<?> repo) -> {
+
+            repo.columns.values().forEach((Column<?> c) -> {
+                if (!(c instanceof IForeignColumn))
+                    return;
+                IForeignColumn col = (IForeignColumn) c;
+                Repository<?> fRepo = col.getForeignColumn().repository;
+                fRepo.config.reference(repo.getName(), (Column) col);
+            });
+
+        });
+
     }
 
 }

@@ -121,7 +121,7 @@ public class RRepoSate extends Repository<String> {
         c.repository = RTest.class;
         c.type = new ArrayDataType<>(new PairDataType<>(DataType.STRING, DataType.STRING));
         c.key = "info";
-        c.name = "Zaawanoswane informacje";
+        c.name = "Zaawansowane informacje";
     });
 
     public final static Column<Integer> LIMIT = new Column<>(c -> {
