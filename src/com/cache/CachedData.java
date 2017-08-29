@@ -46,6 +46,7 @@ public class CachedData extends IOBuffer {
     public String sourceIP;
     public String requestId;
     public String retrunName;
+    public boolean deleted;
     public final Set<String> tags = new LinkedHashSet<>();
     public CachedData parent;
     public String eTag = generateETag();
@@ -262,7 +263,7 @@ public class CachedData extends IOBuffer {
     }
 
     @Override
-    public IOBuffer delete() throws IOException {
+    public CachedData delete() throws IOException {
 
         HttpRequest current = HttpRequest.getInstance();
 
@@ -278,6 +279,11 @@ public class CachedData extends IOBuffer {
                     EError.addDetails(new Error(LCache.CANT_DELETE_FILE_UNTIL_SESSION_IS_ACTIVE.toString(key, name, sLock.id)),
                             LCache.REMAINING_TIME.toString(), new Interval(sLock.getRemainingTime(), Unit.MILLISECONDS).toStringFrmtS()),
                     LCache.SESSION.toString(), sLock.toString());
+
+        if (deleted)
+            return this;
+
+        deleted = true;
 
         for (CachedData cd : getChildren())
             cd.delete();

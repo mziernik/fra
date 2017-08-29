@@ -42,9 +42,11 @@ public class WRepository implements WebApi {
         Record record = ((Repository) repo).read(primaryKey);
         CachedData cd = record.get(column);
 
-        cd.inline = true;
+        if (cd == null || cd.deleted)
+            throw new RepositoryException(repo, "Nie znaleziono zasobu");
 
         return new JObject()
+                .put("id", cd.key)
                 .put("href", "/" + cd.key)
                 .put("name", cd.name)
                 .put("type", cd.mimeType)
