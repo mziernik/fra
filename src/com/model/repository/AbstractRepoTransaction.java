@@ -1,11 +1,13 @@
 package com.model.repository;
 
 import com.context.AppContext;
+import com.exceptions.ThrowableException;
 import com.json.JArray;
 import com.json.JObject;
 import com.mlogger.Log;
 import com.model.RRepoHistory;
-import com.model.RRepoSate;
+import com.model.RRepoState;
+import com.model.dao.MapDAO;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
@@ -13,15 +15,34 @@ import com.model.dao.core.DAORows;
 import com.model.repository.intf.CRUDE;
 import com.servlet.websocket.WebSocketConnection;
 import com.utils.Utils;
+import com.utils.Utils.Visitor;
 import com.utils.collections.MapList;
 import com.utils.collections.TList;
 import com.webapi.core.WebApiController;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AbstractRepoTransaction {
 
     public final TList<Record> records = new TList<>();
+    private ReposTransaction pre;
+    private ReposTransaction post;
+
+    protected AbstractRepoTransaction() {
+
+    }
+
+    public ReposTransaction pre() {
+        return pre != null ? pre : (pre = new ReposTransaction());
+    }
+
+    public ReposTransaction post() {
+        return post != null ? post : (post = new ReposTransaction());
+    }
 
     protected <PK> Record createOrUpdate(Repository<PK> repo, PK pk) {
         if (pk == null || !repo.records.containsKey(pk))
@@ -64,76 +85,96 @@ public class AbstractRepoTransaction {
         if (records.isEmpty())
             return new TList<>();
 
-        TList<Record> local = new TList<>();
+        final TList<DAO> daos = new TList<>();
+        final TList<Record> local = new TList<>();
+        final MapList<Repository<?>, Record> allRepos = new MapList<>();
+        final AbstractRepoTransaction history = new AbstractRepoTransaction();
 
-        MapList<Repository<?>, Record> repos = new MapList<>();
+        Utils.visit(this, (AbstractRepoTransaction transaction, Visitor<AbstractRepoTransaction> visitor) -> {
 
-        MapList<DAO, Record> daoRecords = new MapList<>();
+            if (transaction.pre != null)
+                visitor.visit(pre, visitor);
 
-        for (Record rec : records) {
-            if (rec.changed.isEmpty())
-                continue;
-            repos.add(rec.repo, rec);
+            MapList<DAO, Record> daoRecords = new MapList<>();
+            final MapList<Repository<?>, Record> repos = new MapList<>();
 
-            if (rec.repo.config.dao != null)
-                daoRecords.add(rec.repo.config.dao, rec);
-            else
-                local.add(rec);
-        }
+            for (Record rec : transaction.records) {
+                if (rec.changed.isEmpty())
+                    continue;
+                repos.add(rec.repo, rec);
 
-        for (Repository<?> repo : new TList<>(repos.keySet()))
-            if (!repo.beforeCommit(repos.get(repo)))
-                repos.remove(repo);
-
-        for (Entry<Repository<?>, TList<Record>> en : repos.entrySet())
-            en.getKey().onBeforeUpdate.dispatch(this, intf -> intf.run(en.getValue(), repos));
-
-        AbstractRepoTransaction history = new AbstractRepoTransaction();
-
-        for (Entry<DAO, TList<Record>> en : daoRecords) {
-            DAO<?> dao = en.getKey();
-
-            TList<DAOQuery> queries = new TList<>();
-            for (Record rec : en.getValue()) {
-                DAOQuery qry = new DAOQuery(rec, dao, rec.crude);
-                rec.repo.fillQuery(qry, rec);
-                queries.add(qry);
-            }
-            TList<? extends DAORows<?>> results = dao.process(queries);
-
-            // przetwarzanie odpowiedzi
-            for (DAORows<?> rows : results) {
-                Record rec = (Record) rows.context;
-
-                if (rows.size() > 1)
-                    throw new RepositoryException(rec.repo, Utils.frmt("Zbyt dużo wyników (%1)", results.size()));
-
-                if (rows.crude == CRUDE.UPDATE && rows.isEmpty()) {
-                    Log.warning("Repository", "Zapytanie UPDATE nie zwróciło rezultatu, wymuszam INSERT");
-
-                    DAOQuery query = new DAOQuery(rows.context, dao, CRUDE.CREATE);
-                    rec.repo.fillQuery(query, rec);
-                    rows = dao.process(query);
-
-                }
-                for (DAORow row : rows) {
-                    rec.repo.fillRecord(rec, row);
+                if (rec.repo.config.dao != null)
+                    daoRecords.add(rec.repo.config.dao, rec);
+                else
                     local.add(rec);
-                }
-                if (!(rec.repo instanceof RRepoHistory) && RRepoHistory.instance != null)
-                    RRepoHistory.instance.fill(history.create(RRepoHistory.instance), rec);
-
             }
-        }
+
+            for (Repository<?> repo : new TList<>(repos.keySet()))
+                if (!repo.beforeCommit(repos.get(repo)))
+                    repos.remove(repo);
+
+            allRepos.addAll(repos);
+
+            for (Entry<Repository<?>, TList<Record>> en : repos.entrySet())
+                en.getKey().onBeforeUpdate.dispatch(this, intf -> intf.run(en.getValue(), repos));
+
+            for (Entry<DAO, TList<Record>> en : daoRecords) {
+                DAO<?> dao = en.getKey();
+                daos.add(dao);
+
+                if (dao.isTransactional() && !dao.inTransaction())
+                    dao.beginTransaction();
+
+                TList<DAOQuery> queries = new TList<>();
+                for (Record rec : en.getValue()) {
+                    DAOQuery qry = new DAOQuery(rec, dao, rec.crude);
+                    rec.repo.fillQuery(qry, rec);
+                    queries.add(qry);
+                }
+                TList<? extends DAORows<?>> results = dao.process(queries);
+
+                // przetwarzanie odpowiedzi
+                for (DAORows<?> rows : results) {
+                    Record rec = (Record) rows.context;
+
+                    if (rows.size() > 1)
+                        throw new RepositoryException(rec.repo, Utils.frmt("Zbyt dużo wyników (%1)", results.size()));
+
+                    if (rows.crude == CRUDE.UPDATE && rows.isEmpty()) {
+                        Log.warning("Repository", "Zapytanie UPDATE nie zwróciło rezultatu, wymuszam INSERT");
+
+                        DAOQuery query = new DAOQuery(rows.context, dao, CRUDE.CREATE);
+                        rec.repo.fillQuery(query, rec);
+                        rows = dao.process(query);
+                    }
+
+                    for (DAORow row : rows) {
+                        rec.repo.fillRecord(rec, row);
+                        local.add(rec);
+                    }
+
+                    if (!(rec.repo instanceof RRepoHistory) && RRepoHistory.instance != null)
+                        RRepoHistory.instance.fill(history.create(RRepoHistory.instance), rec);
+                }
+            }
+
+            if (transaction.post != null)
+                visitor.visit(post, visitor);
+
+        });
 
         if (!history.records.isEmpty())
             history.commit(true);
+
+        for (DAO dao : daos)
+            if (dao.isTransactional() && dao.inTransaction())
+                dao.commitTransaction();
 
         // zakładamy, że operacja się powiodła, aktualizujemy loklane repozytoria
         for (Record rec : local)
             rec.repo.updateRecord(rec, true);
 
-        webApiBroadcast(repos);
+        webApiBroadcast(allRepos);
         return local;
     }
 
@@ -172,7 +213,7 @@ public class AbstractRepoTransaction {
 
             for (Column<?> col : rec)
                 if (repo.config.primaryKey == col || rec.isChanged(col))
-                    obj.put(col.config.key, rec.get(col));
+                    obj.put(col.config.key, rec.serialize(col));
 
             clearChangedFlag(rec);
         }
@@ -191,7 +232,7 @@ public class AbstractRepoTransaction {
         for (Entry<Repository<?>, TList<Record>> en : repos) {
             Repository<?> repo = en.getKey();
 
-            if (!RRepoSate.canBroadcast(repo))
+            if (!RRepoState.canBroadcast(repo))
                 continue;
 
             TList<WebApiController> recipients = new TList<>();
@@ -229,6 +270,10 @@ public class AbstractRepoTransaction {
 
         String pkName = repo.config.primaryKey.getKey();
         PK pk = null;
+
+        if (crude == null && row.contains("#action"))
+            crude = CRUDE.get(Utils.toString(row.getValue("#action", null)));
+
         if (crude == null) {
 
             if (!row.contains(pkName))
@@ -249,6 +294,29 @@ public class AbstractRepoTransaction {
             rec.cells = repo.getCells(pk, true);
 
         for (String s : row.getNames()) {
+            if (s.equals("#action"))
+                continue;
+
+            if (s.equals("#refs")) {
+
+                Map<String, List<Map<String, Object>>> map = (Map) row.getValue(s, null);
+
+                ReposTransaction post = post();
+
+                Utils.forEach(map, (String name, List<Map<String, Object>> objects) -> {
+                    Repository r = Repository.getF(name);
+                    for (Map obj : objects)
+                        post.action(r, null, new MapDAO(obj));
+                });
+
+//                for (JArray arr : json.getArrays()) {
+//                    Repository repo = Repository.getF(arr.getName());
+//                    for (JObject obj : arr.getObjects())
+//                        trans.action(repo, null, new MapDAO(obj));
+//                }
+                continue;
+            }
+
             Column<?> col = repo.columns.get(s);
             if (col == null) {
                 Log.warning("Repository", "Nie znaleziono kolumny " + Utils.escape(s));

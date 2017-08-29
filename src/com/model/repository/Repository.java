@@ -9,12 +9,15 @@ import com.intf.runnable.*;
 import com.json.JArray;
 import com.json.JObject;
 import com.json.JSON;
+import com.model.RRepoHistory;
+import com.model.RRepoState;
 import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
 import com.model.dao.core.DAORows;
 import com.model.repository.intf.IForeignColumn;
 import com.resources.FontAwesome;
+import com.thread.TThread;
 import com.utils.Is;
 import com.utils.Ready;
 import com.utils.TObject;
@@ -25,11 +28,11 @@ import com.utils.reflections.TField;
 import com.webapi.core.WebApiController;
 import com.webapi.core.WebApiRequest;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
-import javassist.Modifier;
 
 public class Repository<PRIMARY_KEY> {
 
@@ -171,6 +174,7 @@ public class Repository<PRIMARY_KEY> {
         public Column<?> parentColumn;
         public Column<?> orderColumn;
         public Column<?> displayName;
+        public String displayMask;
         public CharSequence description;
         public final LinkedHashMap<String, String> info = new LinkedHashMap<>();
         public DAO dao;
@@ -237,7 +241,7 @@ public class Repository<PRIMARY_KEY> {
                     .put("name", act.name)
                     .put("confirm", act.confirm)
                     .put("type", act.type != null ? act.type.name().toLowerCase() : null)
-                    .put("icon", act.icon != null ? act.icon.className : null).options.singleLine(true)
+                    .put("icon", act.icon != null ? act.icon.key : null).options.singleLine(true)
             );
 
             JObject jRefs = new JObject();
@@ -259,9 +263,10 @@ public class Repository<PRIMARY_KEY> {
                     .escape("parentColumn", parentColumn != null ? parentColumn.getKey() : null)
                     .escape("orderColumn", orderColumn != null ? orderColumn.getKey() : null)
                     .escape("displayNameColumn", displayName != null ? displayName.getKey() : null)
+                    .escape("displayMask", displayMask != null ? displayMask : null)
                     .escape("crude", crude.getChars())
                     .add("local", local)
-                    .escape("icon", icon != null ? icon.className : null)
+                    .escape("icon", icon != null ? icon.key : null)
                     .add("onDemand", onDemand)
                     .add("info", info.isEmpty() ? null : JSON.serialize(info));
         }
@@ -448,6 +453,10 @@ public class Repository<PRIMARY_KEY> {
         }
     }
 
+    public void validate(Record rec) throws Exception {
+
+    }
+
     public TList<Record> select(Predicate<Record> predicate) {
         TList<Record> result = new TList<>();
         forEach(rec -> {
@@ -468,8 +477,9 @@ public class Repository<PRIMARY_KEY> {
         Object[] cells;
         if (pk == null)
             throw new RepositoryException(this, "Brak klucza głównego");
+
         synchronized (records) {
-            cells = records.get(pk);
+            cells = records.get(formatPrimaryKey(pk));
         }
         if (cells == null)
             throw new RepositoryException(this, "Nie znaleziono rekordu " + Utils.escape(pk));
@@ -481,7 +491,7 @@ public class Repository<PRIMARY_KEY> {
     }
 
     public <T extends Number> T min(Column<T> column) {
-        return Utils.coalesce(min(column), null);
+        return Utils.coalesce(min(column, null), null);
     }
 
     public <T extends Number> T min(Column<T> column, T initValue) {
@@ -505,7 +515,17 @@ public class Repository<PRIMARY_KEY> {
     }
 
     public <T extends Number> T max(Column<T> column) {
-        return Utils.coalesce(max(column), null);
+        return Utils.coalesce(max(column, null), null);
+    }
+
+    public TList<PRIMARY_KEY> find(Callable1<Boolean, Record> consumer) {
+        TList<PRIMARY_KEY> list = new TList<>();
+        forEach(rec -> {
+            if (consumer.run(rec))
+                list.add((PRIMARY_KEY) rec.getPrimaryKeyValue());
+            return true;
+        });
+        return list;
     }
 
     public <T> void forEach(Column<T> column, Callable1<Boolean, T> consumer) {
@@ -549,10 +569,14 @@ public class Repository<PRIMARY_KEY> {
 
         PRIMARY_KEY pk = (PRIMARY_KEY) record.getPrimaryKeyValue();
         if (pk == null)
-            throw new RepositoryException(this, "Piusta wartpość klucza głownego");
+            throw new RepositoryException(this, "Pusta wartpość klucza głownego");
 
         if (record.crude == CRUDE.CREATE || record.crude == CRUDE.UPDATE)
-            record.validate();
+            try {
+                record.validate();
+            } catch (Exception ex) {
+                throw new RecordException(record, ex);
+            }
 
         synchronized (records) {
             switch (record.crude) {
@@ -628,6 +652,11 @@ public class Repository<PRIMARY_KEY> {
         return repo;
     }
 
+    public static <T extends Repository<?>> T getInstance(Class<T> repoClass) {
+        return (T) ALL.values().findFirst((Repository<?> repo)
+                -> repoClass == repo.getClass());
+    }
+
     public static void loadAll(DAO<?> dao) throws Exception {
 
         TList<DAOQuery> queries = new TList<>();
@@ -651,6 +680,7 @@ public class Repository<PRIMARY_KEY> {
 
         Ready.confirm(Repository.class);
 
+        TThread.create("Repository validator", th -> Repository.validateAll()).start();
     }
 
     public String getKey() {
@@ -663,6 +693,10 @@ public class Repository<PRIMARY_KEY> {
 
     public Map<String, Column<?>> getColumns() {
         return columns;
+    }
+
+    public Column<?> getColumn(String key) {
+        return columns.get(key);
     }
 
     /**
@@ -737,10 +771,32 @@ public class Repository<PRIMARY_KEY> {
         return json;
     }
 
+    public static void validateAll() {
+        Repository.ALL.values().forEach((Repository<?> repo) -> {
+            try {
+                repo.validate(null);
+            } catch (Exception ex) {
+                throw new RepositoryException(repo, ex);
+            }
+            repo.forEach((Record rec) -> {
+                try {
+                    rec.validate();
+                } catch (Exception ex) {
+                    throw new RepositoryException(repo, ex);
+                }
+                return true;
+            });
+
+        });
+    }
+
     @ContextInitialized(async = false)
     private static void synchronize() throws Exception {
         // dopisz do repozytoriów referencje na podstawie kluczy obcych
         ALL.values().forEach((Repository<?> repo) -> {
+
+            if (repo instanceof RRepoHistory || repo instanceof RRepoState)
+                return;
 
             repo.columns.values().forEach((Column<?> c) -> {
                 if (!(c instanceof IForeignColumn))

@@ -13,7 +13,9 @@ import com.html.core.Scss;
 import com.io.IOUtils;
 import com.mlogger.Log;
 import com.servlet.Handlers;
+import com.servlet.interfaces.HttpMethod;
 import com.servlet.requests.HttpRequest;
+import com.servlet.requests.ServletInputStreamEx;
 import com.utils.collections.Pair;
 import com.utils.hashes.Hashes;
 import java.io.*;
@@ -53,7 +55,7 @@ public class Resources {
     }
 
     protected boolean returnCachedData(HttpRequest request, CachedData data) throws IOException {
-        request.contentDisposition.inline = false;
+        request.contentDisposition.inline = Utils.coalesce(data.inline, Boolean.FALSE);
         request.returnFile(data);
         return true;
     }
@@ -79,9 +81,31 @@ public class Resources {
             return false;
 
         CachedData cd = CachedData.get(path);
-        if (cd != null && returnCachedData(http, cd))
-            return true;
 
+        if (cd != null) {
+
+            if (http.method == HttpMethod.OPTIONS) {
+                http.addCorsHeaders();
+                return true;
+            }
+            
+            // upload pliku CacheData
+            if (http.method == HttpMethod.POST && cd.uploadable && http.contentLength() > 0) {
+
+                try (ServletInputStreamEx in = http.getInputStream()) {
+                    cd.reset();
+                    http.addCorsHeaders();
+                    IOUtils.copy(in, cd);
+                    cd.flush();
+                }
+
+                return true;
+            }
+
+            if (returnCachedData(http, cd))
+                return true;
+
+        }
         ResData res = getResource(null, id, path, null);
 
         if (res == null)

@@ -3,7 +3,7 @@ package com.model.repository;
 public class RepositoryException extends RuntimeException {
 
     public RepositoryException(Repository<?> repo, String message) {
-        super(message);
+        super((repo != null ? repo.getKey() + ": " : "") + message);
     }
 
     public RepositoryException(Repository<?> repo, String message, Throwable cause) {

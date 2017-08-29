@@ -144,6 +144,7 @@ public class HttpRequest {
 
         corsHeaders.add(Header.CONTENT_TYPE);
         corsHeaders.add(Header.X_REQUESTED_WITH);
+         corsHeaders.add(Header.X_REQUEST_ID);
         corsHeaders.add(Header.X_REQUESTED_EVAL);
         corsHeaders.add(Header.X_REQUESTED_PARAMS);
         corsHeaders.add(Header.X_REQUESTED_SKIP_LOG);

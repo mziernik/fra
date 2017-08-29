@@ -308,7 +308,8 @@ public class JObject extends JCollection {
         JElement el = element(name);
         if (el == null)
             return def;
-        return el.isValue() ? el.asValue().value() : el;
+        return el.isValue() ? el.asValue().value()
+                : el.isNull() ? null : el;
     }
 
     public Object getRawValue(final String name) throws JException {

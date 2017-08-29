@@ -112,9 +112,10 @@ public class MainServlet extends HttpServlet implements Filter {
 
             // ------------- jeśli żądanie dotyczy pliku zasobu ------------
             if (hCls == null)
-                Handlers.resources.getInstance().processRequest(http);
+                if (Handlers.resources.getInstance().processRequest(http))
+                    return;
 
-            if (http.response.isCommitted())
+            if (http.response.isCommitted() || http.outputStream != null)
                 return;
 
             if (hCls == null)

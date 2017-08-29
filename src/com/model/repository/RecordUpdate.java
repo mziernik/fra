@@ -1,6 +1,6 @@
 package com.model.repository;
 
-import com.model.RRepoSate;
+import com.model.RRepoState;
 import com.model.repository.intf.CRUDE;
 import com.thread.QueueThread;
 import com.utils.collections.MapList;
@@ -47,7 +47,7 @@ class Queue extends QueueThread<Record> {
 
     @Override
     public void add(Record rec) {
-        if (!RRepoSate.canBroadcast(rec.repo))
+        if (!RRepoState.canBroadcast(rec.repo))
             return;
         super.add(rec);
     }

@@ -180,7 +180,7 @@
         "com.webapi.core.WebApiController"
     ],
     "init": [
-        "com.model.RRepoSate.init",
+        "com.model.RRepoState.init",
         "com.model.repository.Repository.synchronize",
         "com.service.status.ServiceMonitor.init",
         "com.user.RightsScheme.onInitialize",
@@ -195,6 +195,7 @@
         "eAk7ng:E49A5418:com/mlogger/console/filters.js",
         "8au9VQ:1B2F9CA7:com/mlogger/console/highlight.js",
         "LeBh3A:DC10A9D6:com/mlogger/console/status.js",
+        "JFBlLA:3A035B0B:com/model/test/img.png",
         "t0iRSg:399F2C1F:com/resources/dict/dict.zip",
         "pes3Ug:E2E0C1BC:com/script/evaluator/function/math/math.zip",
         "KQAN9g:ED0772F2:com/script/evaluator/function/string/string.7z",
@@ -444,6 +445,7 @@
         "Df0W8g:EE2710CD:res/swal/sweetalert.js",
         "QPj4tg:BD7AC3DB:res/utils.js",
         "s27sOw:E62288CA:res/webApi.js",
-        "4OoYtg:16A0CA79:WEB-INF/web.xml"
+        "4OoYtg:16A0CA79:WEB-INF/web.xml",
+        "JFBlLA:3A035B0B:com/model/test/img.png"
     ]
 }

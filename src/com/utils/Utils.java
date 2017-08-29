@@ -6,7 +6,8 @@ import com.exceptions.FormatException;
 import com.exceptions.ServiceException;
 import com.exceptions.ThrowableException;
 import com.intf.runnable.Runnable1;
-import com.json.Escape;
+import com.intf.runnable.Runnable2;
+import com.intf.runnable.RunnableEx2;
 import com.lang.LUtil;
 import com.mlogger.Log;
 import com.utils.collections.TList;
@@ -26,6 +27,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -236,6 +239,16 @@ public final class Utils {
         if (elements != null)
             lst.addAll(Arrays.asList(elements));
         return lst;
+    }
+
+    public static <K, V> void forEach(Map<K, V> map, RunnableEx2<K, V> biConsumer) {
+        map.forEach((k, v) -> {
+            try {
+                biConsumer.run(k, v);
+            } catch (Exception ex) {
+                throw new ThrowableException(ex);
+            }
+        });
     }
 
     public static <T> LinkedList<T> asTypedList(Class<? extends T> cls, Iterable<?> list) {
@@ -1225,11 +1238,15 @@ public final class Utils {
     @FunctionalInterface
     public static interface Visitor<T> {
 
-        void visit(T element, Visitor<T> visitor);
+        void visit(T element, Visitor<T> visitor) throws Exception;
     }
 
     public static <T> void visit(T element, Visitor<T> visitor) {
-        visitor.visit(element, visitor);
+        try {
+            visitor.visit(element, visitor);
+        } catch (Exception ex) {
+            throw new ThrowableException(ex);
+        }
     }
 
     /**

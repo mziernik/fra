@@ -5,7 +5,7 @@ import com.context.intf.ContextInitialized;
 import com.json.JArray;
 import com.json.JObject;
 import com.lang.core.LStr;
-import com.model.RRepoSate;
+import com.model.RRepoState;
 
 import com.model.repository.Record;
 import com.model.repository.ReposTransaction;
@@ -92,7 +92,7 @@ public class ServiceMonitor extends LoopThread {
     @Override
     protected void loop() throws Exception {
 
-        if (RThreads.instance == null || !RRepoSate.canBroadcast(RThreads.instance))
+        if (RThreads.instance == null || !RRepoState.canBroadcast(RThreads.instance))
             return;
 
         UPTIME.value(mxBean.getUptime());

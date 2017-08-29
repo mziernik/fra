@@ -48,9 +48,13 @@ public class Column<RAW> {
         return config.key;
     }
 
+    public String getId() {
+        return (repository != null ? repository.getKey() + "." : "") + getKey();
+    }
+
     @Override
     public String toString() {
-        return (repository != null ? repository.getKey() + "." : "") + getKey();
+        return getId();
     }
 
     public Column<RAW> config(Runnable1<RepoFieldConfig> cfg) {

@@ -29,7 +29,7 @@ public class CacheManager extends TThread implements Iterable<CachedData> {
                 Thread.sleep(1000);
 
                 for (CachedData cd : getList())
-                    if (cd.getLeaveTime() <= 0)
+                    if (cd.expireSeconds > 0 && cd.getLeaveTime() <= 0)
                         try {
                             if (cd.getRequestLock(null) == null
                                     && cd.getSessionLock(null) == null)

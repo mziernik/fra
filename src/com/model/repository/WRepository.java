@@ -12,14 +12,77 @@ import com.servlet.websocket.WebSocketController;
 import com.utils.Utils;
 import com.utils.collections.MapList;
 import com.utils.collections.TList;
+import com.utils.reflections.datatype.BinaryDataType;
 import com.webapi.core.WebApi;
 import com.webapi.core.WebApiEndpoint;
 import com.webapi.core.WebApiRequest;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 public class WRepository implements WebApi {
+
+    @WebApiEndpoint(description = "Pobierz plik z repozytorium")
+    public JObject downloadFile(WebApiRequest req,
+            @Arg(name = "repo") String repoKey,
+            @Arg(name = "pk") Object primaryKey,
+            @Arg(name = "column") String column,
+            @Arg(name = "id", required = false) String key,
+            @Arg(name = "preview", required = false) Boolean preview
+    ) {
+
+        Repository<?> repo = Repository.getF(repoKey);
+
+        Column<?> col = Objects.requireNonNull(repo.getColumn(column), "Nie znaleziono kolumny " + column);
+
+        if (!(col.config.type instanceof BinaryDataType))
+            throw new RepositoryException(repo, "Kolumna " + column + " nie jest typu binarnego");
+
+        Record record = ((Repository) repo).read(primaryKey);
+        CachedData cd = record.get(column);
+
+        cd.inline = true;
+
+        return new JObject()
+                .put("href", "/" + cd.key)
+                .put("name", cd.name)
+                .put("type", cd.mimeType)
+                .put("size", cd.length())
+                .put("preview", true);
+    }
+
+    @WebApiEndpoint(description = "Inicjalizacja procesu wysyłania pliku")
+    public JObject uploadFile(WebApiRequest req,
+            @Arg(name = "repo") String repoKey,
+            @Arg(name = "pk", required = false) Object primaryKey,
+            @Arg(name = "column") String column,
+            @Arg(name = "name") String fileName,
+            @Arg(name = "size") Long fileSize
+    ) throws IOException {
+
+        Repository<?> repo = Repository.getF(repoKey);
+
+        Column<?> col = Objects.requireNonNull(repo.getColumn(column), "Nie znaleziono kolumny " + column);
+
+        if (!(col.config.type instanceof BinaryDataType))
+            throw new RepositoryException(repo, "Kolumna " + column + " nie jest typu binarnego");
+
+        Record record = primaryKey != null ? ((Repository) repo).read(primaryKey) : null;
+
+        CachedData cd = new CachedData("WebApi", null, fileName, 60 * 60);
+        cd.uploadable = true;
+        cd.attributes.put("repo", repo);
+        cd.attributes.put("column", col);
+        cd.attributes.put("record", record);
+
+        return new JObject()
+                .put("id", cd.key)
+                .put("multiPart", false) // tryb multipart
+                .put("now", false) // rozpocznij upload od razu
+                .put("href", "/" + cd.key)
+                .put("headers", null);
+    }
 
     @WebApiEndpoint(description = "Lista wszystkich rekordów w cache")
     public JObject list() {
@@ -84,13 +147,9 @@ public class WRepository implements WebApi {
         ReposTransaction trans = new ReposTransaction();
 
         for (JArray arr : json.getArrays()) {
-
             Repository repo = Repository.getF(arr.getName());
-
-            for (JObject obj : arr.getObjects()) {
-                MapDAO dao = new MapDAO(obj);
-                trans.action(repo, null, dao);
-            }
+            for (JObject obj : arr.getObjects())
+                trans.action(repo, null, new MapDAO(obj));
         }
 
         TList<Record> records = trans.commit(true);

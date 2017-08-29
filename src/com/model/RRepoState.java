@@ -1,7 +1,9 @@
 package com.model;
 
+import com.model.test.RTest;
 import com.context.intf.ContextInitialized;
 import com.exceptions.ServiceException;
+import com.model.dao.core.DAORow;
 import com.model.repository.Column;
 import com.model.repository.ForeignColumn;
 import com.model.repository.Record;
@@ -14,12 +16,12 @@ import com.utils.collections.Pair;
 import com.utils.date.TDate;
 import com.utils.reflections.datatype.*;
 
-public class RRepoSate extends Repository<String> {
+public class RRepoState extends Repository<String> {
 
-    private static RRepoSate instance;
+    private static RRepoState instance;
 
     public final static Column<String> KEY = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.KEY;
         c.key = "key";
         c.name = "Klucz";
@@ -29,7 +31,7 @@ public class RRepoSate extends Repository<String> {
     });
 
     public final static Column<String> NAME = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.STRING;
         c.key = "name";
         c.name = "Nazwa";
@@ -37,21 +39,21 @@ public class RRepoSate extends Repository<String> {
     });
 
     public final static Column<String> GROUP = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.STRING;
         c.key = "group";
         c.name = "Grupa";
     });
 
     public final static Column<String> DESC = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.MEMO;
         c.key = "desc";
         c.name = "Opis";
     });
 
     public final static Column<Boolean> BROADCAST = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.BOOLEAN;
         c.key = "broadcast";
         c.name = "Broadcast";
@@ -60,7 +62,7 @@ public class RRepoSate extends Repository<String> {
     });
 
     public final static Column<Boolean> ON_DEMAND = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.BOOLEAN;
         c.key = "onDemand";
         c.name = "Na żądanie";
@@ -68,14 +70,14 @@ public class RRepoSate extends Repository<String> {
     });
 
     public final static Column<FontAwesome> ICON = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.ICON;
         c.key = "icon";
         c.name = "Ikona";
     });
 
     public final static Column<CRUDE[]> CRUDE = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = EnumsDataType.ofEnum(CRUDE.class,
                 e -> Character.toString(e.shortcut), e -> e.title);
         c.key = "crude";
@@ -85,7 +87,7 @@ public class RRepoSate extends Repository<String> {
     });
 
     public final static Column<TDate> LAST_MODIFIED = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.TIMESTAMP;
         c.key = "lastModified";
         c.name = "Ostatnio zmodyfikowany";
@@ -93,7 +95,7 @@ public class RRepoSate extends Repository<String> {
     });
 
     public final static Column<String> LAST_MODIFIED_BY = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.STRING;
         c.key = "lastModifiedBy";
         c.name = "Ostatnio zmodyfikowany przez";
@@ -101,7 +103,7 @@ public class RRepoSate extends Repository<String> {
     });
 
     public final static ForeignColumn<Integer, RUsers> LAST_MOD_BY_ID = new ForeignColumn<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.INT;
         c.key = "lastModById";
         c.name = "Ostatnio zmodyfikowany przez";
@@ -109,7 +111,7 @@ public class RRepoSate extends Repository<String> {
     }, RUsers.ID);
 
     public final static Column<Integer> REVISION = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.INT;
         c.key = "revision";
         c.name = "Wersja";
@@ -125,13 +127,13 @@ public class RRepoSate extends Repository<String> {
     });
 
     public final static Column<Integer> LIMIT = new Column<>(c -> {
-        c.repository = RRepoSate.class;
+        c.repository = RRepoState.class;
         c.type = DataType.INT;
         c.key = "limit";
         c.name = "Limit danych";
     });
 
-    private RRepoSate() {
+    private RRepoState() {
         super(c -> {
             c.key = "repoState";
             c.daoName = "repo_state";
@@ -144,13 +146,16 @@ public class RRepoSate extends Repository<String> {
         if (instance != null)
             throw new ServiceException();
         instance = this;
-        Repository.register(this);
+    }
+
+    public static RRepoState instance() {
+        return instance != null ? instance : new RRepoState();
     }
 
     @ContextInitialized
     private static void init() {
         if (instance == null)
-            instance = new RRepoSate();
+            instance = new RRepoState();
 
         Repository.ALL.values().forEach((Repository<?> repo) -> {
             instance.localUpdate(null)

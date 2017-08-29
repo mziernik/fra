@@ -1039,8 +1039,7 @@ com/mlogger/storage_old/LogsVisitor.class
 com/mlogger/utils/JsonBuilder.class
 com/mlogger/utils/_Internal.class
 com/model/RRepoHistory.class
-com/model/RRepoSate.class
-com/model/RTest.class
+com/model/RRepoState.class
 com/model/dao/CustomDAO$CustomDaoRow.class
 com/model/dao/CustomDAO$CustomDaoRows.class
 com/model/dao/CustomDAO.class
@@ -1073,6 +1072,7 @@ com/model/repository/ForeignColumn.class
 com/model/repository/ForeignColumns.class
 com/model/repository/Queue.class
 com/model/repository/Record.class
+com/model/repository/RecordException.class
 com/model/repository/RecordUpdate.class
 com/model/repository/RepoTransaction.class
 com/model/repository/ReposTransaction.class
@@ -1089,6 +1089,9 @@ com/model/repository/WRepository.class
 com/model/repository/intf/Align.class
 com/model/repository/intf/CRUDE.class
 com/model/repository/intf/CaseConvert.class
+com/model/repository/intf/IForeignColumn.class
+com/model/test/RTest.class
+com/model/test/img.png
 com/net/HTTP.class
 com/net/HttpClient$1.class
 com/net/HttpClient.class
@@ -1727,6 +1730,7 @@ com/utils/reflections/TypeAdapter$Adapter.class
 com/utils/reflections/TypeAdapter$IDeserializer.class
 com/utils/reflections/TypeAdapter.class
 com/utils/reflections/datatype/ArrayDataType.class
+com/utils/reflections/datatype/BinaryDataType.class
 com/utils/reflections/datatype/DataType$Adapter.class
 com/utils/reflections/datatype/DataType$DataTypeUnit.class
 com/utils/reflections/datatype/DataType$JsonType.class

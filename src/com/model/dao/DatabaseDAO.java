@@ -3,7 +3,6 @@ package com.model.dao;
 import com.database.Database;
 import com.database.QueryRow;
 import com.database.QueryRows;
-import com.database.queries.Insert;
 import com.database.queries.InsertOrUpdate;
 import com.database.queries.MultipleQuery;
 import com.database.queries.Query;
@@ -13,7 +12,6 @@ import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAOQuery.DaoParam;
 import com.servlet.Handlers;
-import com.utils.Is;
 import com.utils.collections.TList;
 import com.utils.reflections.datatype.DataType;
 import com.utils.text.StrWriter;
@@ -24,20 +22,19 @@ import java.util.Objects;
 
 public class DatabaseDAO implements DAO<QueryRows> {
 
-    Database db;
+    private final Database db;
 
-    public DatabaseDAO() {
-        this(null);
+    public static DatabaseDAO create() {
+        return Handlers.database.getInstance().getDatabase();
     }
 
-    public DatabaseDAO(Database db) {
-        if (db == null && this instanceof Database)
-            db = (Database) this;
+    protected DatabaseDAO() {
+        db = (Database) this;
+    }
 
-        if (db == null)
-            db = Handlers.database.getInstance().getDatabase();
-
-        this.db = db;
+    @Override
+    public boolean isTransactional() {
+        return true;
     }
 
     @Override

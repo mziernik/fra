@@ -676,10 +676,36 @@ public enum FontAwesome {
     WPEXPLORER("wpexplorer"),
     MEETUP("meetup");
 
-    public final String className;
+    public final String key;
+    public final String name;
 
-    private FontAwesome(String className) {
-        this.className = "fa fa-" + className;
+    private FontAwesome(String key) {
+
+        StringBuilder name = new StringBuilder();
+
+        int length = key.length();
+
+        for (int i = 0; i < length; i++) {
+
+            char curr = key.charAt(i);
+            char next = i < length - 1 ? key.charAt(i + 1) : 0;
+
+            if (curr == '-') {
+                name.append(" ");
+                name.append(Character.toUpperCase(next));
+                i++;
+                continue;
+            }
+
+            if (i == 0)
+                curr = Character.toUpperCase(curr);
+
+            name.append(curr);
+
+        }
+
+        this.name = name.toString();
+        this.key = key;
     }
 
 }

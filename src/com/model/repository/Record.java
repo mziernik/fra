@@ -1,6 +1,7 @@
 package com.model.repository;
 
 import com.model.repository.intf.CRUDE;
+import com.model.repository.intf.IForeignColumn;
 import com.utils.Utils;
 import com.utils.collections.Pair;
 import com.utils.collections.TList;
@@ -32,6 +33,10 @@ public class Record implements Iterable<Column<?>> {
      * Zwraca ID obiektu w postaci repozytorium[pk=wartość]
      */
     public String toString() {
+        return getId();
+    }
+
+    public String getId() {
         return repo.config.key + "[" + repo.config.primaryKey.config.key + "="
                 + Utils.escape(getPrimaryKeyValue()) + "]";
     }
@@ -40,12 +45,31 @@ public class Record implements Iterable<Column<?>> {
         return new TList(repo.columns.values()).indexOf(column);
     }
 
+    public int indexOf(String column) {
+        return new TList(repo.columns.keySet()).indexOf(column);
+    }
+
     public Object getPrimaryKeyValue() {
         return cells[pkIndex];
     }
 
     public boolean isChanged(Column<?> column) {
         return changed.containsKey(column);
+    }
+
+    public Record getForeign(IForeignColumn col) {
+        Column fCol = col.getForeignColumn();
+
+        return fCol.getRepository(true).read(get((Column<?>) col));
+
+    }
+
+    public <T> T get(String column) {
+        int idx = indexOf(column);
+        if (idx < 0)
+            throw new RepositoryException(repo, "Repozytorium nie posiada kolumny " + column);
+
+        return (T) cells[idx];
     }
 
     public <T> T get(Column<T> column) {
@@ -76,9 +100,10 @@ public class Record implements Iterable<Column<?>> {
         return repo.columns.values().iterator();
     }
 
-    public void validate() {
+    public void validate() throws Exception {
         AtomicInteger idx = new AtomicInteger(0);
         repo.columns.values().forEach(col -> col.validate(this, cells[idx.getAndIncrement()]));
+        repo.validate(this);
     }
 
 }

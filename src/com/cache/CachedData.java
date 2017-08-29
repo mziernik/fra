@@ -37,6 +37,7 @@ public class CachedData extends IOBuffer {
     protected int expireSeconds;
     public final Map<String, Object> attributes = new LinkedHashMap<>();
     final Set<CachedData> children = new LinkedHashSet<>();
+    public Boolean inline; //ContentDisposition
     //-----------------
     public String mimeType;
     public String url;
@@ -48,6 +49,10 @@ public class CachedData extends IOBuffer {
     public final Set<String> tags = new LinkedHashSet<>();
     public CachedData parent;
     public String eTag = generateETag();
+    /**
+     * Czy można uploadować (zapisywać) dane
+     */
+    public boolean uploadable = false;
 
     HttpRequest requestLock;
     BaseSession sessionLock;

@@ -89,40 +89,56 @@ public abstract class Database extends DatabaseDAO {
         return this;
     }
 
-    public void beginTransaction() throws SQLException {
-        connData.disconnectOnError = false;
-        if (transaction != null)
-            throw new SQLException(LDatabase.TRANSACTION_ALREADY_STARTED.toString());
-        transaction = getLock("Transaction", 0);
-        transaction.connection.setAutoCommit(false);
-        transactionDone = false;
-    }
-
-    public void commitTransaction() throws SQLException {
-        if (transaction == null)
-            throw new SQLException(LDatabase.TRANSACTION_NOT_STARTED.toString());
+    @Override
+    public void beginTransaction() {
         try {
-            transaction.connection.commit();
-        } finally {
-            transaction.unlock();
-            transaction = null;
-            transactionDone = true;
+            connData.disconnectOnError = false;
+            if (transaction != null)
+                throw new SQLException(LDatabase.TRANSACTION_ALREADY_STARTED.toString());
+            transaction = getLock("Transaction", 0);
+            transaction.connection.setAutoCommit(false);
+            transactionDone = false;
+        } catch (SQLException ex) {
+            throw new ThrowableException(ex);
         }
     }
 
-    public void rollbackTransaction() throws SQLException {
-        if (transaction == null)
-            throw new SQLException(LDatabase.TRANSACTION_NOT_STARTED.toString());
-
-        if (!transaction.connection.isClosed())
-            transaction.connection.rollback();
-        transaction.unlock();
-        Log.warning("Database", "Wycofano transakcję");
-        transaction = null;
-        transactionDone = true;
+    @Override
+    public void commitTransaction() {
+        try {
+            if (transaction == null)
+                throw new SQLException(LDatabase.TRANSACTION_NOT_STARTED.toString());
+            try {
+                transaction.connection.commit();
+            } finally {
+                transaction.unlock();
+                transaction = null;
+                transactionDone = true;
+            }
+        } catch (SQLException ex) {
+            throw new ThrowableException(ex);
+        }
     }
 
-    public boolean isTransaction() {
+    @Override
+    public void rollbackTransaction() {
+        try {
+            if (transaction == null)
+                throw new SQLException(LDatabase.TRANSACTION_NOT_STARTED.toString());
+
+            if (!transaction.connection.isClosed())
+                transaction.connection.rollback();
+            transaction.unlock();
+            Log.warning("Database", "Wycofano transakcję");
+            transaction = null;
+            transactionDone = true;
+        } catch (SQLException ex) {
+            throw new ThrowableException(ex);
+        }
+    }
+
+    @Override
+    public boolean inTransaction() {
         return transaction != null;
     }
 

@@ -10,4 +10,27 @@ public interface DAO<ROWS extends DAORows<?>> {
         return process(new TList<>(query)).first();
     }
 
+    /**
+     * Czy transakcje są obsługiwane
+     * @return 
+     */
+    default boolean isTransactional() {
+        return false;
+    }
+
+    default boolean inTransaction() {
+        throw new UnsupportedOperationException();
+    }
+
+    default void beginTransaction() {
+        throw new UnsupportedOperationException();
+    }
+
+    default void commitTransaction() {
+        throw new UnsupportedOperationException();
+    }
+
+    default void rollbackTransaction() {
+        throw new UnsupportedOperationException();
+    }
 }

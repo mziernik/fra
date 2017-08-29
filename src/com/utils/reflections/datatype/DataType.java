@@ -182,7 +182,8 @@ public class DataType<T> {
             "string", String.class,
             (value, parent) -> Utils.toString(value));
 
-    public final static EnumDataType<FontAwesome> ICON = EnumDataType.ofEnum(FontAwesome.class);
+    public final static EnumDataType<FontAwesome> ICON = EnumDataType.ofEnum(
+            FontAwesome.class, fa -> fa.key, fa -> fa.name);
 
     public final static DataType<String> KEY = new DataType<String>(JsonType.STRING,
             "key", String.class, (value, parent) -> {
@@ -196,10 +197,9 @@ public class DataType<T> {
 
     public final static DataType<String> FILE_NAME = new DataType<>(JsonType.STRING,
             "fileName", String.class, STRING.adapter);
-    
-        public final static DataType<String> FILE_PATH = new DataType<>(JsonType.STRING,
-            "filePath", String.class, STRING.adapter);
 
+    public final static DataType<String> FILE_PATH = new DataType<>(JsonType.STRING,
+            "filePath", String.class, STRING.adapter);
 
     public final static DataType<String> PASSWORD = new DataType<>(JsonType.STRING,
             "password", String.class, STRING.adapter);
