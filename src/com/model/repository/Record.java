@@ -36,6 +36,10 @@ public class Record implements Iterable<Column<?>> {
         return getId();
     }
 
+    public Record clone() {
+        return new Record(repo, crude, cells != null ? cells.clone() : null);
+    }
+
     public String getId() {
         return repo.config.key + "[" + repo.config.primaryKey.config.key + "="
                 + Utils.escape(getPrimaryKeyValue()) + "]";

@@ -11,8 +11,10 @@ import com.model.dao.core.DAO;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORow;
 import com.model.dao.core.DAORows;
+import com.model.repository.Repository.RepoReference;
 import com.model.repository.intf.CRUDE;
 import com.servlet.websocket.WebSocketConnection;
+import com.utils.Is;
 import com.utils.Utils;
 import com.utils.Utils.Visitor;
 import com.utils.collections.MapList;
@@ -88,6 +90,23 @@ public class AbstractRepoTransaction {
         final MapList<Repository<?>, Record> allRepos = new MapList<>();
         final AbstractRepoTransaction history = new AbstractRepoTransaction();
 
+        // usuń wszystkie rekordy zależne (referencje)
+        for (Record rec : records) {
+            if (rec.crude != CRUDE.DELETE)
+                continue;
+
+            Object pk = rec.getPrimaryKeyValue();
+
+            for (RepoReference<?> rr : rec.repo.config.references.values()) {
+                Repository<?> repo = rr.column.repository;
+                repo.forEach(r -> {
+                    if (Objects.equals(pk, r.get(rr.column)))
+                        pre().delete((Repository) repo, r.getPrimaryKeyValue());
+                    return true;
+                });
+            }
+        }
+
         Utils.visit(this, (AbstractRepoTransaction transaction, Visitor<AbstractRepoTransaction> visitor) -> {
 
             if (transaction.pre != null)
@@ -97,7 +116,7 @@ public class AbstractRepoTransaction {
             final MapList<Repository<?>, Record> repos = new MapList<>();
 
             for (Record rec : transaction.records) {
-                if (rec.changed.isEmpty())
+                if (rec.crude != CRUDE.DELETE && rec.changed.isEmpty())
                     continue;
                 repos.add(rec.repo, rec);
 
@@ -268,7 +287,8 @@ public class AbstractRepoTransaction {
         DAORow row = drows.first();
 
         String pkName = repo.config.primaryKey.getKey();
-        PK pk = null;
+        PK pk = Is.notNullR(row.getValue(pkName, null),
+                pkVal -> (PK) repo.config.primaryKey.config.type.parse(pkVal));
 
         if (crude == null && row.contains("#action"))
             crude = CRUDE.get(Utils.toString(row.getValue("#action", null)));
@@ -278,15 +298,12 @@ public class AbstractRepoTransaction {
             if (!row.contains(pkName))
                 crude = CRUDE.CREATE;
 
-            if (crude == null) {
-                pk = (PK) repo.config.primaryKey.config.type.parse(row.getValue(pkName, null));
+            if (crude == null)
                 if (row.getNames().size() == 1)
                     crude = CRUDE.DELETE;
                 else
                     crude = repo.records.containsKey(pk) ? CRUDE.UPDATE : CRUDE.CREATE;
-            }
-        } else if (crude != CRUDE.CREATE)
-            pk = (PK) repo.config.primaryKey.config.type.parse(row.getValue(pkName, null));
+        };
 
         Record rec = new Record(repo, crude, new Object[repo.columns.size()]);
         if (pk != null)

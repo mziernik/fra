@@ -149,13 +149,15 @@ public class Repository<PRIMARY_KEY> {
 
     }
 
-    public class RepoReference {
+    public static class RepoReference<PRIMARY_KEY> {
 
+        public final Repository<PRIMARY_KEY> repository;
         public final String key;
         public final CharSequence name;
         public final Column<PRIMARY_KEY> column;
 
-        public RepoReference(String key, CharSequence name, Column<PRIMARY_KEY> column) {
+        public RepoReference(Repository<PRIMARY_KEY> repository, String key, CharSequence name, Column<PRIMARY_KEY> column) {
+            this.repository = repository;
             this.key = key;
             this.name = name;
             this.column = column;
@@ -185,7 +187,7 @@ public class Repository<PRIMARY_KEY> {
         public FontAwesome icon;
         public final Flags<CRUDE> crude = CRUDE.flags(CRUDE.CRUD);
         public final LinkedHashMap<String, RepoAction> actions = new LinkedHashMap<>();
-        public final Map<String, RepoReference> references = new LinkedHashMap<>();
+        public final Map<String, RepoReference<PRIMARY_KEY>> references = new LinkedHashMap<>();
 
         public String clientRepoClassName = Repository.this.getClass().getSimpleName();
         public String clientRecordClassName = "E" + clientRepoClassName.substring(1);
@@ -209,9 +211,9 @@ public class Repository<PRIMARY_KEY> {
 
         }
 
-        public RepoReference reference(CharSequence name, Column<PRIMARY_KEY> column) {
+        public RepoReference<PRIMARY_KEY> reference(CharSequence name, Column<PRIMARY_KEY> column) {
             String key = column.getRepository(true).getKey() + "_" + column.getKey();
-            RepoReference ref = new RepoReference(key, name, column);
+            RepoReference<PRIMARY_KEY> ref = new RepoReference<>(Repository.this, key, name, column);
             references.put(key, ref);
             return ref;
         }
