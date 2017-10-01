@@ -118,7 +118,7 @@ public class WDatabase implements WebApi {
 
         for (QueryColumn col : rows.columns)
             dataSet.column(String.class, col.name, DataType.STRING, col.name, null)
-                    .config(c -> c.title = col.type);
+                    .config(c -> c.hint = col.type);
 
         dataSet.fillRows(rows);
 

@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+@Deprecated
 public class WNotifications implements WebApi {
 
     public final SyncList<String> currentHash = new SyncList<String>()
@@ -23,9 +24,8 @@ public class WNotifications implements WebApi {
     public final MapList<String, Pattern> notifyPatterns = new MapList<>();
 
     @WebApiEndpoint(dataType = DataType_old.OBJECT)
-    public void register(WebApiRequest request, 
-            
-            @Arg(name = "sources")String[] sourStrings ) {
+    public void register(WebApiRequest request,
+            @Arg(name = "sources") String[] sourStrings) {
         JObject json = request.getJson().asObject();
         MapList<String, Pattern> map = new MapList<>();
 
@@ -66,7 +66,7 @@ public class WNotifications implements WebApi {
     @WebApiEndpoint
     public JObject getPatterns() {
         JObject json = new JObject();
-        for (Entry<String, LinkedList<Pattern>> en : notifyPatterns) {
+        for (Entry<String, TList<Pattern>> en : notifyPatterns) {
             JArray arr = json.arrayC(en.getKey());
             for (Pattern p : en.getValue())
                 arr.add(p.toString());

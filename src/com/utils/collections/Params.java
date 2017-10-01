@@ -15,17 +15,23 @@ import java.util.Map.Entry;
 //ToDo: Dodać implementację VParser-a
 public class Params implements Iterable<Param>, Cloneable {
 
+    public final Map<String, Object> extra = new LinkedHashMap<>();
+
     public class Param implements Comparable<Param>, Cloneable {
 
         public final Params parent;
         public final String name;
         public final Object value;
+        public final boolean escaped;
         public final Map<String, Object> extra = new LinkedHashMap<>();
+        public final Object raw;
 
-        private Param(Params parent, String name, Object value) {
+        private Param(Params parent, boolean escape, String name, Object value) {
             this.parent = parent;
             this.name = name;
-            this.value = value;
+            this.value = value == null ? value : escape ? Utils.escape(value) : value;
+            this.escaped = escape;
+            this.raw = value;
         }
 
         public void remove() {
@@ -55,7 +61,7 @@ public class Params implements Iterable<Param>, Cloneable {
         }
     }
 
-    protected final LinkedList<Param> list = new LinkedList<>();
+    protected final TList<Param> list = new TList<>();
     public boolean caseSensitive = true;
     public boolean unique = false;
     public boolean allowNulls = true;
@@ -69,7 +75,7 @@ public class Params implements Iterable<Param>, Cloneable {
     }
 
     public Param first() {
-        return list.peek();
+        return list.first();
     }
 
     @Override
@@ -111,7 +117,7 @@ public class Params implements Iterable<Param>, Cloneable {
         return map;
     }
 
-    public Param add_(String name, Object value) {
+    public Param add_(boolean escaped, String name, Object value) {
         if (name == null || (!allowNulls && value == null))
             return null;
         Param p = null;
@@ -121,7 +127,7 @@ public class Params implements Iterable<Param>, Cloneable {
                 if (p != null)
                     p.remove();
             }
-            p = new Param(this, name, value);
+            p = new Param(this, escaped, name, value);
             list.add(p);
         }
         return p;
@@ -132,8 +138,18 @@ public class Params implements Iterable<Param>, Cloneable {
         return this;
     }
 
+    public Params extra(String name, Object value) {
+        extra.put(name, value);
+        return this;
+    }
+
+    public Params escape(String name, Object value) {
+        add_(true, name, value);
+        return this;
+    }
+
     public Params add(String name, Object value) {
-        add_(name, value);
+        add_(false, name, value);
         return this;
     }
 

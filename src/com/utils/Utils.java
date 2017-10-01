@@ -6,7 +6,8 @@ import com.exceptions.FormatException;
 import com.exceptions.ServiceException;
 import com.exceptions.ThrowableException;
 import com.intf.runnable.Runnable1;
-import com.json.Escape;
+import com.intf.runnable.Runnable2;
+import com.intf.runnable.RunnableEx2;
 import com.lang.LUtil;
 import com.mlogger.Log;
 import com.utils.collections.TList;
@@ -26,6 +27,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -238,6 +241,16 @@ public final class Utils {
         return lst;
     }
 
+    public static <K, V> void forEach(Map<K, V> map, RunnableEx2<K, V> biConsumer) {
+        map.forEach((k, v) -> {
+            try {
+                biConsumer.run(k, v);
+            } catch (Exception ex) {
+                throw new ThrowableException(ex);
+            }
+        });
+    }
+
     public static <T> LinkedList<T> asTypedList(Class<? extends T> cls, Iterable<?> list) {
         LinkedList<T> lst = new LinkedList<>();
         for (Object o : list)
@@ -360,11 +373,26 @@ public final class Utils {
         if (o1 == o2)
             return true;
 
-        if (o1 != null && o1.equals(o2))
+        if (o1 == null || o2 == null)
+            return false;
+
+        if (o1.equals(o2))
             return true;
 
-        if (o2 != null && o2.equals(o1))
+        if (o1.getClass().isArray() && o2.getClass().isArray()) {
+
+            Object[] a1 = (Object[]) o1;
+            Object[] a2 = (Object[]) o2;
+
+            if (a1.length != a2.length)
+                return false;
+
+            for (int i = 0; i < a1.length; i++)
+                if (!equals(a1[i], a2[i]))
+                    return false;
+
             return true;
+        }
 
         if (o1 instanceof Number && o2 instanceof Number)
 
@@ -797,6 +825,10 @@ public final class Utils {
     public final static Map<String, PerformanceStamp> performaceStamps = new TreeMap<>();
 
     public static String escape(Object object) {
+
+        if (object instanceof TObject)
+            object = ((TObject) object).get();
+
         if (object == null)
             return "null";
 
@@ -849,6 +881,36 @@ public final class Utils {
         w.append("\"");
 
         return w.toString();
+    }
+
+    /**
+     * Formatuje string-a podstawiając za parametry %1, %2...%n zaescapowane
+     * wartości z args
+     *
+     * @param string
+     * @param args
+     * @return
+     */
+    public static String frmt(String string, Object... args) {
+
+        char[] chars = string.toCharArray();
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < chars.length; i++) {
+            char curr = chars[i];
+            char prev = i > 0 ? chars[i - 1] : 0;
+            char next = i < chars.length - 1 ? chars[i + 1] : 0;
+            if (curr == '%' && prev != '%' && next >= '1' && next <= '9') {
+                int idx = next - '1';
+                if (idx < args.length) {
+                    ++i;
+                    sb.append(escape(args[idx]));
+                    continue;
+                }
+            }
+            sb.append(curr);
+        }
+        return sb.toString();
     }
 
     public static class PerformanceStamp {
@@ -1176,11 +1238,15 @@ public final class Utils {
     @FunctionalInterface
     public static interface Visitor<T> {
 
-        void visit(T element, Visitor<T> visitor);
+        void visit(T element, Visitor<T> visitor) throws Exception;
     }
 
     public static <T> void visit(T element, Visitor<T> visitor) {
-        visitor.visit(element, visitor);
+        try {
+            visitor.visit(element, visitor);
+        } catch (Exception ex) {
+            throw new ThrowableException(ex);
+        }
     }
 
     /**

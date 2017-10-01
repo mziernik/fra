@@ -9,10 +9,10 @@ import com.html.core.tag.Text;
 import com.html.core.tag.intfs.OneInstance;
 import com.html.core.tag.intfs.Parent;
 import com.servlet.controller.Controller;
-import com.servlet.requests.HttpRequest;
 import com.utils.Url;
 import com.utils.collections.MapList;
 import com.utils.collections.Strings;
+import com.utils.collections.TList;
 import java.util.*;
 
 /*
@@ -80,7 +80,7 @@ public class Html extends Element<Html> implements Parent<Html>, OneInstance {
             }
         }.visit(this);
 
-        for (Map.Entry<String, LinkedList<Element>> en : ids)
+        for (Map.Entry<String, TList<Element>> en : ids)
             if (en.getValue().size() > 1) {
                 Strings strs = new Strings();
                 for (Element t : en.getValue())

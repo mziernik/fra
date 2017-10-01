@@ -19,7 +19,8 @@ import java.util.Map.Entry;
 
 import static com.context.AppContext.*;
 import static com.context.AppContextInitializer.startupInfo;
-import com.service.events.filter.BaseEventsFilterHandler;
+import com.ui.events.filter.BaseEventsFilterHandler;
+import com.utils.collections.TList;
 
 public class EventsHandler {
 
@@ -74,7 +75,7 @@ public class EventsHandler {
             ins.arg("value", attr.value);
         }
 
-        for (Entry<String, LinkedList<Integer>> fks : event.getKeys().entrySet()) {
+        for (Entry<String, TList<Integer>> fks : event.getKeys().entrySet()) {
             Insert ins = mqry.insert("event.keys");
             ins.arg("event_id", event_id);
             ins.arg("column_name", fks.getKey());

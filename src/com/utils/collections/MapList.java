@@ -2,24 +2,24 @@ package com.utils.collections;
 
 import java.util.*;
 
-public class MapList<Key, Item> extends MapCollection<Key, Item, LinkedList<Item>> {
+public class MapList<Key, Item> extends MapCollection<Key, Item, TList<Item>> {
 
     public MapList() {
         super(new LinkedHashMap<>());
     }
 
-    public MapList(Map<Key, LinkedList<Item>> map) {
+    public MapList(Map<Key, TList<Item>> map) {
         super(map);
     }
 
     @Override
-    protected LinkedList<Item> getCollectionInstance() {
-        return new LinkedList<>();
+    protected TList<Item> getCollectionInstance() {
+        return new TList<>();
     }
 
     @Override
-    public LinkedList<Item> get(Key key) {
-        return (LinkedList<Item>) super.get(key);
+    public TList<Item> get(Key key) {
+        return (TList<Item>) super.get(key);
     }
 
 }

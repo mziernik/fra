@@ -8,8 +8,6 @@ import com.html.js.Call;
 import com.json.JObject;
 import com.mlogger.Log;
 import com.mlogger.LogElement;
-import com.mlogger.status.StatusGroup;
-import com.mlogger.status.StatusItem;
 import com.mlogger.utils.JsonBuilder;
 import com.servlet.views.ViewsManager;
 import com.utils.Unquoted;
@@ -85,7 +83,7 @@ public class Console {
             });
 
     }
-
+/*
     public static void updateStatus(StatusItem status) {
         if (!CConsole.enabled.value())
             return;
@@ -122,5 +120,5 @@ public class Console {
             });
 
     }
-
+*/
 }

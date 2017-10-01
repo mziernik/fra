@@ -4,6 +4,7 @@ import com.utils.Is;
 import com.utils.text.StrWriter;
 import com.database.queries.builder.QueryBuilder;
 import com.database.Database;
+import com.database.queries.builder.QueryObject;
 import com.database.queries.builder.QueryStringWriter;
 import com.utils.collections.Strings;
 
@@ -38,6 +39,10 @@ public class InsertOrUpdate extends QueryBuilder<InsertOrUpdate> {
     public InsertOrUpdate arg(String name, Object value) {
         addParam(name, value).array(true);
         return this;
+    }
+
+    public QueryObject arg_(String name, Object value) {
+        return addParam(name, value).array(true);
     }
 
     public InsertOrUpdate argIns(String name, Object value) {

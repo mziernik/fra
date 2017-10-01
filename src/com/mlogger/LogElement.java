@@ -47,9 +47,9 @@ public abstract class LogElement {
 
     public static class DataObj extends DataPair {
 
-        public DataType type;
+        public DataType_old type;
 
-        public DataObj(final String name, final Object value, final DataType type) {
+        public DataObj(final String name, final Object value, final DataType_old type) {
             super(name, value);
             this.type = type;
         }

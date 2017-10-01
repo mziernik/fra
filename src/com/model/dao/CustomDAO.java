@@ -58,6 +58,11 @@ public class CustomDAO implements DAO<CustomDaoRows> {
             return null;
         }
 
+        @Override
+        protected TList<String> getDAONames() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
     }
 
     public static class CustomDaoRows extends DAORows<CustomDaoRow> {

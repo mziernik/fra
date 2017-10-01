@@ -1,5 +1,6 @@
 package com.config.engine;
 
+import com.config.RConfig;
 import com.config.engine.interfaces.Cfg;
 import com.context.AppConfig;
 import com.context.index.Index;
@@ -11,8 +12,12 @@ import com.exceptions.ServiceException;
 import com.json.*;
 import com.lang.core.LStr;
 import com.mlogger.Log;
+import com.model.repository.Record;
+import com.model.repository.RepoTransaction;
+import com.model.repository.ReposTransaction;
 import com.servlet.Handlers;
 import com.utils.Unquoted;
+import com.utils.Utils;
 import com.utils.collections.TList;
 import com.utils.reflections.TClass;
 import com.utils.reflections.TField;
@@ -66,7 +71,6 @@ public class HConfig extends ConfigNode {
                 ConfigField<?, ?, ?> field = getFieldF(el.getName());
                 if (field.isDefaultState())
                     field.store().set(false, true, null, el);
-
             } catch (Exception e) {
                 Log.error(e);
                 Logger.getLogger("").log(Level.SEVERE, null,
@@ -76,6 +80,7 @@ public class HConfig extends ConfigNode {
         QueryRows rows = new ServiceDB().execute("SELECT * FROM config");
 
         boolean external = hasExternalDb();
+        RepoTransaction<String> trans = RConfig.instance().beginTransaction();
 
         // wczytaj na początku konfigurację elementów, które są zapisywale lokalnie
         for (QueryRow row : rows)
@@ -87,6 +92,11 @@ public class HConfig extends ConfigNode {
                     continue;
 
                 JElement el = JSON.parse(row.getStr("value", null));
+
+                trans.update(field.getKey())
+                        .set(RConfig.IS_DEFAULT_VALUE, row.getBool("default"))
+                        .set(RConfig.VARIABLE, row.getStr("variable", null))
+                        .set(RConfig.USER_VALUE, el);
 
                 field.store().set(true,
                         row.getBool("default"),
@@ -105,6 +115,7 @@ public class HConfig extends ConfigNode {
         for (ConfigNode node : groups.values())
             node.onInitialize();
 
+        trans.loadAll();
     }
 
     @Override
@@ -182,6 +193,19 @@ public class HConfig extends ConfigNode {
             cf.setParent(par, cf.field);
         }
 
+        RepoTransaction<String> trans = RConfig.instance().beginTransaction();
+        for (ConfigField<?, ?, ?> field : fields)
+            trans.createOrUpdate(field.getKey())
+                    .set(RConfig.KEY, field.getKey())
+                    .set(RConfig.NAME, field.getName())
+                    .set(RConfig.DESCRIPTION, Utils.toString(description))
+                    .set(RConfig.PARENT, field.parent != null ? field.parent.getKey() : null)
+                    //  .set(RConfig.DEFAULT_VALUE, field.getDefaultValue())
+                    .set(RConfig.USER_VALUE, field.isDefaultState())
+                    .set(RConfig.READ_ONLY, field.isReadOnly())
+                    .set(RConfig.VISIBLE, field.isVisible())
+                    .set(RConfig.ENABLED, field.enabled());
+        trans.loadAll();
     }
 
 }

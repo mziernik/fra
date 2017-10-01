@@ -16,8 +16,7 @@ import com.context.*;
 import com.dev.console.DevConsole;
 import com.exceptions.*;
 import com.lang.LServlet;
-import com.mlogger.status.ServiceMonitor;
-import com.mlogger.status.StatusGroup;
+import com.service.status.StatusGroup;
 import com.servlet.controller.*;
 import com.servlet.handlers.*;
 import com.servlet.handlers.temporary.*;
@@ -43,7 +42,7 @@ import javax.servlet.http.*;
 @MultipartConfig(fileSizeThreshold = 1024 * 1024)
 public class MainServlet extends HttpServlet implements Filter {
 
-    public final static StatusGroup sRequests = ServiceMonitor.service.group("http", "HTTP Requests");
+    public final static StatusGroup STATUS = StatusGroup.SERVICE.group("http", "Żądania HTTP");
 
     private static MainServlet instance;
 
@@ -113,9 +112,10 @@ public class MainServlet extends HttpServlet implements Filter {
 
             // ------------- jeśli żądanie dotyczy pliku zasobu ------------
             if (hCls == null)
-                Handlers.resources.getInstance().processRequest(http);
+                if (Handlers.resources.getInstance().processRequest(http))
+                    return;
 
-            if (http.response.isCommitted())
+            if (http.response.isCommitted() || http.outputStream != null)
                 return;
 
             if (hCls == null)
@@ -407,7 +407,7 @@ public class MainServlet extends HttpServlet implements Filter {
                 Thread thread = Thread.currentThread();
                 final HttpRequest hReq = new HttpRequest(request, response);
                 try {
-                    sRequests.item(hReq.id, hReq.id + ", " + hReq.url);
+                    STATUS.itemStr(hReq.id, hReq.id + ", " + hReq.url);
 
                     if (hReq.isLocked())
                         return;
@@ -426,7 +426,7 @@ public class MainServlet extends HttpServlet implements Filter {
                     handleRequest(hReq);
 
                 } finally {
-                    sRequests.remove(hReq.id);
+                    STATUS.remove(hReq.id);
                     synchronized (HRequests.requests) {
                         HRequests.requests.remove(thread);
                     }

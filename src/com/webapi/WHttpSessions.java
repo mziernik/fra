@@ -27,14 +27,14 @@ public class WHttpSessions implements WebApi {
         ds.column(TDate.class, "created", DataType.TIMESTAMP, LWebapi.CREATED,
                 ses -> ses.created);
 
-        ds.column(Interval.class, "lastAccess", DataType.DURATION, LWebapi.LAST_REQUESTR,
-                ses -> new Interval(ses.getLastAccessedTime(), Unit.MILLISECONDS));
+        ds.column(Long.class, "lastAccess", DataType.DURATION, LWebapi.LAST_REQUESTR,
+                ses -> ses.getLastAccessedTime());
 
-        ds.column(Interval.class, "maxInactive", DataType.DURATION, LWebapi.TIME_LIMIT,
-                ses -> ses.getMaxInactiveInterval());
+        ds.column(Long.class, "maxInactive", DataType.DURATION, LWebapi.TIME_LIMIT,
+                ses -> ses.getMaxInactiveInterval().getTime(Unit.MILLISECONDS));
 
-        ds.column(Interval.class, "remTime", DataType.DURATION, LWebapi.REMAINING_TIME,
-                ses -> new Interval(ses.getRemainingTime(), Unit.MILLISECONDS));
+        ds.column(Long.class, "remTime", DataType.DURATION, LWebapi.REMAINING_TIME,
+                ses -> ses.getRemainingTime());
 
         ds.column(Integer.class, "wsConn", DataType.INT, LWebapi.WEBSOCKET_CONNECTIONS,
                 ses -> ses.webSocketConnections.size());

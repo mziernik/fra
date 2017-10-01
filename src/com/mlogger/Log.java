@@ -375,7 +375,7 @@ public class Log extends LogElement {
     }
 
     public Log levelName(String levelName) {
-        return value(levelName, DataType.TEXT);
+        return value(levelName, DataType_old.TEXT);
     }
 
     public Log source(String source) {
@@ -398,19 +398,19 @@ public class Log extends LogElement {
     }
 
     public Log value(Object value) {
-        return value(value, DataType.TEXT);
+        return value(value, DataType_old.TEXT);
     }
 
-    public Log value(Object value, DataType type) {
+    public Log value(Object value, DataType_old type) {
         this.value.set(new DataObj("", Utils.toString(value), type));
         return this;
     }
 
     public Log details(Object details) {
-        return details(details, DataType.TEXT);
+        return details(details, DataType_old.TEXT);
     }
 
-    public Log details(Object details, DataType type) {
+    public Log details(Object details, DataType_old type) {
         this.data.add(new DataObj("Szczegóły", Utils.toString(details), type));
         return this;
     }
@@ -467,10 +467,10 @@ public class Log extends LogElement {
     public Log data(String name, Object value) {
         if (value == null)
             return this;
-        return data.add(new DataObj(name, Utils.toString(value), DataType.TEXT));
+        return data.add(new DataObj(name, Utils.toString(value), DataType_old.TEXT));
     }
 
-    public Log data(String name, Object value, DataType type) {
+    public Log data(String name, Object value, DataType_old type) {
         data.add(new DataObj(name, Utils.toString(value), type));
         return this;
     }

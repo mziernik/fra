@@ -218,11 +218,11 @@ public class LogDefaults {
     }
 
     public LogDefaults data(String name, Object value) {
-        data.add(new DataObj(name, Utils.toString(value), DataType.TEXT));
+        data.add(new DataObj(name, Utils.toString(value), DataType_old.TEXT));
         return this;
     }
 
-    public LogDefaults data(String name, Object value, DataType type) {
+    public LogDefaults data(String name, Object value, DataType_old type) {
         data.add(new DataObj(name, Utils.toString(value), type));
         return this;
     }

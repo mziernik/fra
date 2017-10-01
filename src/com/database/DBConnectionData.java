@@ -1,16 +1,16 @@
 package com.database;
 
 import com.utils.Utils;
-import com.utils.Is;
 import com.database.elements.JdbcDriver;
 import com.lang.LDatabase;
 import com.mlogger.Log;
-import com.mlogger.status.ServiceMonitor;
-import com.mlogger.status.StatusGroup;
-import com.mlogger.status.StatusItem;
+import com.service.status.ServiceMonitor;
+import com.service.status.StatusGroup;
+import com.service.status.StatusItem;
 import com.servlet.pooling.*;
 import com.utils.date.time.Interval;
 import com.utils.date.time.Unit;
+import com.utils.reflections.datatype.DataType;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -61,9 +61,9 @@ public class DBConnectionData {
         private final static AtomicLong counter = new AtomicLong();
         public final String id;
 
-        private final static StatusGroup sLocks = ServiceMonitor.service.group("db", "Database");
+        private final static StatusGroup GROUP = StatusGroup.SERVICE.group("db", "Database", "Baza danych");
 
-        private final StatusItem sts;
+        private final StatusItem STS;
 
         public DbLock(ConnectionPool pool, Database sender,
                 DBConnectionData data, int lockTimeout, String name) throws SQLException {
@@ -74,15 +74,17 @@ public class DBConnectionData {
                 id = instanceId + "-" + counter.incrementAndGet();
             }
 
-            sts = sLocks.item(id)
-                    .value(data.toString())
-                    .onUpdate((StatusItem arg) -> {
-                        Long left = getLeftTime();
-                        if (left != null)
-                            arg.comment(new Interval(left, Unit.MILLISECONDS)
-                                    .displayPrecision(Unit.SECONDS)
-                                    .toString());
-                    });
+            STS = GROUP.item(DataType.STRING, "conn-" + name, "Połączenie " + name);
+//
+//            STS = GROUP.item(id)
+//                    .value(data.toString())
+//                    .onUpdate((StatusItem arg) -> {
+//                        Long left = getLeftTime();
+//                        if (left != null)
+//                            arg.comment(new Interval(left, Unit.MILLISECONDS)
+//                                    .displayPrecision(Unit.SECONDS)
+//                                    .toString());
+//                    });
 
         }
 
@@ -93,7 +95,7 @@ public class DBConnectionData {
 
         @Override
         public void doClose() throws SQLException {
-            sts.remove();
+            STS.remove();
             connection.close();
         }
 

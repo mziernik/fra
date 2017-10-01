@@ -12,7 +12,7 @@ public class JOptions {
     private String lineBreakChar;
     private Boolean singleLine;
     private Boolean singleQuote;
-    private final JCollection element;
+    public final JCollection element;
     private Boolean readOnly;
     public static String defaultIntent = "\t";
     private Boolean javascriptMode;

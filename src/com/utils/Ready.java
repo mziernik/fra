@@ -4,23 +4,21 @@ import com.cron.TTimer;
 import com.exceptions.EError;
 import com.exceptions.ServiceException;
 import com.intf.runnable.RunnableEx1;
-import com.mlogger.status.*;
+import com.service.status.StatusGroup;
+import com.service.status.StatusItem;
 import com.utils.WaitForItem.ReadyException;
 import com.utils.collections.Strings;
-
-import static com.utils.Ready.items;
 import com.utils.collections.TList;
-
 import com.utils.date.time.Interval;
 import com.utils.date.time.Unit;
 import java.util.*;
 
 public class Ready {
 
-    public final static StatusGroup sts = ServiceMonitor.service.group("ready", "Ready")
+    public final static StatusGroup STATUS = StatusGroup.SERVICE.group("ready", "Gotowość", "Gotowość")
             .devOnly(true);
-    public final static StatusGroup sConf = sts.group("c", "Confirmed");
-    public final static StatusGroup sAwaiting = sts.group("w", "Awaiting");
+    public final static StatusGroup STS_CONF = STATUS.group("c", "Gotowe");
+    public final static StatusGroup STS_AWT = STATUS.group("w", "Oczekujące");
 
     final static WaitForItemTimer timer = new WaitForItemTimer();
 
@@ -130,7 +128,7 @@ public class Ready {
 
         EError error = e != null ? new EError(e) : null;
 
-        sConf.item(Integer.toHexString(Objects.hashCode(object)), objName(object)
+        STS_CONF.itemStr(Integer.toHexString(Objects.hashCode(object)), objName(object)
                 + (error != null ? ", " + error.toString(true) : ""));
 
         synchronized (items) {
@@ -148,7 +146,7 @@ public class Ready {
 
                 if (item.objects.isEmpty() || item.error != null) {
                     items.remove(item);
-                    sAwaiting.remove(Integer.toHexString(Objects.hashCode(item)));
+                    STS_AWT.remove(Integer.toHexString(Objects.hashCode(item)));
                     try {
                         item.runnable.run(e);
                     } catch (RuntimeException | Error ex) {
@@ -210,7 +208,7 @@ class WaitForItem {
             strings.add(Ready.objName(obj));
 
         if (sts == null)
-            sts = Ready.sAwaiting.item(Integer.toHexString(Objects.hashCode(this)), Utils.toString(runnable));
+            sts = Ready.STS_AWT.itemStr(Integer.toHexString(Objects.hashCode(this)), Utils.toString(runnable));
 
         sts.comment(strings.toString(", "));
     }

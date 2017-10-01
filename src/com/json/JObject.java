@@ -57,6 +57,10 @@ public class JObject extends JCollection {
         this.name = name;
     }
 
+    public Set<String> getNames() {
+        return items.keySet();
+    }
+
     @Override
     JElement addElement(String name, JElement el, boolean insert) {
         if ((el == null
@@ -304,7 +308,8 @@ public class JObject extends JCollection {
         JElement el = element(name);
         if (el == null)
             return def;
-        return el.isValue() ? el.asValue().value() : el;
+        return el.isValue() ? el.asValue().value()
+                : el.isNull() ? null : el;
     }
 
     public Object getRawValue(final String name) throws JException {

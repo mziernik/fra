@@ -316,35 +316,37 @@ public abstract class WebApiController extends WebSocketController
             runnable.run();
         else {
             ExecutorService exec = getExecutor();
-            
+
             exec.execute(runnable);
 
-           // Future<?> submit = exec.submit(runnable);
-
-           // System.out.println(" ExecutorService: " + submit.isCancelled() + "  " + submit.isDone());
+            // Future<?> submit = exec.submit(runnable);
+            // System.out.println(" ExecutorService: " + submit.isCancelled() + "  " + submit.isDone());
         }
     }
 
-    static JObject buildEvent(WebApiRequest req, String source, String name, Object data) {
+    static JObject buildEvent(WebApiRequest req, String type, String name, Object data) {
 
         JObject obj = new JObject();
         obj.options.compactMode(true);
-        obj.put("type", "event");
-        obj.put("date", new TDate().toString(true));
+        obj.put("event", true);
+        obj.put("date", new TDate().getTime());
 
-        if (req != null) {
-            obj.put("endpoint", req.endpointName);
+        if (req != null)
+            // obj.put("endpoint", req.endpointName);
             obj.put("id", req.id);
-        }
 
-        obj.put("source", source);
+        obj.put("type", type);
         obj.put("event", name);
         obj.put("data", data);
 
         return obj;
     }
 
-    void response(WebSocketConnection wsConn, HttpRequest http, WebApiRequest req, String requestId, Object result, Throwable ex) {
+    void response(WebSocketConnection wsConn, HttpRequest http, WebApiRequest req,
+            String requestId, Object result, Throwable ex) {
+
+        if (ex != null)
+            Log.error(ex);
 
         if (ex == null
                 && req != null
@@ -354,7 +356,7 @@ public abstract class WebApiController extends WebSocketController
             if (jExport != null)
                 try {
                     jExport.remove();
-                 /*   CachedData data = DsUtils.export((AbstractDataSet) result, req, jExport);
+                    /*   CachedData data = DsUtils.export((AbstractDataSet) result, req, jExport);
                     if (data != null) {
                         response(wsConn, http, req, requestId, data, null);
                         return;
@@ -392,9 +394,9 @@ public abstract class WebApiController extends WebSocketController
 
             obj.options.compactMode(http == null || (!AppContext.devMode && CService.releaseMode()));
 
-            obj.put("type", ex == null ? "response" : "error");
+            obj.put("event", false);
             obj.put("mode", CService.mode.value().name().toLowerCase());
-            obj.put("date", new TDate().toString(true));
+            obj.put("date", new TDate().getTime());
             obj.put("lang", language.get().key);
             //  obj.put("mode", CService.mode.value().name().toLowerCase());
 
@@ -475,8 +477,7 @@ public abstract class WebApiController extends WebSocketController
                 send(obj.toString());
 
         } finally {
-            logResponse(req, wsConn, http, obj, error
-            );
+            logResponse(req, wsConn, http, obj, error);
         }
 
     }
@@ -511,13 +512,12 @@ public abstract class WebApiController extends WebSocketController
         log.send();
     }
 
-    void logResponse(WebApiRequest req, WebSocketConnection wsConn, HttpRequest http, JObject json, ErrorMessage e) {
+    void logResponse(WebApiRequest req, WebSocketConnection wsConn,
+            HttpRequest http, JObject json, ErrorMessage e) {
 
         json.options.compactMode(false);
 
-        Log log = new Log(e != null
-                ? (e.critical ? LogKind.ERROR : LogKind.WARNING)
-                : LogKind.DEBUG)
+        Log log = new Log(LogKind.DEBUG)
                 .tag("WebApi", "Response")
                 .details(json.toString())
                 .value((req != null ? req.endpointName : "")
@@ -539,7 +539,7 @@ public abstract class WebApiController extends WebSocketController
                 log.user(ses.user.username);
         }
 
-        if (req.params != null)
+        if (req != null && req.params != null)
             log.data("Params", req.params.toString());
 
         if (e != null) {
@@ -579,7 +579,7 @@ public abstract class WebApiController extends WebSocketController
 
     static void getHash(Class<? extends WebApi> cls, StringBuilder sb) {
 
-        LinkedList<WebApiControllerMeta> list = WebApiControllerMeta.map.get(cls);
+        TList<WebApiControllerMeta> list = WebApiControllerMeta.map.get(cls);
 
         list.sort((WebApiControllerMeta o1, WebApiControllerMeta o2) -> o1.name.compareTo(o2.name));
 

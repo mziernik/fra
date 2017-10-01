@@ -1,7 +1,6 @@
 package com.events;
 
 import com.utils.Utils;
-import com.utils.Is;
 import com.context.AppContext;
 import com.database.*;
 import com.events.ServiceEvent.ServiceEventAttribute;
@@ -13,7 +12,6 @@ import com.servlet.Handlers;
 import com.servlet.controller.Controller;
 import com.thread.ThreadObject;
 import com.utils.collections.*;
-import com.webapi.core.WebApiController;
 import com.webapi.core.WebApiRequest;
 import java.sql.SQLException;
 import java.util.*;
@@ -272,7 +270,7 @@ public class ServiceEvent implements Iterable<ServiceEventAttribute> {
         return this;
     }
 
-    public Map<String, LinkedList<Integer>> getKeys() {
+    public Map<String, TList<Integer>> getKeys() {
         return keys.getMap();
     }
 

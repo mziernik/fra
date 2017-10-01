@@ -143,6 +143,13 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
         return sw.toString();
     }
 
+    public T random() {
+        if (isEmpty())
+            return null;
+        Random random = new Random();
+        return get(random.nextInt(size()));
+    }
+
     public <X, Y> Map<X, Y> map(Function<? super T, ? extends X> keyMapper,
             Function<? super T, ? extends Y> valueMapper) {
         return stream().collect(Collectors.toMap(keyMapper, valueMapper));
@@ -261,6 +268,21 @@ public class TList<T> extends AbstractList<T> implements List<T>, Cloneable, Ser
             node.startingIndex++;
             node.endingIndex++;
         }
+    }
+
+    public <X> TList<T> addAll(X[] source, Callable1<T, X> mapper) {
+        return source != null && mapper != null && source.length > 0
+                ? addAll(Arrays.asList(source), mapper)
+                : new TList<>();
+    }
+
+    public <X> TList<T> addAll(Iterable<X> source, Callable1<T, X> mapper) {
+        if (source == null || mapper == null)
+            return this;
+
+        for (X val : source)
+            add(mapper.run(val));
+        return this;
     }
 
     @SuppressWarnings("unchecked")

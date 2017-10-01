@@ -87,7 +87,7 @@ public class MultipleQuery extends QueryBuilder<MultipleQuery> {
 
     @Override
     public QueryRows execute() throws SQLException {
-        return execute(!db.isTransaction());
+        return execute(!db.inTransaction());
     }
 
     public QueryRows execute(boolean transaction) throws SQLException {

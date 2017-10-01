@@ -4,8 +4,7 @@ import com.model.dao.CustomDAO;
 import com.model.dao.CustomDAO.CustomDaoRows;
 import com.model.dao.core.DAOQuery;
 import com.model.dao.core.DAORows;
-import static com.model.repository.TestRepo.ID;
-import static com.model.repository.TestRepo.LOGIN;
+
 import com.model.repository.intf.CRUDE;
 import com.utils.Utils;
 import com.utils.collections.TList;
@@ -15,7 +14,7 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 public class RepositoryTest {
-
+/*
     @Test
     public void test1() throws Exception {
 
@@ -102,5 +101,5 @@ class TestRepo extends Repository<Integer> {
         });
 
     }
-
+*/
 }

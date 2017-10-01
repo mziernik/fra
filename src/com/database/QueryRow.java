@@ -10,6 +10,7 @@ import com.lang.LDatabase;
 import com.mlogger.Log;
 import com.model.dao.core.DAORow;
 import com.utils.TCurrency;
+import com.utils.collections.TList;
 import com.utils.text.StrWriter;
 import java.sql.*;
 import java.util.Date;
@@ -18,8 +19,8 @@ import java.util.Map.Entry;
 
 public class QueryRow extends DAORow implements Iterable<QueryCell> {
 
-    public static QueryRow getDummy() {
-        return new QueryRow(new Object[0], null);
+    public static QueryRow getDummy(QueryRows parent) {
+        return new QueryRow(new Object[0], parent);
     }
 
     QueryRows rows;
@@ -142,6 +143,11 @@ public class QueryRow extends DAORow implements Iterable<QueryCell> {
             throw new SQLException(LDatabase.COLUMN_NOT_FOUND.toString(columnName));
 
         return idx;
+    }
+
+    @Override
+    protected TList<String> getDAONames() {
+        return new TList<String>().addAll(rows.columns, col -> col.name);
     }
 
     @Override
